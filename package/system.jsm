@@ -9,15 +9,15 @@
 
 var EXPORTED_SYMBOLS = ["EnigmailSystem"];
 
-Components.utils.import("resource://gre/modules/ctypes.jsm"); /* global ctypes: false */
-Components.utils.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
-Components.utils.import("resource://enigmail/data.jsm"); /* global EnigmailData: false */
-Components.utils.import("resource://enigmail/subprocess.jsm"); /* global subprocess: false */
-Components.utils.import("resource://enigmail/log.jsm"); /* global EnigmailLog: false */
-Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
-
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://gre/modules/ctypes.jsm"); /* global ctypes: false */
+Cu.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
+Cu.import("resource://enigmail/data.jsm"); /* global EnigmailData: false */
+Cu.import("resource://enigmail/subprocess.jsm"); /* global subprocess: false */
+Cu.import("resource://enigmail/log.jsm"); /* global EnigmailLog: false */
 
 var gKernel32Dll = null;
 var gSystemCharset = null;
@@ -165,6 +165,7 @@ function getUnixCharset() {
 
 }
 
+
 function getKernel32Dll() {
   if (!gKernel32Dll) {
     if (EnigmailOS.isWin32) {
@@ -180,7 +181,6 @@ function getKernel32Dll() {
 
 
 var EnigmailSystem = {
-
   determineSystemCharset: function() {
     EnigmailLog.DEBUG("system.jsm: determineSystemCharset\n");
 

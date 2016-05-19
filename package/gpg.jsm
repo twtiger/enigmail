@@ -9,7 +9,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailGpg"];
+const EXPORTED_SYMBOLS = ["EnigmailGpg"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -23,6 +23,15 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+Cu.import("resource://enigmail/osDistribution.jsm"); /*global EnigmailOSDistribution: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
+
+function v(maj, min, pat) {
+  return {major: maj, minor: min, patch: pat};
+}
+
+// Socks5 arguments are no longer supported for this version of gpg and higher
+const MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED = v(2, 1, 0);
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -42,6 +51,100 @@ function pushTrimmedStr(arr, str, splitStr) {
     }
   }
   return (str.length > 0);
+}
+
+const curlDepPath = "/lib/gnupg/gpgkeys_curl";
+
+function getLibcurlDependencyPath(exePath) {
+  if (exePath === null) {
+    return null;
+  }
+
+  const path = exePath.split("/");
+  const parentDir = path.slice(0, path.length-2).join("/");
+  const fullPath = parentDir + curlDepPath;
+
+  const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+  fileObj.initWithPath(fullPath);
+  return fileObj;
+}
+
+function getDirmngrTorStatus(exitCodeObj) {
+  const command = EnigmailFiles.simpleResolvePath("gpg-connect-agent");
+  if (command === null) {
+    return null;
+  }
+
+  const args = ["--dirmngr"];
+
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(command, args) + "\n");
+
+  let stdout = '';
+  try {
+    subprocess.call({
+      command: command,
+      arguments: args,
+      environment: EnigmailCore.getEnvList(),
+      done: function(result) {
+        exitCodeObj.value = result.exitCode;
+      },
+      stdin: function(stdin) {
+        stdin.write("GETINFO tor\r\n");
+        stdin.write("bye\r\n");
+        stdin.write("\r\n");
+        stdin.close();
+      },
+      stdout: function(data) {
+        stdout += data;
+      }
+    }).wait();
+  } catch (ex) {
+    exitCodeObj.value = -1;
+    EnigmailLog.DEBUG("enigmail> DONE with FAILURE\n");
+  }
+
+  return stdout;
+}
+
+function dirmngrConfiguredWithTor() {
+  const exitCodeObj  = {value: null};
+  const output = getDirmngrTorStatus(exitCodeObj);
+
+  if (output === null || exitCodeObj.value < 0) {
+    return false;
+  }
+  return output.match(/Tor mode is enabled/) !== null;
+}
+
+function usesDirmngr() {
+  return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+}
+
+function usesSocksArguments() {
+  return !usesDirmngr() && usesLibcurl();
+}
+
+/**
+  * Checks that the user's current version of gpg is built against libcurl, not curl-shim
+  *
+  * return value is true/false depending on whether libcurl is used
+*/
+function usesLibcurl() {
+  if (!EnigmailOSDistribution.isUbuntu()) {
+    return true;
+  }
+
+  const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
+  const args = ["--version"];
+
+  const exitCodeObj  = {value: null};
+  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+
+  if (output === null || exitCodeObj.value < 0) {
+    return false;
+  }
+
+  return output.indexOf("libcurl") > -1;
 }
 
 const EnigmailGpg = {
@@ -191,22 +294,22 @@ const EnigmailGpg = {
    * (see docu for gnupg parameter --group)
    */
   getGpgGroups: function() {
-    let exitCodeObj = {};
-    let errorMsgObj = {};
+    const exitCodeObj = {};
+    const errorMsgObj = {};
 
-    let cfgStr = EnigmailGpg.getGnupgConfig(exitCodeObj, errorMsgObj);
+    const cfgStr = EnigmailGpg.getGnupgConfig(exitCodeObj, errorMsgObj);
 
     if (exitCodeObj.value !== 0) {
       EnigmailDialog.alert(errorMsgObj.value);
       return null;
     }
 
-    let groups = [];
-    let cfg = cfgStr.split(/\n/);
+    const groups = [];
+    const cfg = cfgStr.split(/\n/);
 
     for (let i = 0; i < cfg.length; i++) {
       if (cfg[i].indexOf("cfg:group") === 0) {
-        let groupArr = cfg[i].split(/:/);
+        const groupArr = cfg[i].split(/:/);
         groups.push({
           alias: groupArr[2],
           keylist: groupArr[3]
@@ -289,5 +392,26 @@ const EnigmailGpg = {
       default:
         return EnigmailLocale.getString("unknownHashAlg", [parseInt(id, 10)]);
     }
-  }
+  },
+
+  /**
+   * For versions of GPG 2.1 and higher, checks to see if the dirmngr is configured to use Tor
+   *
+   * return value is true/false depending on whether Tor is used or not
+   */
+  dirmngrConfiguredWithTor: dirmngrConfiguredWithTor,
+
+  /**
+    * Checks that the user's current version of gpg supports dirmngr
+    *
+    * return value is true/false depending on whether dirmngr can be used
+  */
+  usesDirmngr: usesDirmngr,
+
+  /**
+    * Checks that the user's current version of gpg supports socks5 arguments
+    *
+    * return value is true/false depending on whether socks5 arguments can be used
+  */
+  usesSocksArguments: usesSocksArguments
 };

@@ -13,7 +13,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false,
   withTestGpgHome: false, osUtils: false, unescape: false */
 
-testing("system.jsm"); /*global EnigmailSystem: false, Cc: false, Ci: false */
+testing("system.jsm"); /*global EnigmailSystem: false, Cc: false, Ci: false, isUbuntu: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 
@@ -42,3 +42,4 @@ test(function shouldTestUnixCharsetConversion() {
   Assert.equal(cs, "UTF-8");
   testEncoding(cs, "%E3%82%B5%E3%83%9D%E3%83%BC%E3", "%u30B5%u30DD%u30FC");
 });
+

@@ -1,16 +1,22 @@
 /*global Components: false */
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["Socks5Proxy"];
-
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+const EXPORTED_SYMBOLS = ["EnigmailSocks5Proxy"];
 
 const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
 const CHECK_TOR_URI = "https://check.torproject.org/api/ip";
 const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
@@ -20,7 +26,7 @@ const CONNECTION_FLAGS = 0;
 const SECONDS_TO_WAIT_FOR_CONNECTION = -1;
 
 function createCheckTorURIChannel() {
-  let ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+  const ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
   return ioservice.newChannel2(CHECK_TOR_URI, "UTF-8", null, null, null, null, null, null);
 }
 
@@ -35,19 +41,12 @@ function createScriptableInputStream(inputStream) {
 function buildListener(hasFoundTor, isDoneChecking) {
   const listener = {
     onStartRequest: function(request, context) {
-      EnigmailLog.DEBUG("ON START REQUEST\n");
     },
     onStopRequest: function(request, context, statusCode) {
-      EnigmailLog.DEBUG("ON STOP REQUEST\n");
       isDoneChecking();
     },
     onDataAvailable: function(request, context, inputStream, offset, count) {
-      EnigmailLog.DEBUG("ON DATA AVAILABLE\n");
-      let response = createScriptableInputStream(inputStream).read(count);
-
-      EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
-      EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
-
+      const response = createScriptableInputStream(inputStream).read(count);
       hasFoundTor(response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1);
     },
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
@@ -92,7 +91,7 @@ function checkTorExists(portPref) {
   return foundTor;
 }
 
-const Socks5Proxy = {
+const EnigmailSocks5Proxy = {
   checkTorExists: checkTorExists,
   torIpAddr: function() {
     return EnigmailPrefs.getPref(TOR_IP_ADDR_PREF);

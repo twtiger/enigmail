@@ -1,4 +1,4 @@
-/*global do_load_module: false, do_get_file: false, do_get_cwd: false, testing: false, test: false, Assert: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false, component: false */
+/*global addMacPaths: false ,do_load_module: false, do_get_file: false, do_get_cwd: false, testing: false, test: false, Assert: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false, component: false */
 /*global EnigmailCore: false, Cc: false, Ci: false, EnigmailFiles: false, EnigmailLog: false, EnigmailPrefs: false */
 /*jshint -W097 */
 /*
@@ -9,9 +9,10 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false */
 
 testing("files.jsm");
+component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 // testing: readFile
 test(function readFileReturnsContentOfExistingFile() {
@@ -34,4 +35,38 @@ test(function shouldFormatCmdLine() {
   var md = do_get_cwd();
 
   Assert.equal(EnigmailFiles.formatCmdLine(md, ["1", "2", "3"]), do_get_cwd().path + " 1 2 3");
+});
+
+test(function shouldAddMacPaths() {
+  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
+  const isDosLike = false;
+
+  TestHelper.resetting(EnigmailOS, "isMac", function() {return true;}, function() {
+    const newPath = addMacPaths(isDosLike, oldPath);
+
+    const expectedPath = '/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/local/bin:/usr/local/MacGPG2/bin';
+    Assert.equal(expectedPath, newPath);
+  });
+});
+
+test(function shouldNotAddMacPathWhenSystemIsDosLike() {
+  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
+  const isDosLike = true;
+
+  TestHelper.resetting(EnigmailOS, "isMac", function() {return false;}, function() {
+    const newPath = addMacPaths(isDosLike, oldPath);
+
+    Assert.equal(oldPath, newPath);
+  });
+});
+
+test(function shouldNotAddMacPathWhenSystemIsLinux() {
+  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
+  const isDosLike = false;
+
+  TestHelper.resetting(EnigmailOS, "isMac", function() {return false;}, function() {
+    const newPath = addMacPaths(isDosLike, oldPath);
+
+    Assert.equal(oldPath, newPath);
+  });
 });

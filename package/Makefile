@@ -35,7 +35,7 @@ MODFILES = \
            encryption.jsm \
            errorHandling.jsm \
            events.jsm \
-           executableCheck.jsm \
+           versioning.jsm \
            execution.jsm \
            funcs.jsm \
            files.jsm \
@@ -62,6 +62,7 @@ MODFILES = \
            mimeDecrypt.jsm \
            mimeVerify.jsm \
            os.jsm \
+           osDistribution.jsm \
            passwordCheck.jsm \
            passwords.jsm \
            pEp.jsm \
@@ -69,7 +70,7 @@ MODFILES = \
            prefs.jsm \
            promise.jsm \
            protocolHandler.jsm \
-           randomNumber.jsm \
+           rng.jsm \
            rules.jsm \
            socks5Proxy.jsm \
            streams.jsm \

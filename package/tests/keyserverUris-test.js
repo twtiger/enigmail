@@ -1,4 +1,10 @@
 /*global test:false, component: false, testing: false, Assert: false, do_load_module: false, do_get_cwd: false */
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
 "use strict";
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
@@ -53,4 +59,14 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
   const orderedKeyservers = [{protocol: "hkps"}, {protocol: "hkps"}, {protocol: "hkp"}];
 
   Assert.deepEqual(sortWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
+});
+
+test(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
+  setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
+
+  const keyserverUris = prioritiseEncryption();
+
+  Assert.equal(keyserverUris.length, 2);
+  Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
+  Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
 });

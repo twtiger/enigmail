@@ -8,19 +8,21 @@
 
 "use strict";
 
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
-Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
-Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-
-const EXPORTED_SYMBOLS = ["EnigmailTor"];
-
 const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global EnigmailSocks5Proxy: false */
+Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
+
+const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 function v(maj, min, pat) {
   return {major: maj, minor: min, patch: pat};
@@ -48,7 +50,7 @@ const TOR_USER_PREFERENCES= {
   DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
   SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
   UPLOAD: {requires: "uploadKeyRequireTor", uses: "uploadKeyWithTor", constant: Ci.nsIEnigmail.UPLOAD_KEY},
-  REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
+  REFRESH: {requires: "refreshAllKeysRequireTor", uses: "refreshAllKeysWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
 };
 
 function getAction(actionFlags) {
@@ -60,7 +62,7 @@ function getAction(actionFlags) {
   return null;
 }
 
-function isUsed(actionFlags) {
+function isPreferred(actionFlags) {
   const action = getAction(actionFlags);
   return EnigmailPrefs.getPref(action.requires) || EnigmailPrefs.getPref(action.uses);
 }
@@ -69,39 +71,16 @@ function isRequired(actionFlags) {
   return EnigmailPrefs.getPref(getAction(actionFlags).requires);
 }
 
-
-function gpgProxyArgs(tor, system, executableCheck) {
-  if (system.isDosLike() ||
-    !executableCheck.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
-  }
-  return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+function combineIntoProxyhostURI(protocol, tor) {
+  return protocol + createRandomCredential() + ":" + createRandomCredential() + "@" + tor.ip + ":" + tor.port;
 }
 
-function torOn(portPref) {
-  if (Socks5Proxy.checkTorExists(portPref)) {
-    const port = EnigmailPrefs.getPref(portPref);
-
-    EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
-
-    return {
-      ip: Socks5Proxy.torIpAddr(),
-      port: port
-    };
-  }
-  return null;
-}
-
-function meetsOSConstraints(os, executableCheck) {
-  if (os === 'WINNT' || os === 'OS2') {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('gpg', MINIMUM_WINDOWS_GPG_VERSION);
+function gpgProxyArgs(tor, versioning) {
+  if (EnigmailOS.isDosLike() || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+    return combineIntoProxyhostURI(OLD_CURL_PROTOCOL, tor);
   } else {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+    return combineIntoProxyhostURI(NEW_CURL_PROTOCOL, tor);
   }
-}
-
-function createRandomCredential() {
-  return RandomNumberGenerator.getUint32().toString();
 }
 
 function createHelperArgs(helper, addAuth) {
@@ -120,17 +99,43 @@ function buildEnvVars() {
   ];
 }
 
-function useAuthOverArgs(helper, executableCheck) {
-  if (helper === 'torsocks2') {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
-  }
-  return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
+function createRandomCredential() {
+  return EnigmailRNG.getUint32().toString();
 }
 
-function findTorExecutableHelper(executableCheck) {
-  const helper = executableCheck.findExecutable('torsocks2') || executableCheck.findExecutable('torsocks');
+function torOn(portPref) {
+  if (EnigmailSocks5Proxy.checkTorExists(portPref)) {
+    const port = EnigmailPrefs.getPref(portPref);
+
+    EnigmailLog.CONSOLE("Tor found on IP: " + EnigmailSocks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
+
+    return {
+      ip: EnigmailSocks5Proxy.torIpAddr(),
+      port: port
+    };
+  }
+  return null;
+}
+
+function meetsOSConstraints(versioning) {
+  if (EnigmailOS.isDosLike()) {
+    return versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
+  } else {
+    return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+  }
+}
+
+function useAuthOverArgs(helper, versioning) {
+  if (helper === 'torsocks2') {
+    return versioning.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
+  }
+  return versioning.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
+}
+
+function findTorExecutableHelper(versioning) {
+  const helper = EnigmailFiles.simpleResolvePath('torsocks2') || EnigmailFiles.simpleResolvePath('torsocks');
   if (helper) {
-    const authOverArgs = useAuthOverArgs(helper, executableCheck);
+    const authOverArgs = useAuthOverArgs(helper, versioning);
     return {
       envVars: (authOverArgs ? [] : buildEnvVars()),
       command: helper,
@@ -143,46 +148,49 @@ function findTorExecutableHelper(executableCheck) {
 
 function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableCheck))
+  if (!tor || !meetsOSConstraints(EnigmailVersioning)) {
     return null;
-  else
-    return {
-      ip: tor.ip,
-      port: tor.port,
-      username: createRandomCredential(),
-      password: createRandomCredential()
-    };
+  }
+  return tor;
 }
+
 
 const systemCaller = {
   findTor: findTor,
   findTorExecutableHelper: findTorExecutableHelper,
-  getOS: EnigmailOS.getOS,
-  isDosLike: EnigmailOS.isDosLike
 };
+
+function buildSocksProperties(tor, system) {
+  return {
+    command: 'gpg',
+    args: gpgProxyArgs(tor, EnigmailVersioning),
+    envVars: []
+  };
+}
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!tor) return null;
-
-  let torRequests = {};
-  const torHelper = system.findTorExecutableHelper(ExecutableCheck);
-  if (torHelper) {
-    torRequests.helper = torHelper;
+  if (!tor) {
+    return {isAvailable: false, useTorMode: false, socks: null, helper: null};
   }
 
-  torRequests.socks = {
-    command: 'gpg',
-    args: gpgProxyArgs(tor, system, ExecutableCheck),
-    envVars: []
-  };
-  return torRequests;
+  const helper = system.findTorExecutableHelper(EnigmailVersioning);
+  let socks = null;
+  let useTorMode = false;
+
+  if (EnigmailGpg.usesSocksArguments()) {
+    socks = buildSocksProperties(tor, system);
+  } else if (EnigmailGpg.usesDirmngr()) {
+    useTorMode = EnigmailGpg.dirmngrConfiguredWithTor();
+  }
+
+  return {isAvailable: true, useTorMode: useTorMode, socks: socks, helper: helper};
 }
 
 const EnigmailTor = {
   torProperties: function() {
     return torProperties(systemCaller);
   },
-  isUsed: isUsed,
+  isPreferred: isPreferred,
   isRequired: isRequired
 };

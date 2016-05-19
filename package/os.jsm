@@ -8,15 +8,28 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailOS"];
+const EXPORTED_SYMBOLS = ["EnigmailOS"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
+let operatingSystem = null;
 function getOS() {
-  return Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
+  if (operatingSystem === null) {
+    operatingSystem = Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
+  }
+  return operatingSystem;
+}
+
+function isDosLike() {
+  return getOS() === "WINNT" || getOS() === "OS2";
+}
+
+function isMac() {
+  return getOS() === "Darwin";
 }
 
 const EnigmailOS = {
@@ -24,21 +37,18 @@ const EnigmailOS = {
 
   getOS: getOS,
 
-  isDosLike: function() {
-    if (EnigmailOS.isDosLikeVal === undefined) {
-      EnigmailOS.isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
-    }
-    return EnigmailOS.isDosLikeVal;
-  },
+  isDosLike: isDosLike,
+
+  isMac: isMac,
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)
   // @ keyName: the name of the key to get (e.g. InstallDir)
   // @ rootKey: HKLM, HKCU, etc. (according to constants in nsIWindowsRegKey)
   getWinRegistryString: function(keyPath, keyName, rootKey) {
-    var registry = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
+    const registry = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
 
-    var retval = "";
+    let retval = "";
     try {
       registry.open(rootKey, keyPath, registry.ACCESS_READ);
       retval = registry.readStringValue(keyName);

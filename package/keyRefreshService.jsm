@@ -2,33 +2,34 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["KeyRefreshService"];
+const EXPORTED_SYMBOLS = ["EnigmailKeyRefreshService"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
-Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
-const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "hoursAWeekOnThunderbird";
 
 let timer = null;
-function createTimer() {
+function getTimer() {
   if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
   return timer;
 }
+const HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF = "hoursPerWeekEnigmailIsOn";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
-  const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME) * ONE_HOUR_IN_MILLISEC;
+  const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF) * ONE_HOUR_IN_MILLISEC;
   return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
-  const randomNumber = RandomNumberGenerator.getUint32();
+  const randomNumber = EnigmailRNG.getUint32();
   const maxTimeForRefresh = calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
 
   EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Wait time = random number: "+ randomNumber + " % max time for refresh: " + maxTimeForRefresh + "\n");
@@ -41,7 +42,7 @@ function calculateWaitTimeInMilliseconds(totalPublicKeys) {
 }
 
 function refreshKey() {
-  const timer = createTimer();
+  const timer = getTimer();
   refreshWith(EnigmailKeyServer, timer, true);
 }
 
@@ -81,7 +82,7 @@ function refreshKeyIfReady(keyserver, readyToRefresh, keyId){
 }
 
 function refreshWith(keyserver, timer, readyToRefresh) {
-  const keyId = getRandomKeyId(RandomNumberGenerator.getUint32());
+  const keyId = getRandomKeyId(EnigmailRNG.getUint32());
   const keyIdsExist = keyId !== null;
   const keyserversExist = EnigmailPrefs.getPref("keyserver").trim() !== "";
 
@@ -102,12 +103,12 @@ function refreshWith(keyserver, timer, readyToRefresh) {
  */
 function start(keyserver) {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
-    const timer = createTimer();
+    EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Started\n");
+    const timer = getTimer();
     refreshWith(keyserver, timer, false);
   }
 }
 
-const KeyRefreshService = {
+const EnigmailKeyRefreshService = {
   start: start
 };
