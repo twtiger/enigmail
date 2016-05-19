@@ -8,6 +8,9 @@
 export DEBIAN_FRONTEND=noninteractive
 echo "Provisioning ..."
 curl -s "http://git.fedorahosted.org/cgit/mailcap.git/plain/mime.types" > mime.types
+sudo apt-get install nodejs
+sudo apt-get install npm
+npm install -g jslint
 sudo cp mime.types /etc/mime.types
 sudo apt-get update
 sudo apt-get install -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" zip thunderbird xvfb gnupg2
