@@ -34,6 +34,9 @@ Cu.import("resource://enigmail/windows.jsm"); /*global EnigmailWindows: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
+Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global KeyRefreshService: false */
+Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
+
 
 /* Implementations supplied by this module */
 const NS_ENIGMAIL_CONTRACTID = "@mozdev.org/enigmail/enigmail;1";
@@ -267,6 +270,8 @@ Enigmail.prototype = {
     initializeAgentInfo();
 
     initializeObserver(this);
+
+    KeyRefreshService.start(EnigmailKeyServer);
 
     this.initialized = true;
 

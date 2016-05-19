@@ -1,0 +1,211 @@
+/*global do_load_module: false, do_get_file: false, do_get_cwd: false, test: false, Assert: false, resetting: false */
+/*global Cc: false, Ci: false, testing: false, component: false*/
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+"use strict";
+
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
+
+testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false, setupNextRefresh: false */
+
+component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+component("enigmail/log.jsm"); /*global EnigmailLog: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
+component("enigmail/core.jsm"); /*global EnigmailCore: false */
+component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+
+function withKeys(f) {
+  return function() {
+    try{
+      EnigmailKeyRing.clearCache();
+      f();
+    } finally {
+      EnigmailKeyRing.clearCache();
+    }
+  };
+}
+
+const emptyFunction = function() {};
+const HOURS_A_WEEK_ON_THUNDERBIRD = 40;
+
+test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
+  let totalKeys = 3;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
+});
+
+test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
+  let totalKeys = 2;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
+});
+
+test(function waitTimeShouldBeLessThanMax() {
+  let totalKeys = 4;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateWaitTimeInMilliseconds(totalKeys) <= maxTimeForRefresh);
+});
+
+test(function calculateNewTimeEachCall(){
+  let totalKeys = 3;
+  let firstTime = calculateWaitTimeInMilliseconds(totalKeys);
+  let secondTime = calculateWaitTimeInMilliseconds(totalKeys);
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(firstTime != secondTime);
+});
+
+test(function calculateWaitTimeReturnsWholeNumber(){
+  const totalKeys = 11;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  const number = calculateWaitTimeInMilliseconds(totalKeys);
+
+  Assert.equal(number % 1, 0);
+});
+
+function importKeys() {
+  const publicKey = do_get_file("resources/dev-tiger.asc", false);
+  const anotherKey = do_get_file("resources/notaperson.asc", false);
+  const strikeKey = do_get_file("resources/dev-strike.asc", false);
+  EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
+  EnigmailKeyRing.importKeyFromFile(anotherKey, {}, {});
+  EnigmailKeyRing.importKeyFromFile(strikeKey, {}, {});
+}
+
+function importAndReturnOneKey() {
+  EnigmailKeyRing.importKeyFromFile(do_get_file("resources/dev-strike.asc", false), {}, {});
+  return EnigmailKeyRing.getAllKeys().keyList[0].keyId;
+}
+
+test(withTestGpgHome(withEnigmail(withKeys(function shouldBeAbleToGetAllKeyIdsFromKeyList(){
+  importKeys();
+
+  const publicKeyId = "8439E17046977C46";
+  const anotherKeyId = "8A411E28A056E2A3";
+  const strikeKeyId = "781617319CE311C4";
+
+  Assert.equal(getRandomKeyId(0), publicKeyId);
+  Assert.equal(getRandomKeyId(1), anotherKeyId);
+  Assert.equal(getRandomKeyId(2), strikeKeyId);
+  Assert.equal(getRandomKeyId(3), publicKeyId);
+  Assert.equal(getRandomKeyId(4), anotherKeyId);
+
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function shouldReturnNullIfNoKeysAvailable(){
+  Assert.equal(getRandomKeyId(100), null);
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function shouldGetDifferentRandomKeys() {
+  importKeys();
+
+  Assert.notEqual(getRandomKeyId(4), getRandomKeyId(5));
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKey() {
+  const expectedKeyId = importAndReturnOneKey();
+
+  Assert.equal(getRandomKeyId(100), expectedKeyId);
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_setUpRefreshTimer(){
+  const expectedKeyId = importAndReturnOneKey();
+  const timer = {
+    initWithCallbackWasCalled: false,
+    initWithCallback: function(f, timeUntilNextRefresh, timerType) {
+      timer.initWithCallbackWasCalled = true;
+    }
+  };
+
+  const keyserver = {
+    refreshWasCalled: false,
+    refresh: function(keyId) {
+      Assert.equal(keyId, expectedKeyId);
+      keyserver.refreshWasCalled = true;
+    }
+  };
+
+  refreshWith(keyserver, timer);
+
+  Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
+  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_WithWaitTime(){
+  const expectedRandomTime = RandomNumberGenerator.getUint32();
+  const timer = {
+    initWithCallbackWasCalled: false,
+    initWithCallback: function(f, time, timerType) {
+      Assert.equal(time, expectedRandomTime);
+      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
+      timer.initWithCallbackWasCalled = true;
+    }
+  };
+
+  setupNextRefresh(timer, expectedRandomTime);
+
+  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+}))));
+
+test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHour(){
+  const timer = {
+    initWithCallbackWasCalled: false,
+    initWithCallback: function(f, time, timerType) {
+      Assert.equal(time, ONE_HOUR_IN_MILLISEC);
+      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
+      timer.initWithCallbackWasCalled = true;
+    }
+  };
+
+  const keyserver = {};
+
+  refreshWith(keyserver, timer);
+
+  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+  assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
+}))));
+
+test(withPreferences(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
+  EnigmailPrefs.setPref("keyserver", " ");
+  const timer = {
+    initWithCallbackWasCalled: false,
+    initWithCallback: function(f, time, timerType) {
+      Assert.equal(time, ONE_HOUR_IN_MILLISEC);
+      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
+      timer.initWithCallbackWasCalled = true;
+    }
+  };
+  const keyserver = {};
+
+  refreshWith(keyserver, timer);
+
+  assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
+  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+}));
+
+test(withLogFiles(withPreferences(function keyRefreshServiceIsTurnedOffByDefault(){
+  const keyRefreshStartMessage = "[KEY REFRESH SERVICE]: Started";
+  const keyserver = {};
+
+  KeyRefreshService.start(keyserver);
+  assertLogDoesNotContain(keyRefreshStartMessage);
+
+  EnigmailPrefs.setPref("keyRefreshOn", true);
+  KeyRefreshService.start(keyserver);
+  assertLogContains(keyRefreshStartMessage);
+})));

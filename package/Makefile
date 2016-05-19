@@ -27,21 +27,21 @@ MODFILES = \
            configBackup.jsm \
            configure.jsm \
            constants.jsm \
+           core.jsm \
            data.jsm \
            decryption.jsm \
            decryptPermanently.jsm \
            dialog.jsm \
            encryption.jsm \
-           core.jsm \
            errorHandling.jsm \
-           funcs.jsm \
-           gpgAgent.jsm \
-           protocolHandler.jsm \
            events.jsm \
+           executableCheck.jsm \
            execution.jsm \
+           funcs.jsm \
            files.jsm \
            filters.jsm \
            fixExchangeMsg.jsm \
+           gpgAgent.jsm \
            glodaMime.jsm \
            glodaUtils.jsm \
            gpg.jsm \
@@ -52,7 +52,9 @@ MODFILES = \
            keyEditor.jsm \
            keyRing.jsm \
 					 keyUsability.jsm \
+           keyRefreshService.jsm \
            keyserver.jsm \
+           keyserverUris.jsm \
            lazy.jsm \
            locale.jsm \
            log.jsm \
@@ -66,11 +68,15 @@ MODFILES = \
            pipeConsole.jsm \
            prefs.jsm \
            promise.jsm \
+           protocolHandler.jsm \
+           randomNumber.jsm \
            rules.jsm \
+           socks5Proxy.jsm \
            streams.jsm \
            system.jsm \
            time.jsm \
            timer.jsm \
+           tor.jsm \
            trust.jsm \
            uris.jsm \
            verify.jsm \

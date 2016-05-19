@@ -13,7 +13,7 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("rules.jsm");
-component("enigmail/keyRing.jsm"); /* global EnigmailKeyRing: false */
+component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 
 // getRulesFile
 test(function getRulesFileReturnsTheFile() {
@@ -199,7 +199,7 @@ test(withTestGpgHome(withEnigmail(function mapAddrsToKeys_simpleFlags() {
   });
 })));
 
-test(function mapAddrsToKeys_signAndEncrypt() {
+test(withEnigmail(function mapAddrsToKeys_signAndEncrypt() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -230,9 +230,9 @@ test(function mapAddrsToKeys_signAndEncrypt() {
     Assert.deepEqual(expectedFlags, flagsRet);
     Assert.deepEqual(expectedKeys, matchedKeysRet);
   });
-});
+}));
 
-test(function mapAddrsToKeys_conflict() {
+test(withEnigmail(function mapAddrsToKeys_conflict() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -269,9 +269,9 @@ test(function mapAddrsToKeys_conflict() {
     Assert.deepEqual(expectedFlags, flagsRet);
     Assert.deepEqual(expectedKeys, matchedKeysRet);
   });
-});
+}));
 
-test(function mapAddrsToKeys_twoKeysAndNoKey() {
+test(withEnigmail(function mapAddrsToKeys_twoKeysAndNoKey() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -303,9 +303,9 @@ test(function mapAddrsToKeys_twoKeysAndNoKey() {
     Assert.deepEqual(expectedFlags, flagsRet);
     Assert.deepEqual(expectedKeys, matchedKeysRet);
   });
-});
+}));
 
-test(function mapAddrsToKeys_noKeyAndSomeKeysReverse() { // important to test reverse order than in rules
+test(withEnigmail(function mapAddrsToKeys_noKeyAndSomeKeysReverse() { // important to test reverse order than in rules
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -341,9 +341,9 @@ test(function mapAddrsToKeys_noKeyAndSomeKeysReverse() { // important to test re
     Assert.deepEqual(expectedFlags, flagsRet);
     Assert.deepEqual(expectedKeys, matchedKeysRet);
   });
-});
+}));
 
-test(function mapAddrsToKeys_spaces() {
+test(withEnigmail(function mapAddrsToKeys_spaces() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -371,9 +371,9 @@ test(function mapAddrsToKeys_spaces() {
     Assert.deepEqual(expectedFlags, flagsRet);
     Assert.deepEqual(expectedKeys, matchedKeysRet);
   });
-});
+}));
 
-test(function mapAddrsToKeys_manyKeys() {
+test(withEnigmail(function mapAddrsToKeys_manyKeys() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -421,9 +421,9 @@ test(function mapAddrsToKeys_manyKeys() {
     Assert.deepEqual(expectedKeys.addrKeysList, matchedKeysRet.addrKeysList);
     Assert.deepEqual(expectedKeys.addrNoKeyList, matchedKeysRet.addrNoKeyList);
   });
-});
+}));
 
-test(function mapAddrsToKeys_multipleMatches() {
+test(withEnigmail(function mapAddrsToKeys_multipleMatches() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -471,9 +471,9 @@ test(function mapAddrsToKeys_multipleMatches() {
     //Assert.deepEqual(expectedKeys.addrKeysList[2], matchedKeysRet.addrKeysList[2]);
     //Assert.deepEqual(expectedKeys.addrKeysList[3], matchedKeysRet.addrKeysList[3]);
   });
-});
+}));
 
-test(function mapAddrsToKeys_infix() {
+test(withEnigmail(function mapAddrsToKeys_infix() {
   EnigmailRules.clearRules();
   resetting(EnigmailRules, 'getRulesFile', function() {
     return do_get_file("resources/rules2.xml", false);
@@ -507,7 +507,7 @@ test(function mapAddrsToKeys_infix() {
       "info@qqq.bb",
       "0xAAAAAAAA, 0xBBBBBBBB");
   });
-});
+}));
 
 
 function importKeys() {

@@ -195,6 +195,7 @@ var EnigmailRules = {
 
     let enigmailSvc = EnigmailCore.getService();
     if (!enigmailSvc) {
+      EnigmailLog.DEBUG("EnigmailCore Service is down\n");
       return false;
     }
 
