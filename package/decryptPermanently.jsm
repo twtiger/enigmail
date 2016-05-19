@@ -801,7 +801,7 @@ DecryptMessageIntoFolder.prototype = {
       decryptedMessage += mime.body.substring(blocks[(blocks.length - 1)].end + 1);
 
       // enable base64 encoding if non-ASCII character(s) found
-      let j = decryptedMessage.search(/[^\x01-\x7F]/);
+      let j = decryptedMessage.search(/[^\x01-\x7F]/); // eslint-disable-line no-control-regex
       if (j >= 0) {
         mime.headers['content-transfer-encoding'] = ['base64'];
         mime.body = EnigmailData.encodeBase64(decryptedMessage);
