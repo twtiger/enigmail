@@ -13,7 +13,6 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withE
 testing("encryption.jsm"); /*global EnigmailEncryption: false, nsIEnigmail: false */
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: fales */
 component("enigmail/armor.jsm"); /*global EnigmailArmor: fales */
-component("enigmail/Locale.jsm"); /*global EnigmailLocale: fales */
 
 test(withTestGpgHome(withEnigmail(function shouldSignMessage() {
   const secretKey = do_get_file("resources/dev-strike.sec", false);
