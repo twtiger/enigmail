@@ -34,6 +34,8 @@ Cu.import("resource://enigmail/windows.jsm"); /*global EnigmailWindows: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
+Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global EnigmailApp: false */
+
 
 /* Implementations supplied by this module */
 const NS_ENIGMAIL_CONTRACTID = "@mozdev.org/enigmail/enigmail;1";
@@ -185,6 +187,29 @@ function initializeObserver(on) {
   obsServ.addObserver(on, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
 }
 
+
+// TODO look over parsimonie and add all configuation attributes that we will need
+
+function initializeKeyRefreshService() {
+// strictConnect is whether the user should _only_ connect over tor
+// timeToRefresh is 1 week as default and is defined in days
+// env is what kind of operating system we are on
+  var config = {strictConnect: true,
+                timeToRefresh: 7,
+                env: ""};
+
+
+  var refreshService = KeyRefreshService.service(config);
+
+  // TODO
+  //if (refreshService.connect()) {
+    //refreshService.start();
+  //} else {
+    // log that we are unable to connect
+    // should we try again to connect if we fail? maybe also on a timer
+  //}
+}
+
 function Enigmail() {
   this.wrappedJSObject = this;
 }
@@ -267,6 +292,8 @@ Enigmail.prototype = {
     initializeAgentInfo();
 
     initializeObserver(this);
+
+    initializeKeyRefreshService();
 
     this.initialized = true;
 
