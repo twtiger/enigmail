@@ -7,6 +7,7 @@ install:
 script:
   - ./configure
   - make > /dev/null 2>&1
+  - Xvfb :99 -screen 0 1024x768x24 -extension RANDR &
   - Xvfb :99 >/dev/null 2>&1 &
   - export DISPLAY=:99
   - ./configure --enable-tests --with-tb-path=$(which thunderbird)
