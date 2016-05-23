@@ -20,6 +20,10 @@ RUN apt-get install -y language-pack-en-base
 RUN apt-get install -y mime-support
 RUN apt-get install -y rng-tools
 RUN apt-get install -y haveged
+RUN apt-get install -y nodejs
+RUN ln -s /usr/bin/nodejs /usr/bin/node
+RUN apt-get install -y npm
+RUN npm install -g eslint
 RUN wget -O /tmp/jsunit-0.1.4.xpi https://www.enigmail.net/jsunit/jsunit-0.1.4.xpi
 RUN rm -rf /usr/lib/thunderbird-addons/extensions/jsunit@enigmail.net
 RUN unzip /tmp/jsunit-0.1.4.xpi -d /usr/lib/thunderbird-addons/extensions/jsunit@enigmail.net
