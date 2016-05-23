@@ -34,7 +34,7 @@ Cu.import("resource://enigmail/windows.jsm"); /*global EnigmailWindows: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
-Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global EnigmailApp: false */
+Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global KeyRefreshService: false */
 
 
 /* Implementations supplied by this module */
