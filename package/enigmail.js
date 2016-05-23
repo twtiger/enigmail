@@ -201,13 +201,8 @@ function initializeKeyRefreshService() {
 
   var refreshService = KeyRefreshService.service(config);
 
-  // TODO
-  //if (refreshService.connect()) {
-    //refreshService.start();
-  //} else {
-    // log that we are unable to connect
-    // should we try again to connect if we fail? maybe also on a timer
-  //}
+  //TODO
+  //refreshService.start();
 }
 
 function Enigmail() {
