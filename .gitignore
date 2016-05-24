@@ -13,6 +13,8 @@ ipc/src/libsubprocess-*.dylib
 ipc/src/libsubprocess-*.so
 /test_output.log
 /ipc/tests/ipc-data.txt
+/package/tests/jsunit.result
+unused.txt
 
 # vi tmp files:
 *.swp
