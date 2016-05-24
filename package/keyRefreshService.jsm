@@ -19,31 +19,29 @@ function RefreshService(config) {
   this.strictConnect = config.strictConnect;
   this.timeToRefresh = config.timeToRefresh;
   this.os = config.os; // injecting for testing purposes
-}
-
-RefreshService.prototype = (function(){
+  var that = this;
 
   // TODO
-  // This method will first try connecting over Tor
-  // If this is unsuccessful, and strictConnect is not set, then it will try to connect regularly
   function canConnect() {
-    var connected = false;
-    if (canConnectOverTor()) {
-      connected = true;
-    } else if (!this.strictConnect) {
-      connected = canConnectOverRegularConnection();
-    }
-    return canConnect;
+    return false;
+    //var connected = false;
+    // if (canConnectOverTor()) {
+    //   connected = true;
+    // } else if (!that.strictConnect) {
+    //   connected = canConnectOverRegularConnection();
+    // }
+    // return canConnect;
   }
 
   // TODO
   // returns True/False depending on whether we can connect
   function canConnectOverTor() {
-    if (this.os == "WINNT") {
-      return checkTorOnWindows();
-    } else {
-      return checkTor();
-    }
+    return false;
+    //    if (that.os == "WINNT") {
+    //      return checkTorOnWindows();
+    //    } else {
+    //      return checkTor();
+    //    }
   }
 
   function checkTor() {
@@ -57,7 +55,9 @@ RefreshService.prototype = (function(){
 
   // TODO
   // should return True/False depending on whether we can connect
-  function canConnectOverRegularConnection() {}
+  function canConnectOverRegularConnection() {
+    return false;
+  }
 
   // TODO
   // check to see if the number of public keys that a user has is greater than 0
@@ -82,7 +82,7 @@ RefreshService.prototype = (function(){
 
   // TODO
   // This method will start the refresh loop, depending on the length of time to refresh all keys
-  function start() {
+  this.start = function() {
     var hasError = false;
     if (canConnect()) { // TODO also check that the user has any public keys
       // loop:
@@ -93,11 +93,12 @@ RefreshService.prototype = (function(){
       logError("Error in instantiating continuous key refresh service");
     }
     return hasError;
-  }
+  };
+}
 
+RefreshService.prototype = (function(){
   return {
-  constructor: RefreshService,
-  start: start
+  constructor: RefreshService
   };
 })();
 
