@@ -193,10 +193,10 @@ function initializeObserver(on) {
 function initializeKeyRefreshService() {
 // strictConnect is whether the user should _only_ connect over tor
 // timeToRefresh is 1 week as default and is defined in days
-// env is what kind of operating system we are on
   var config = {strictConnect: true,
                 timeToRefresh: 7,
-                env: ""};
+                os: EnigmailOS.getOS()
+  };
 
 
   var refreshService = KeyRefreshService.service(config);

@@ -13,7 +13,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestH
 
 testing("keyRefreshService.jsm"); /*global KeyRefreshService: false */
 
-test(withTestGpgHome(withEnigmail(function testConnectToTor() {
+test(withTestGpgHome(withEnigmail(function testInvalidConfig() {
   var config = {};
   var service = KeyRefreshService.service(config);
   var hasError = service.start();
@@ -21,3 +21,18 @@ test(withTestGpgHome(withEnigmail(function testConnectToTor() {
   Assert.equal(true, hasError);
 })));
 
+test(withTestGpgHome(withEnigmail(function testConnectOverTorSocksOnLinux() {
+  var config = {env: "notWindows"};
+})));
+
+test(withTestGpgHome(withEnigmail(function testConnectOverTorOnWindows() {
+  var config = {env: "WINNT"};
+})));
+
+test(withTestGpgHome(withEnigmail(function testConnectOverRegularConnectionIfTorIsNotAvailableAndStrictConnectIsFalse() {
+  var config = {strictConnect: false};
+})));
+
+test(withTestGpgHome(withEnigmail(function testStrictConnectOnlyConnectsOverTor() {
+  var config = {strictConnect: true};
+})));
