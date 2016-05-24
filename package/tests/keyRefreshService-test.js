@@ -13,12 +13,18 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestH
 
 testing("keyRefreshService.jsm"); /*global KeyRefreshService: false */
 
+// TODO
 test(withTestGpgHome(withEnigmail(function testInvalidConfig() {
   var config = {};
-  var service = KeyRefreshService.service(config);
-  var hasError = service.start();
+})));
 
-  Assert.equal(true, hasError);
+// TODO
+test(withTestGpgHome(withEnigmail(function testGetRandomKey() {
+  var config = {strictConnect: false};
+})));
+
+// TODO
+test(withTestGpgHome(withEnigmail(function testUserWithPublicKeys() {
 })));
 
 test(withTestGpgHome(withEnigmail(function testConnectOverTorSocksOnLinux() {
