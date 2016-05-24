@@ -23,7 +23,9 @@ RefreshService.prototype = (function(){
   // TODO
   // This method will first try connecting over Tor
   // If this is unsuccessful, and strictConnect is not set, then it will try to connect regularly
-  function checkConnection() {}
+  function canConnect() {
+    return false;
+  }
 
   // TODO
   // should return True/False depending on whether we can connect
@@ -51,7 +53,7 @@ RefreshService.prototype = (function(){
 
   // TODO
   function logError(err) {
-//    EnigmailLog.ERROR("keyRefreshService.jsm:\n" + err);
+    EnigmailLog.ERROR("keyRefreshService.jsm:\n" + err);
   }
 
   return {
@@ -61,12 +63,16 @@ RefreshService.prototype = (function(){
   // TODO
   // This method will start the refresh loop, depending on the length of time to refresh all keys
   start: function() {
-    // sleepRandomTime
-    // checkConnection
-    // if we are able to connect, and hasPublicKeys:
-      // refreshRandomKey
-    // else
- //   logError("Error in instantiating continuous key refresh service");
+    var hasError = false;
+    if (canConnect()) { // TODO also check that the user has any public keys
+      // loop:
+        // sleepRandomTime
+        // refreshRandomKey
+    } else {
+      hasError = true;
+      logError("Error in instantiating continuous key refresh service");
+    }
+    return hasError;
   },
   };
 })();

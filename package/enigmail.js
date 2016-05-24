@@ -201,8 +201,8 @@ function initializeKeyRefreshService() {
 
   var refreshService = KeyRefreshService.service(config);
 
-  //TODO
   //refreshService.start();
+  // TODO log whether the service is running successfully or if there was an error
 }
 
 function Enigmail() {
