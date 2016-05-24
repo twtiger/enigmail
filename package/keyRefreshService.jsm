@@ -1,8 +1,10 @@
-/*global Components: false */
+/*global Components: false, EnigmailLog: false */
 
 "use strict";
 
 var EXPORTED_SYMBOLS = ["KeyRefreshService"];
+
+Components.utils.import("resource://enigmail/log.jsm");
 
 const KeyRefreshService = {
   service: function(config) {
@@ -45,7 +47,12 @@ RefreshService.prototype = (function(){
 
   // TODO
   // should  get scaled refresh time depending on the total refresh period
-  function getTimeToSleep() {}
+  function sleepRandomTime() {}
+
+  // TODO
+  function logError(err) {
+//    EnigmailLog.ERROR("keyRefreshService.jsm:\n" + err);
+  }
 
   return {
 
@@ -54,11 +61,12 @@ RefreshService.prototype = (function(){
   // TODO
   // This method will start the refresh loop, depending on the length of time to refresh all keys
   start: function() {
-    // getTimeToSleep
-    // sleep
+    // sleepRandomTime
     // checkConnection
     // if we are able to connect, and hasPublicKeys:
       // refreshRandomKey
+    // else
+ //   logError("Error in instantiating continuous key refresh service");
   },
   };
 })();
