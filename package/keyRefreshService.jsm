@@ -56,13 +56,9 @@ RefreshService.prototype = (function(){
     EnigmailLog.ERROR("keyRefreshService.jsm:\n" + err);
   }
 
-  return {
-
-  constructor: RefreshService,
-
   // TODO
   // This method will start the refresh loop, depending on the length of time to refresh all keys
-  start: function() {
+  function start() {
     var hasError = false;
     if (canConnect()) { // TODO also check that the user has any public keys
       // loop:
@@ -73,7 +69,11 @@ RefreshService.prototype = (function(){
       logError("Error in instantiating continuous key refresh service");
     }
     return hasError;
-  },
+  }
+
+  return {
+  constructor: RefreshService,
+  start: start
   };
 })();
 
