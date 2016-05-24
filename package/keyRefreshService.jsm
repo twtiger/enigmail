@@ -30,7 +30,7 @@ RefreshService.prototype = {
     // getTimeToSleep
     // sleep
     // checkConnection
-    // if we are able to connect:
+    // if we are able to connect, and hasPublicKeys:
       // refreshRandomKey
   },
 
@@ -47,6 +47,10 @@ RefreshService.prototype = {
   // TODO
   // should return True/False depending on whether we can connect
   connectOverRegularConnection() {},
+
+  // TODO
+  // check to see if the number of public keys that a user has is greater than 0
+  hasPublicKeys() {},
 
   // TODO
   // should get a random key from all public keys for that user
