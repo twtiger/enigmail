@@ -53,6 +53,7 @@ MODFILES = \
            keyEditor.jsm \
            keyRing.jsm \
            keyRefreshService.jsm \
+           keyRefreshAlgorithm.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \
