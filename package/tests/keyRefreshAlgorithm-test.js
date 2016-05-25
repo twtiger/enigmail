@@ -29,63 +29,77 @@
 // Test against invalid config
 //
 
-/*global do_load_module: false, do_get_cwd: false, testing: false, test: false, Assert: false, KeyRefreshAlgorithm: false */
+/*global do_load_module: false, do_get_cwd: false, testing: false, test: false, Assert: false, do_get_file: false*/
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /* global withEnigmail:false, withTestGpgHome: false */
 
-testing("keyRefreshAlgorithm.jsm");
+testing("keyRefreshAlgorithm.jsm"); /* global KeyRefreshAlgorithm: false */
+component("enigmail/keyRing.jsm"); /* global component: false, EnigmailKeyRing: false */
+component("enigmail/log.jsm"); /* global EnigmailLog: false */
 
-test(function calculateMaxTimeForRefreshForFourtyHoursAWeek() {
+function importSeveralKeys(num) {
+  if (num > 1) {
+    let publicKey = do_get_file("resources/dev-strike.asc", false);
+    EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
+    let otherKey = do_get_file("resources/dev-tiger.asc", false);
+    EnigmailKeyRing.importKeyFromFile(otherKey, {}, {});
+  }
+  if (num > 2) {
+    let thirdKey = do_get_file("resources/notaperson.asc", false);
+    EnigmailKeyRing.importKeyFromFile(thirdKey, {}, {});
+  }
+}
+
+test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
+  EnigmailLog.setLogLevel(9000);
+
   let config = {
     hoursAWeekOnThunderbird: 40,
-    // TODO below can come from another enigmail service
-    totalKeys: 7,
   };
+  let totalKeys = 3;
+  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
   Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
-});
+})));
 
-test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
+test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   let config = {
     hoursAWeekOnThunderbird: 10,
-    // TODO below can come from another enigmail service
-    totalKeys: 7,
   };
+  let totalKeys = 2;
+  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
   Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
-});
+})));
 
-
-test(function waitTimeShouldBeLessThanMax() {
+test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
   let config = {
     hoursAWeekOnThunderbird: 40,
-    // TODO below can come from another enigmail service
-    totalKeys: 7,
   };
+  let totalKeys = 3;
+  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
   Assert.ok(KeyRefreshAlgorithm.calculateWaitTime(config) <= maxTimeForRefresh);
-});
+})));
 
-test(function calculateNewTimeEachCall(){
+test(withTestGpgHome(withEnigmail(function calculateNewTimeEachCall(){
   let config = {
     hoursAWeekOnThunderbird: 40,
-    // TODO below can come from another enigmail service
-    totalKeys: 7,
   };
 
   let firstTime = KeyRefreshAlgorithm.calculateWaitTime(config);
   let secondTime = KeyRefreshAlgorithm.calculateWaitTime(config);
 
   Assert.ok(firstTime != secondTime);
-});
+})));
