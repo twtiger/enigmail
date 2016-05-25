@@ -37,23 +37,56 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("keyRefreshAlgorithm.jsm");
 
-let oneWeekInSec = 7 * 24 * 60 * 60;
-let expectedMax = 2 * 24 * 60 * 60; // 2 days in seconds
+test(function calculateMaxTimeForRefreshForOneWeekInterval() {
+  let config = {
+    hoursAWeekOnThunderbird: 40,
+    // TODO below can come from another enigmail service
+    totalKeys: 7,
+  };
 
-let config = {
-  refreshInterval: oneWeekInSec,
-  hoursAWeekOnThunderbird: 40,
-  // TODO below can come from another enigmail service
-  totalKeys: 7,
-};
+  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
 
-test(function calculateWaitTimeForOneWeekRefreshInterval() {
-  Assert.ok(KeyRefreshAlgorithm.calculateWaitTime(config) <= expectedMax);
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
 });
 
-//test(function newTimeEachCall(){
-//  let firstTime = KeyRefreshAlgorithm.calculateWaitTime(config);
-//  let secondTime = KeyRefreshAlgorithm.calculateWaitTime(config);
-//
-//  Assert.ok( firstTime != secondTime);
-//});
+test(function calculateMaxTimeForRefreshTwoWeekInterval() {
+  let twoWeeksInSec = 14 * 24 * 60 * 60;
+  let config = {
+    hoursAWeekOnThunderbird: 40,
+    // TODO below can come from another enigmail service
+    totalKeys: 7,
+  };
+
+  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
+
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
+});
+
+
+test(function waitTimeShouldBeLessThanMax() {
+  let config = {
+    hoursAWeekOnThunderbird: 40,
+    // TODO below can come from another enigmail service
+    totalKeys: 7,
+  };
+
+  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
+  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / config.totalKeys;
+
+  Assert.ok(KeyRefreshAlgorithm.calculateWaitTime(config) <= maxTimeForRefresh);
+});
+
+test(function calculateNewTimeEachCall(){
+  let config = {
+    hoursAWeekOnThunderbird: 40,
+    // TODO below can come from another enigmail service
+    totalKeys: 7,
+  };
+
+  let firstTime = KeyRefreshAlgorithm.calculateWaitTime(config);
+  let secondTime = KeyRefreshAlgorithm.calculateWaitTime(config);
+
+  Assert.ok(firstTime != secondTime);
+});
