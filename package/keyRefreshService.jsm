@@ -51,8 +51,12 @@ RefreshService.prototype = {
   // TODO
   refreshKeyTorConnection: function() {},
 
-  // TODO
-  getRandomKey: function(keys) {},
+  getRandomKey: function(keys) {
+    var max = keys.keyList.length;
+    var min = 1;
+    var n = Math.floor(Math.random() * (max - min) + min);
+    return keys.keyList[n];
+  },
 
   // TODO
   refreshRandomKey: function(torUser, keys) {
