@@ -37,7 +37,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("keyRefreshAlgorithm.jsm");
 
-test(function calculateMaxTimeForRefreshForOneWeekInterval() {
+test(function calculateMaxTimeForRefreshForFourtyHoursAWeek() {
   let config = {
     hoursAWeekOnThunderbird: 40,
     // TODO below can come from another enigmail service
@@ -50,10 +50,9 @@ test(function calculateMaxTimeForRefreshForOneWeekInterval() {
   Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
 });
 
-test(function calculateMaxTimeForRefreshTwoWeekInterval() {
-  let twoWeeksInSec = 14 * 24 * 60 * 60;
+test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   let config = {
-    hoursAWeekOnThunderbird: 40,
+    hoursAWeekOnThunderbird: 10,
     // TODO below can come from another enigmail service
     totalKeys: 7,
   };
