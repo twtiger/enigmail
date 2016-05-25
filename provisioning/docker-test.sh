@@ -13,7 +13,5 @@ fi
 PROVISIONING_DIR=`dirname "$CURRENT_FILE"`
 ENIGMAIL_ROOT=`dirname "$PROVISIONING_DIR"`
 
-docker run -v $ENIGMAIL_ROOT:/enigmail-src -i -t enigmail-unit make clean
-docker run -v $ENIGMAIL_ROOT:/enigmail-src -i -t enigmail-unit ./configure --enable-tests --with-tb-path=/usr/bin/thunderbird
-docker run -v $ENIGMAIL_ROOT:/enigmail-src -i -t enigmail-unit make
+docker run -v $ENIGMAIL_ROOT:/enigmail-src -i -t enigmail-unit make eslint
 docker run -v $ENIGMAIL_ROOT:/enigmail-src -i -t enigmail-unit ./test.sh "$@"
