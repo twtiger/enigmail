@@ -64,7 +64,7 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForFortyHou
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInSec(config) == maxTimeForRefresh);
 })));
 
 test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHoursAWeek() {
@@ -77,7 +77,7 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHours
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefresh(config) == maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInSec(config) == maxTimeForRefresh);
 })));
 
 test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
@@ -90,7 +90,7 @@ test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateWaitTime(config) <= maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInSec(config) <= maxTimeForRefresh);
 })));
 
 test(withTestGpgHome(withEnigmail(function calculateNewTimeEachCall(){
@@ -98,8 +98,8 @@ test(withTestGpgHome(withEnigmail(function calculateNewTimeEachCall(){
     hoursAWeekOnThunderbird: 40,
   };
 
-  let firstTime = KeyRefreshAlgorithm.calculateWaitTime(config);
-  let secondTime = KeyRefreshAlgorithm.calculateWaitTime(config);
+  let firstTime = KeyRefreshAlgorithm.calculateWaitTimeInSec(config);
+  let secondTime = KeyRefreshAlgorithm.calculateWaitTimeInSec(config);
 
   Assert.ok(firstTime != secondTime);
 })));

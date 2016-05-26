@@ -14,14 +14,11 @@ const APPSHELL_MEDIATOR_CONTRACTID = "@mozilla.org/appshell/window-mediator;1";
 
 var KeyRefreshAlgorithm = {
 
-  calculateMaxTimeForRefresh: function(config) {
+  calculateMaxTimeForRefreshInSec: function(config) {
     let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-    let thing = EnigmailKeyRing.getAllKeys();
+    let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
 
-    EnigmailLog.DEBUG("length: " + thing.keyList.length + "\n");
-
-    let maxTimeForRefresh = 2 * secondsAvailableForRefresh / thing.keyList.length;
-    return maxTimeForRefresh;
+    return 2 * secondsAvailableForRefresh / totalPublicKeys;
   },
 
   getRandomUint32: function() {
@@ -36,8 +33,7 @@ var KeyRefreshAlgorithm = {
     return array[0];
   },
 
-  calculateWaitTime: function(config) {
-    let waitTimeInSec = this.getRandomUint32() % this.calculateMaxTimeForRefresh(config);
-    return waitTimeInSec;
+  calculateWaitTimeInSec: function(config) {
+    return this.getRandomUint32() % this.calculateMaxTimeForRefreshInSec(config);
   },
 };
