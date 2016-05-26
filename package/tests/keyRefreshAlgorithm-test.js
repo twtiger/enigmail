@@ -53,13 +53,11 @@ function importSeveralKeys(num) {
 }
 
 test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
-  EnigmailLog.setLogLevel(9000);
-
+  let totalKeys = 3;
+  importSeveralKeys(totalKeys);
   let config = {
     hoursAWeekOnThunderbird: 40,
   };
-  let totalKeys = 3;
-  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
@@ -68,11 +66,11 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForFortyHou
 })));
 
 test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHoursAWeek() {
+  let totalKeys = 2;
+  importSeveralKeys(totalKeys);
   let config = {
     hoursAWeekOnThunderbird: 10,
   };
-  let totalKeys = 2;
-  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
@@ -81,17 +79,30 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHours
 })));
 
 test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
+  let totalKeys = 3;
+  importSeveralKeys(totalKeys);
   let config = {
     hoursAWeekOnThunderbird: 40,
   };
-  let totalKeys = 3;
-  importSeveralKeys(totalKeys);
 
   let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
   let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
 
   Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInSec(config) <= maxTimeForRefresh);
 })));
+
+test(function testConversionFromByteObjectToUnsignedInteger(){
+  // 1100 1110 0000 1001 1100 0111 1101 1111
+  let expected = 3456747487;
+  let byteObject = {
+    0:206, // 1100 1110
+    1:9,   // 0000 1001
+    2:199, // 1100 0111
+    3:223, // 1101 1111
+  };
+
+  Assert.equal(KeyRefreshAlgorithm.bytesToUInt(byteObject), expected);
+});
 
 test(withTestGpgHome(withEnigmail(function calculateNewTimeEachCall(){
   let config = {

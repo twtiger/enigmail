@@ -9,28 +9,31 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const debugInfo = "keyRefreshAlgorithm.jsm: ";
-const APPSHELL_MEDIATOR_CONTRACTID = "@mozilla.org/appshell/window-mediator;1";
+const SECURITY_RANDOM_GENERATOR = "@mozilla.org/security/random-generator;1";
 
 var KeyRefreshAlgorithm = {
 
   calculateMaxTimeForRefreshInSec: function(config) {
     let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
     let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-
     return 2 * secondsAvailableForRefresh / totalPublicKeys;
   },
 
+  bytesToUInt: function(byteObject) {
+    let randomNumber = new Uint32Array(1);
+    for (let key in byteObject) {
+      randomNumber[0] += byteObject[key];
+      if (key != Object.keys(byteObject).length-1) {
+        randomNumber[0] = randomNumber[0] << 8;
+      }
+    }
+    return randomNumber[0];
+  },
+
   getRandomUint32: function() {
-    // TODO Decide a proper .xul for use with manual testing
-    const wwatch = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
-    let windowConfig = {
-      preventDefault: true, // do not open main app window
-    };
-    let win = wwatch.openWindow(null, "chrome://enigmail/content/enigmailKeyManager.xul", "_blank", "chrome,dialog=no,all", windowConfig);
-    let array = new Uint32Array(1);
-    win.crypto.getRandomValues(array);
-    return array[0];
+    let generator = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
+    let byteObject = generator.generateRandomBytes(8);
+    return this.bytesToUInt(byteObject);
   },
 
   calculateWaitTimeInSec: function(config) {
