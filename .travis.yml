@@ -5,7 +5,7 @@ compiler:
 install:
   provisioning/provision-travis.sh
 script:
-  - ./configure
+  - ./configure --with-tb-path=$(which thunderbird)
   - make > /dev/null 2>&1
   - Xvfb :99 -screen 0 1024x768x24 -extension RANDR >/dev/null 2>&1 &
   - export DISPLAY=:99
