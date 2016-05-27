@@ -10,6 +10,7 @@ import os
 import subprocess
 import select
 import re
+import random
 
 class TestRunner:
     IGNORED_TESTS = ['./ipc/tests']
@@ -51,6 +52,7 @@ class TestRunner:
         with open(TestRunner.TEST_OUTPUT_FILE, 'w') as test_output:
             self.test_output = test_output
             self.reset_total()
+            random.shuffle(self.tests)
             for t in self.tests:
                 self.run_test(t)
             return (self.total_executed, self.total_succeeded, self.total_failed)
