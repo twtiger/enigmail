@@ -32,7 +32,7 @@ var KeyRefreshAlgorithm = {
 
   getRandomUint32: function() {
     let generator = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
-    let byteObject = generator.generateRandomBytes(8);
+    let byteObject = generator.generateRandomBytes(4);
     return this.bytesToUInt(byteObject);
   },
 
