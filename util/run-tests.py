@@ -52,7 +52,6 @@ class TestRunner:
         with open(TestRunner.TEST_OUTPUT_FILE, 'w') as test_output:
             self.test_output = test_output
             self.reset_total()
-            random.shuffle(self.tests)
             for t in self.tests:
                 self.run_test(t)
             return (self.total_executed, self.total_succeeded, self.total_failed)
@@ -127,12 +126,10 @@ class TestRunner:
                 self.analyze_output(str)
         return ret
 
-
     def add_stats(self):
         self.total_executed = self.total_executed + self.executed
         self.total_succeeded = self.total_succeeded + self.succeeded
         self.total_failed = self.total_failed + self.failed
-
     def spin_test(self, dir_name, tmp_file):
         tsk = subprocess.Popen([self.tbpath, '-jsunit', os.path.basename(tmp_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dir_name)
         ret = self.polling(tsk, self.combine(self.write_to_log(), self.reporting()), self.write_to_log())
@@ -154,12 +151,58 @@ class TestRunner:
         finally:
             os.remove(tmp_file)
 
+
+class OptionsEvaluator:
+    SORT_OPTION = '-s'
+    SEED_OPTION = '-seed='
+    HELP_OPTION = '-h'
+
+    def print_help():
+        print('Usage: run-tests.py [OPTION] [PATH TO TEST FILES]')
+        print('By default, this will run all the tests in random order.')
+        print('  [OPTIONS]')
+        print('  -s\t This will run tests in alphabetically sorted order.')
+        print('  -seed=\t Use a seed to get the same shuffle order more than once')
+
+    @staticmethod
+    def random_shuffle(seed, tests):
+        if seed:
+            random.seed(seed)
+        random.shuffle(tests)
+        return tests
+
+    def evaluate(self):
+        if OptionsEvaluator.HELP_OPTION in sys.argv:
+            self.print_help()
+            sys.exit(1)
+
+        if len(sys.argv) == 1:
+            return OptionsEvaluator.random_shuffle(False, [f for f in TestRunner.all_tests()])
+        elif len(sys.argv) == 2:
+            tests = [f for f in TestRunner.all_tests]
+        elif len(sys.argv) > 2:
+            tests = [f for f in sys.argv[2:]]
+
+        if self.grab_seed():
+            return OptionsEvaluator.random_shuffle(self.grab_seed(), tests)
+        elif OptionsEvaluator.SORT_OPTION in sys.argv:
+            return sorted(tests)
+        else:
+            return OptionsEvaluator.random_shuffle(False, [f for f in sys.argv[1:]])
+
+    def grab_seed(self):
+        for o in sys.argv:
+            if OptionsEvaluator.SEED_OPTION in o:
+                if OptionsEvaluator.SORT_OPTION in sys.argv:
+                    print('Error: Cannot use both the sort (-s) option and -seed= option at the same time')
+                    print("Please use 'run-tests.py -h' to check program usage")
+                    sys.exit(1)
+                return o.split(OptionsEvaluator.SEED_OPTION)[1]
+        return False
+
 if __name__ == '__main__':
     tbpath = os.environ.get('TB_PATH', '/usr/bin/thunderbird')
-    if len(sys.argv) < 2:
-        tests = sorted([f for f in TestRunner.all_tests()])
-    else:
-        tests = sys.argv[1:]
+    tests = OptionsEvaluator().evaluate()
     (ran, suc, fail) = TestRunner(tbpath, tests).run()
     print "Ran " + str(ran) + " tests"
     if fail > 0:
