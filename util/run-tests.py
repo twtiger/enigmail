@@ -162,12 +162,16 @@ class OptionsEvaluator:
         print('By default, this will run all the tests in random order.')
         print('  [OPTIONS]')
         print('  -s\t This will run tests in alphabetically sorted order.')
-        print('  -seed=\t Use a seed to get the same shuffle order more than once')
+        print('  -seed=\t Specify a seed to get the same shuffle order more than once')
 
     @staticmethod
     def random_shuffle(seed, tests):
         if seed:
             random.seed(seed)
+        else:
+            seed = random.randint(0, sys.maxint)
+            random.seed(seed)
+            print("Seed used for random shuffle: %d" % seed)
         random.shuffle(tests)
         return tests
 
@@ -179,7 +183,7 @@ class OptionsEvaluator:
         if len(sys.argv) == 1:
             return OptionsEvaluator.random_shuffle(False, [f for f in TestRunner.all_tests()])
         elif len(sys.argv) == 2:
-            tests = [f for f in TestRunner.all_tests]
+            tests = [f for f in TestRunner.all_tests()]
         elif len(sys.argv) > 2:
             tests = [f for f in sys.argv[2:]]
 
