@@ -206,19 +206,19 @@ function initializeKeyRefreshService() {
   // os: EnigmailOS.getOS(),
 
   // TODO get config
-  let config = {
-    hoursAWeekOnThunderbird: 7,
-  };
+  //let config = {
+  //  hoursAWeekOnThunderbird: 7,
+  //};
 
   // handle the case where we couldn't refresh a key in the time you were on TB last session
   //    save next key refresh time?
 
-  let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-  if (totalPublicKeys) {
-    //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
-  } else {
-    EnigmailLog.WRITE("No keys available to refresh\n");
-  }
+  //let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
+  //if (totalPublicKeys) {
+  //  EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+  //} else {
+  //  EnigmailLog.WRITE("No keys available to refresh\n");
+  //}
 }
 
 function Enigmail() {
@@ -304,7 +304,7 @@ Enigmail.prototype = {
 
     initializeObserver(this);
 
-    initializeKeyRefreshService();
+    //initializeKeyRefreshService();
 
     this.initialized = true;
 
