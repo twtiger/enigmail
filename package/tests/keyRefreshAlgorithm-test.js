@@ -59,10 +59,10 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForFortyHou
     hoursAWeekOnThunderbird: 40,
   };
 
-  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInSec(config) == maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInMillisec(config) == maxTimeForRefresh);
 })));
 
 test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHoursAWeek() {
@@ -72,10 +72,10 @@ test(withTestGpgHome(withEnigmail(function calculateMaxTimeForRefreshForTenHours
     hoursAWeekOnThunderbird: 10,
   };
 
-  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInSec(config) == maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInMillisec(config) == maxTimeForRefresh);
 })));
 
 test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
@@ -85,10 +85,10 @@ test(withTestGpgHome(withEnigmail(function waitTimeShouldBeLessThanMax() {
     hoursAWeekOnThunderbird: 40,
   };
 
-  let secondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60;
-  let maxTimeForRefresh = 2 * secondsAvailableForRefresh / totalKeys;
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInSec(config) <= maxTimeForRefresh);
+  Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config) <= maxTimeForRefresh);
 })));
 
 test(function testConversionFromByteObjectToUnsignedInteger(){
@@ -109,8 +109,8 @@ test(withTestGpgHome(withEnigmail(function calculateNewTimeEachCall(){
     hoursAWeekOnThunderbird: 40,
   };
 
-  let firstTime = KeyRefreshAlgorithm.calculateWaitTimeInSec(config);
-  let secondTime = KeyRefreshAlgorithm.calculateWaitTimeInSec(config);
+  let firstTime = KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config);
+  let secondTime = KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config);
 
   Assert.ok(firstTime != secondTime);
 })));
