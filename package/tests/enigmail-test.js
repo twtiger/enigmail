@@ -16,6 +16,7 @@ testing("enigmail.js");
 component("enigmail/prefs.jsm");
 component("enigmail/core.jsm");
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 function newEnigmail(f) {
   var oldEnigmail = EnigmailCore.getEnigmailService();
@@ -67,6 +68,9 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
 test(withTestGpgHome(withEnigmail(function initializeWithoutKeysWillUpdateLogs() {
   EnigmailLog.setLogLevel(5);
   EnigmailLog.setLogDirectory(do_get_cwd().path);
+  const filePath = EnigmailLog.directory + "enigdbug.txt";
+  const localFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+  EnigmailFiles.initPath(localFile, filePath);
 
   initializeKeyRefreshService(); /*global initializeKeyRefreshService:false */
   let logString = "No keys available to refresh";
