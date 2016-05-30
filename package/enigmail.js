@@ -187,22 +187,27 @@ function initializeObserver(on) {
   obsServ.addObserver(on, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
 }
 
+function refreshKey(config) {
+  //get random key
 
-// TODO look over parsimonie and add all configuation attributes that we will need
+  // EnigmailKeyserver.access(stuff here)
+  // TODO log whether refresh was successful
+  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config));
+}
 
-function initializeKeyRefreshService() {
-// strictConnect is whether the user should _only_ connect over tor
-// timeToRefresh is 1 week as default and is defined in days
-  var config = {strictConnect: true,
-                timeToRefresh: 7,
-                os: EnigmailOS.getOS()
+function initializeKeyRefreshService(timer) {
+  // Tor configs
+  // strictConnect: true, //whether the user should _only_ connect over tor
+  // os: EnigmailOS.getOS(),
+
+  // TODO get config
+  let config = {
+    hoursAWeekOnThunderbird: 7,
   };
 
-
-  var refreshService = KeyRefreshService.service(config);
-
-  //refreshService.start();
-  // TODO log whether the service is running successfully or if there was an error
+  // handle the case where we couldn't refresh a key in the time you were on TB last session
+  //    save next key refresh time?
+  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config));
 }
 
 function Enigmail() {
