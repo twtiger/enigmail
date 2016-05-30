@@ -68,12 +68,22 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
 test(withTestGpgHome(withEnigmail(function initializeWithoutKeysWillUpdateLogs() {
   EnigmailLog.setLogLevel(5);
   EnigmailLog.setLogDirectory(do_get_cwd().path);
+  EnigmailLog.createLogFiles();
   const filePath = EnigmailLog.directory + "enigdbug.txt";
   const localFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
   EnigmailFiles.initPath(localFile, filePath);
 
-  initializeKeyRefreshService(); /*global initializeKeyRefreshService:false */
-  let logString = "No keys available to refresh";
-
-  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(logString) !== -1);
+  var window = JSUnit.createStubWindow();
+  try {
+    newEnigmail(function(enigmail) {
+      enigmail.initialize(window, "");
+      let logString = "No keys available to refresh";
+      Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(logString) !== -1);
+    });
+  } finally {
+    if (localFile.exists()) {
+      EnigmailLog.fileStream.close();
+      localFile.remove(false);
+    }
+  }
 })));
