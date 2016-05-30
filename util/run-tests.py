@@ -153,15 +153,13 @@ class TestRunner:
 
 
 class OptionsEvaluator:
-    SORT_OPTION = '-s'
     SEED_OPTION = '-seed='
     HELP_OPTION = '-h'
 
     def print_help():
         print('Usage: run-tests.py [OPTION] [PATH TO TEST FILES]')
-        print('By default, this will run all the tests in random order.')
+        print('By default, this will run all the tests in random order based on a seed, which will be printed before the tests. You can rerun an order by using the -seed option below.')
         print('  [OPTIONS]')
-        print('  -s\t This will run tests in alphabetically sorted order.')
         print('  -seed=\t Specify a seed to get the same shuffle order more than once')
 
     @staticmethod
@@ -189,18 +187,12 @@ class OptionsEvaluator:
 
         if self.grab_seed():
             return OptionsEvaluator.random_shuffle(self.grab_seed(), tests)
-        elif OptionsEvaluator.SORT_OPTION in sys.argv:
-            return sorted(tests)
         else:
             return OptionsEvaluator.random_shuffle(False, [f for f in sys.argv[1:]])
 
     def grab_seed(self):
         for o in sys.argv:
             if OptionsEvaluator.SEED_OPTION in o:
-                if OptionsEvaluator.SORT_OPTION in sys.argv:
-                    print('Error: Cannot use both the sort (-s) option and -seed= option at the same time')
-                    print("Please use 'run-tests.py -h' to check program usage")
-                    sys.exit(1)
                 return o.split(OptionsEvaluator.SEED_OPTION)[1]
         return False
 
