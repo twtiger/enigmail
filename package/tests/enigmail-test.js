@@ -1,5 +1,5 @@
 /*global do_load_module: false, do_get_file: false, do_get_cwd: false, testing: false, test: false, Assert: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false, withTestGpgHome:false */
-/*global EnigmailCore: false, Enigmail: false, component: false, Cc: false, Ci: false, withEnvironment: false, nsIEnigmail: false, nsIEnvironment: false, Ec: false, EnigmailPrefs: false, EnigmailOS: false, EnigmailArmor: false */
+/*global withEnigmail: false, EnigmailCore: false, Enigmail: false, component: false, Cc: false, Ci: false, withEnvironment: false, nsIEnigmail: false, nsIEnvironment: false, Ec: false, EnigmailPrefs: false, EnigmailOS: false, EnigmailArmor: false */
 /*jshint -W120 */
 /*jshint -W097 */
 /*
@@ -13,6 +13,9 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("enigmail.js");
+component("enigmail/prefs.jsm");
+component("enigmail/core.jsm");
+component("enigmail/log.jsm"); /*global EnigmailLog: false */
 
 function newEnigmail(f) {
   var oldEnigmail = EnigmailCore.getEnigmailService();
@@ -60,3 +63,10 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
     Assert.assertArrayNotContains(EnigmailCore.getEnvList(), "APPDATA=");
   });
 });
+
+test(withTestGpgHome(withEnigmail(function initializeWithoutKeysWillUpdateLogs() {
+  initializeKeyRefreshService(); /*global initializeKeyRefreshService:false */
+  let logString = "No keys available to refresh";
+
+  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(logString) !== -1);
+})));

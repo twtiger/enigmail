@@ -34,7 +34,10 @@ Cu.import("resource://enigmail/windows.jsm"); /*global EnigmailWindows: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
+Cu.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
 Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global KeyRefreshService: false */
+Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+Cu.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 
 
 /* Implementations supplied by this module */
@@ -188,14 +191,16 @@ function initializeObserver(on) {
 }
 
 function refreshKey(config) {
-  //get random key
+  // get random key
+
+  let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length; // in case keys have changed
 
   // EnigmailKeyserver.access(stuff here)
   // TODO log whether refresh was successful
-  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config));
+  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
 }
 
-function initializeKeyRefreshService(timer) {
+function initializeKeyRefreshService() {
   // Tor configs
   // strictConnect: true, //whether the user should _only_ connect over tor
   // os: EnigmailOS.getOS(),
@@ -207,7 +212,13 @@ function initializeKeyRefreshService(timer) {
 
   // handle the case where we couldn't refresh a key in the time you were on TB last session
   //    save next key refresh time?
-  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config));
+
+  let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
+  if (totalPublicKeys) {
+    //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+  } else {
+    EnigmailLog.WRITE("No keys available to refresh\n");
+  }
 }
 
 function Enigmail() {

@@ -13,9 +13,8 @@ const SECURITY_RANDOM_GENERATOR = "@mozilla.org/security/random-generator;1";
 
 var KeyRefreshAlgorithm = {
 
-  calculateMaxTimeForRefreshInMillisec: function(config) {
+  calculateMaxTimeForRefreshInMillisec: function(config, totalPublicKeys) {
     let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-    let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
     return 2 * millisecondsAvailableForRefresh / totalPublicKeys;
   },
 
@@ -36,7 +35,7 @@ var KeyRefreshAlgorithm = {
     return this.bytesToUInt(byteObject);
   },
 
-  calculateWaitTimeInMillisec: function(config) {
-    return this.getRandomUint32() % this.calculateMaxTimeForRefreshInMillisec(config);
+  calculateWaitTimeInMillisec: function(config, totalPublicKeys) {
+    return this.getRandomUint32() % this.calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys);
   },
 };
