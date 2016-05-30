@@ -65,6 +65,9 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
 });
 
 test(withTestGpgHome(withEnigmail(function initializeWithoutKeysWillUpdateLogs() {
+  EnigmailLog.setLogLevel(5);
+  EnigmailLog.setLogDirectory(do_get_cwd().path);
+
   initializeKeyRefreshService(); /*global initializeKeyRefreshService:false */
   let logString = "No keys available to refresh";
 
