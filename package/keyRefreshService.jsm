@@ -29,22 +29,6 @@ function RefreshService(config) {
 
 RefreshService.prototype = {
 
-  // returns True/False depending on whether we can connect
-  canConnectOverTor: function() {
-    return false;
-    //    if (this.os == "WINNT") {
-    //      return checkTorOnWindows();
-    //    } else {
-    //      return checkTor();
-    //    }
-  },
-
-  checkTor: function() {},
-
-  checkTorOnWindows: function() {
-    // TODO :(
-  },
-
   // TODO
   refreshKeyNonTorConnection: function() {},
 
