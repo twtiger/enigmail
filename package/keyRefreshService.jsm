@@ -11,31 +11,33 @@ Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKey
 Components.utils.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
 Components.utils.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 
+function refreshKey(config, time, keyserver) {
+  let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length; // in case keys have changed
+  let key = 'whatever';
+  keyserver.refreshKey(key);
+  EnigmailLog.WRITE("keyRefreshService.jsm: refreshKey: Refreshed Key: " + key + " at time: " + time + "\n");
+
+  //let refresh = function() {refreshKey(config);};
+  //EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+}
+
+function checkKeysAndRetry(config) {
+}
+
 var KeyRefreshService = {
-  getRandomKey: function(keys) {},
-
-  refreshKey: function(config) {
-    // get random key
-    let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length; // in case keys have changed
-
-    // do refresh
-    // EnigmailKeyserver.access(stuff here)
-    // TODO log whether refresh was successful
-    EnigmailTimer.setTimeout(function() {this.refreshKey(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
-  },
-
-  checkForKeysAndInitRefreshService: function(config) {},
-
   start: function(config) {
     // handle the case where we couldn't refresh a key in the time you were on TB last session
     //    save next key refresh time?
 
     let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
     if (totalPublicKeys) {
-      EnigmailTimer.setTimeout(function() {this.refreshKey(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+      let keyserver = null; // TODO use a real server
+      let refresh = function() {refreshKey(config, keyserver);};
+      EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
     } else {
-      EnigmailTimer.setTimeout(function() {this.checkForKeysAndInitRefreshService(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
-      EnigmailLog.WRITE("No keys available to refresh\n");
+      let checkAndRetry = function() {checkKeysAndRetry(config);};
+      EnigmailTimer.setTimeout(checkAndRetry, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+      EnigmailLog.WRITE("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh\n");
     }
   },
 
@@ -46,4 +48,3 @@ var KeyRefreshService = {
   refreshKeyTorConnection: function() {},
 
 };
-
