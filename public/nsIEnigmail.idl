@@ -100,7 +100,8 @@ interface nsIEnigmail : nsISupports
   const long DOWNLOAD_KEY     = 0x02;
   const long UPLOAD_KEY       = 0x04;
   const long REFRESH_KEY      = 0x08;
-  const long USE_TOR          = 0x16;
+  const long USE_TOR_9050     = 0x10;
+  const long USE_TOR_9150     = 0x20;
 
   /* attachment handling */
 

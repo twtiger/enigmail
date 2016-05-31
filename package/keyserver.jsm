@@ -65,19 +65,26 @@ const EnigmailKeyServer = {
       args = EnigmailGpg.getStandardArgs(false).
       concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
     }
+
+    // TODO set these constants in a more sane place
+    // This could be in a TorState object... somewhere
+    const torPort9050 = "socks5-hostname://127.0.0.1:9050";
+    const torPort9150 = "socks5-hostname://127.0.0.1:9150";
+
+    // TODO review what takes precedence
+    // TODO discuss tor running on a different host/port.
+    // This would be an edge case, if the user hasn't already configured thunderbird to use these custom settings.
     if (proxyHost) {
       args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
+    } else if (actionFlags & nsIEnigmail.USE_TOR_9050) {
+      args.push("--keyserver-options ",  "http-proxy=" + torPort9050);
+    } else if (actionFlags & nsIEnigmail.USE_TOR_9150) {
+      args.push("--keyserver-options ",  "http-proxy=" + torPort9150);
     }
     args = args.concat(["--keyserver", keyserver.trim()]);
 
     let inputData = null;
     const searchTermsList = searchTerms.split(" ");
-
-    // TODO review what takes precedence
-    // TODO review how to handle what port tor is running on
-    if (actionFlags & nsIEnigmail.USE_TOR && !(proxyHost)) {
-      args.push("--keyserver-options http-proxy=socks5-hostname://127.0.0.1:9050");
-    }
 
     if (actionFlags & nsIEnigmail.DOWNLOAD_KEY) {
       args.push("--recv-keys");
