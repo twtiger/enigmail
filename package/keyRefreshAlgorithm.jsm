@@ -30,7 +30,7 @@ function getRandomUint32() {
 
 function calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys) {
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-  return 2 * millisecondsAvailableForRefresh / totalPublicKeys;
+  return millisecondsAvailableForRefresh / totalPublicKeys;
 }
 
 const KeyRefreshAlgorithm = {

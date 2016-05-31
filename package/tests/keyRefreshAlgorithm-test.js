@@ -45,7 +45,7 @@ test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
   };
 
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
 
   Assert.ok(calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
 });
@@ -57,7 +57,7 @@ test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   };
 
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
 
   Assert.ok(calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
 });
@@ -82,7 +82,7 @@ test(function waitTimeShouldBeLessThanMax() {
   };
 
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
 
   Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalKeys) <= maxTimeForRefresh);
 });
