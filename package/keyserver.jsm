@@ -28,6 +28,23 @@ const nsIEnigmail = Ci.nsIEnigmail;
 
 const EnigmailKeyServer = {
 
+  /**
+   * search, download or upload key on, from or to a keyserver
+   *
+   * @actionFlags: Integer - flags (bitmap) to determine the required action
+   *                         (see nsIEnigmail - Keyserver action flags for details)
+   * @keyserver:   String  - keyserver URL (optionally incl. protocol)
+   * @searchTerms: String  - space-separated list of search terms or key IDs
+   * @listener:    Object  - execStart Listener Object. See execStart for details.
+   * @errorMsgObj: Object  - object to hold error message in .value
+   *
+   * @return:      Subprocess object, or null in case process could not be started
+   */
+  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+    return this.submit(query.args, query.inputData, query.isDownload, query.errors);
+  },
+
   build: function(actionFlags, keyserver, searchTerms, errorMsgObj) {
     EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
 
@@ -126,22 +143,5 @@ const EnigmailKeyServer = {
     }
 
     return proc;
-  },
-
-  /**
-   * search, download or upload key on, from or to a keyserver
-   *
-   * @actionFlags: Integer - flags (bitmap) to determine the required action
-   *                         (see nsIEnigmail - Keyserver action flags for details)
-   * @keyserver:   String  - keyserver URL (optionally incl. protocol)
-   * @searchTerms: String  - space-separated list of search terms or key IDs
-   * @listener:    Object  - execStart Listener Object. See execStart for details.
-   * @errorMsgObj: Object  - object to hold error message in .value
-   *
-   * @return:      Subprocess object, or null in case process could not be started
-   */
-  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj);
-    return this.submit(query.args, query.inputData, query.isDownload, query.errors);
   }
 };
