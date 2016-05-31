@@ -21,8 +21,8 @@ test(function testBasicQuery() {
   var errorMsgObj = {};
 
   var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
-  Assert.ok(keyRequestProps.args["--refresh-keys"] != -1);
-  Assert.ok(keyRequestProps.args["keyserver0005"] != -1); // eslint-disable-line dot-notation
+  Assert.ok(keyRequestProps.args.indexOf("--refresh-keys") != -1);
+  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.REFRESH_KEY);
@@ -35,8 +35,8 @@ test(function testBasicQueryWithInputData() {
   var errorMsgObj = {};
 
   var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
-  Assert.ok(keyRequestProps.args["--refresh-keys"] != -1);
-  Assert.ok(keyRequestProps.args["keyserver0005"] != -1); // eslint-disable-line dot-notation
+  Assert.ok(keyRequestProps.args.indexOf("--search-keys") != -1);
+  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, "quit\n");
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, 0);
@@ -50,8 +50,8 @@ test(function testReceiveKey() {
 
   var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
   Assert.ok(keyRequestProps.args["--recv-keys"] != -1);
-  Assert.ok(keyRequestProps.args["0001"] != -1);
-  Assert.ok(keyRequestProps.args["keyserver0005"] != -1); // eslint-disable-line dot-notation
+  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
+  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
@@ -65,8 +65,8 @@ test(function testUploadKey() {
 
   var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
   Assert.ok(keyRequestProps.args["--send-keys"] != -1);
-  Assert.ok(keyRequestProps.args["0001"] != -1);
-  Assert.ok(keyRequestProps.args["keyserver0005"] != -1); // eslint-disable-line dot-notation
+  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
+  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, 0);
