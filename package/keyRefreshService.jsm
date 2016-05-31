@@ -7,27 +7,37 @@
 var EXPORTED_SYMBOLS = ["KeyRefreshService"];
 
 Components.utils.import("resource://enigmail/log.jsm");
-Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+Components.utils.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
+Components.utils.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 
-const KeyRefreshService = {
-  service: function(config) {
-    return RefreshService(config);
-  }
-};
+var KeyRefreshService = {
+  getRandomKey: function(keys) {},
 
-function RefreshService(config) {
-  if (!(this instanceof RefreshService)){
-    return new RefreshService(config);
-  }
+  refreshKey: function(config) {
+    // get random key
+    let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length; // in case keys have changed
 
-  this.strictConnect = config.strictConnect;
-  this.timeToRefresh = config.timeToRefresh;
-  this.os = config.os; // injecting for testing purposes
-  return this;
-}
+    // do refresh
+    // EnigmailKeyserver.access(stuff here)
+    // TODO log whether refresh was successful
+    EnigmailTimer.setTimeout(function() {this.refreshKey(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+  },
 
-RefreshService.prototype = {
+  checkForKeysAndInitRefreshService: function(config) {},
+
+  start: function(config) {
+    // handle the case where we couldn't refresh a key in the time you were on TB last session
+    //    save next key refresh time?
+
+    let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
+    if (totalPublicKeys) {
+      EnigmailTimer.setTimeout(function() {this.refreshKey(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+    } else {
+      EnigmailTimer.setTimeout(function() {this.checkForKeysAndInitRefreshService(config);}, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+      EnigmailLog.WRITE("No keys available to refresh\n");
+    }
+  },
 
   // TODO
   refreshKeyNonTorConnection: function() {},
@@ -35,45 +45,5 @@ RefreshService.prototype = {
   // TODO
   refreshKeyTorConnection: function() {},
 
-  getRandomKey: function(keys) {
-    var max = keys.keyList.length;
-    var min = 1;
-    var n = Math.floor(Math.random() * (max - min) + min);
-    return keys.keyList[n];
-  },
-
-  // TODO
-  refreshRandomKey: function(torUser, keys) {
-    // getRandomKey to refresh
-    // if we can, refresh over tor
-    // if not, refresh over regular connection if strictConnect is not set
-    // else, log error
-  },
-
-  // TODO
-  // should get scaled refresh time depending on the total refresh period
-  sleepRandomTime: function() {},
-
-  logError: function(err) {
-    EnigmailLog.ERROR("keyRefreshService.jsm:\n" + err);
-  },
-
-  hasPublicKeys: function(keys) {
-    return keys.keySortList.length > 0;
-  },
-
-  start: function() {
-    var keys = EnigmailKeyRing.getAllKeys();
-    // TODO handle case if user only has one public key
-
-    if (this.hasPublicKeys(keys)) {
-      var hasError = this.refreshRandomKey(keys);
-      if (hasError) {
-        this.logError("Error in refreshing key");
-      }
-    } else {
-        this.logError("No public keys to refresh for this user");
-    }
-  }
 };
 

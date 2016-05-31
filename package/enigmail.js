@@ -34,10 +34,7 @@ Cu.import("resource://enigmail/windows.jsm"); /*global EnigmailWindows: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
-Cu.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
 Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global KeyRefreshService: false */
-Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Cu.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 
 
 /* Implementations supplied by this module */
@@ -190,37 +187,6 @@ function initializeObserver(on) {
   obsServ.addObserver(on, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
 }
 
-function refreshKey(config) {
-  // get random key
-
-  let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length; // in case keys have changed
-
-  // EnigmailKeyserver.access(stuff here)
-  // TODO log whether refresh was successful
-  //EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
-}
-
-function initializeKeyRefreshService() {
-  // Tor configs
-  // strictConnect: true, //whether the user should _only_ connect over tor
-  // os: EnigmailOS.getOS(),
-
-  // TODO get config
-  //let config = {
-  //  hoursAWeekOnThunderbird: 7,
-  //};
-
-  // handle the case where we couldn't refresh a key in the time you were on TB last session
-  //    save next key refresh time?
-
-  //let totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-  //if (totalPublicKeys) {
-  //  EnigmailTimer.setTimeout(refreshKey(config), KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
-  //} else {
-  //  EnigmailLog.WRITE("No keys available to refresh\n");
-  //}
-}
-
 function Enigmail() {
   this.wrappedJSObject = this;
 }
@@ -304,7 +270,15 @@ Enigmail.prototype = {
 
     initializeObserver(this);
 
-    //initializeKeyRefreshService();
+    // TODO get proper config
+    let config = {
+      strictConnect: false,
+      //Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+      os: 'LOL',
+      hoursAWeekOnThunderbird: 7,
+    };
+
+    KeyRefreshService.start(config);
 
     this.initialized = true;
 
