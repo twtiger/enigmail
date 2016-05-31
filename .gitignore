@@ -15,6 +15,7 @@ ipc/src/libsubprocess-*.so
 /ipc/tests/ipc-data.txt
 /package/tests/jsunit.result
 unused.txt
+/package/tests/enigdbug.txt
 
 # vi tmp files:
 *.swp
