@@ -73,6 +73,12 @@ const EnigmailKeyServer = {
     let inputData = null;
     const searchTermsList = searchTerms.split(" ");
 
+    // TODO review what takes precedence
+    // TODO review how to handle what port tor is running on
+    if (actionFlags & nsIEnigmail.USE_TOR && !(proxyHost)) {
+      args.push("--keyserver-options http-proxy=socks5-hostname://127.0.0.1:9050");
+    }
+
     if (actionFlags & nsIEnigmail.DOWNLOAD_KEY) {
       args.push("--recv-keys");
       args = args.concat(searchTermsList);
