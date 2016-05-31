@@ -11,31 +11,30 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const SECURITY_RANDOM_GENERATOR = "@mozilla.org/security/random-generator;1";
 
-var KeyRefreshAlgorithm = {
-
-  calculateMaxTimeForRefreshInMillisec: function(config, totalPublicKeys) {
-    let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-    return 2 * millisecondsAvailableForRefresh / totalPublicKeys;
-  },
-
-  bytesToUInt: function(byteObject) {
-    let randomNumber = new Uint32Array(1);
-    for (let key in byteObject) {
-      randomNumber[0] += byteObject[key];
-      if (key != Object.keys(byteObject).length-1) {
-        randomNumber[0] = randomNumber[0] << 8;
-      }
+function bytesToUInt(byteObject) {
+  let randomNumber = new Uint32Array(1);
+  for (let key in byteObject) {
+    randomNumber[0] += byteObject[key];
+    if (key != Object.keys(byteObject).length-1) {
+      randomNumber[0] = randomNumber[0] << 8;
     }
-    return randomNumber[0];
-  },
+  }
+  return randomNumber[0];
+}
 
-  getRandomUint32: function() {
-    let generator = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
-    let byteObject = generator.generateRandomBytes(4);
-    return this.bytesToUInt(byteObject);
-  },
+function getRandomUint32() {
+  let generator = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
+  let byteObject = generator.generateRandomBytes(4);
+  return bytesToUInt(byteObject);
+}
 
+function calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys) {
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  return 2 * millisecondsAvailableForRefresh / totalPublicKeys;
+}
+
+const KeyRefreshAlgorithm = {
   calculateWaitTimeInMillisec: function(config, totalPublicKeys) {
-    return this.getRandomUint32() % this.calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys);
+    return getRandomUint32() % calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys);
   },
 };

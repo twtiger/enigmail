@@ -35,7 +35,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /* global withEnigmail:false, withTestGpgHome: false */
 
-testing("keyRefreshAlgorithm.jsm"); /* global KeyRefreshAlgorithm: false */
+testing("keyRefreshAlgorithm.jsm"); /* global KeyRefreshAlgorithm: false, bytesToUInt: false, getRandomUint32: false, calculateMaxTimeForRefreshInMillisec: false */
 component("enigmail/log.jsm"); /* global component: false, EnigmailLog: false */
 
 test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
@@ -47,7 +47,7 @@ test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
   let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
+  Assert.ok(calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
 });
 
 test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
@@ -59,19 +59,7 @@ test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
   let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
 
-  Assert.ok(KeyRefreshAlgorithm.calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
-});
-
-test(function waitTimeShouldBeLessThanMax() {
-  let totalKeys = 4;
-  let config = {
-    hoursAWeekOnThunderbird: 40,
-  };
-
-  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
-  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
-
-  Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalKeys) <= maxTimeForRefresh);
+  Assert.ok(calculateMaxTimeForRefreshInMillisec(config, totalKeys) == maxTimeForRefresh);
 });
 
 test(function testConversionFromByteObjectToUnsignedInteger(){
@@ -84,7 +72,19 @@ test(function testConversionFromByteObjectToUnsignedInteger(){
     3:223, // 1101 1111
   };
 
-  Assert.equal(KeyRefreshAlgorithm.bytesToUInt(byteObject), expected);
+  Assert.equal(bytesToUInt(byteObject), expected);
+});
+
+test(function waitTimeShouldBeLessThanMax() {
+  let totalKeys = 4;
+  let config = {
+    hoursAWeekOnThunderbird: 40,
+  };
+
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  let maxTimeForRefresh = 2 * millisecondsAvailableForRefresh / totalKeys;
+
+  Assert.ok(KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalKeys) <= maxTimeForRefresh);
 });
 
 test(function calculateNewTimeEachCall(){
