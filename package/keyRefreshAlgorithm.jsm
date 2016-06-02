@@ -2,7 +2,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["KeyRefreshAlgorithm"];
+const EXPORTED_SYMBOLS = ["KeyRefreshAlgorithm"];
 
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false*/
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
@@ -10,6 +10,15 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const SECURITY_RANDOM_GENERATOR = "@mozilla.org/security/random-generator;1";
+
+let rng = null;
+
+function randomNumberGenerator() {
+  if(rng == null) {
+    rng = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
+  }
+  return rng;
+}
 
 function bytesToUInt(byteObject) {
   let randomNumber = new Uint32Array(1);
@@ -23,18 +32,19 @@ function bytesToUInt(byteObject) {
 }
 
 function getRandomUint32() {
-  let generator = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
-  let byteObject = generator.generateRandomBytes(4);
+  let byteObject = randomNumberGenerator().generateRandomBytes(4);
   return bytesToUInt(byteObject);
 }
 
+const hoursInMilliseconds = 60 * 60 * 1000;
+
 function calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys) {
-  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * 60 * 60 * 1000;
+  let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * hoursInMilliseconds;
   return millisecondsAvailableForRefresh / totalPublicKeys;
 }
 
 const KeyRefreshAlgorithm = {
   calculateWaitTimeInMillisec: function(config, totalPublicKeys) {
     return getRandomUint32() % calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys);
-  },
+  }
 };
