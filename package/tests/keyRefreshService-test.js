@@ -47,7 +47,7 @@ function importKey() {
 let wasCalled = false;
 const TestKeyServer = {
   refreshKey: function(key) {
-    if (key != null ) {
+    if (key !== null ) {
       wasCalled = true;
     }
     return wasCalled;
