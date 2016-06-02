@@ -14,7 +14,7 @@ const SECURITY_RANDOM_GENERATOR = "@mozilla.org/security/random-generator;1";
 let rng = null;
 
 function randomNumberGenerator() {
-  if(rng == null) {
+  if(rng === null) {
     rng = Cc[SECURITY_RANDOM_GENERATOR].createInstance(Ci.nsIRandomGenerator);
   }
   return rng;
