@@ -31,7 +31,7 @@ function withLogFiles(f) {
 }
 
 function AssertInLog(expected) {
-  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1);
+  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, "Expected log to contain: " + expected);
 }
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysWillUpdateLog() {
@@ -40,22 +40,24 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysW
 }))));
 
 function importKey() {
-  var publicKey = do_get_file("resources/dev-tiger.asc", false);
+  const publicKey = do_get_file("resources/dev-tiger.asc", false);
   EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
 }
 
 let wasCalled = false;
 const TestKeyServer = {
   refreshKey: function(key) {
-    if (key) wasCalled = true;
-    return wasCalled || false;
+    if (key != null ) {
+      wasCalled = true;
+    }
+    return wasCalled;
   }
 };
 
 test(function testRefreshKey(){
-  let config = { hoursAWeekOnThunderbird: 40 };
+  const config = { hoursAWeekOnThunderbird: 40 };
   importKey();
-  refreshKey(config, new Date().toUTCString(), TestKeyServer);
+  refreshKey(config, new Date().toUTCString(), TestKeyServer)();
 
   Assert.ok(wasCalled);
   AssertInLog("keyRefreshService.jsm: refreshKey: Refreshed Key:");
