@@ -18,7 +18,7 @@ function refreshKey(config, time, keyserver) {
   EnigmailLog.WRITE("keyRefreshService.jsm: refreshKey: Refreshed Key: " + key + " at time: " + time + "\n");
 
   //let refresh = function() {refreshKey(config);};
-  //EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+  //EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
 }
 
 function checkKeysAndRetry(config) {
@@ -33,10 +33,10 @@ var KeyRefreshService = {
     if (totalPublicKeys) {
       let keyserver = null; // TODO use a real server
       let refresh = function() {refreshKey(config, keyserver);};
-      EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+      EnigmailTimer.setTimeout(refresh, KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
     } else {
       let checkAndRetry = function() {checkKeysAndRetry(config);};
-      EnigmailTimer.setTimeout(checkAndRetry, KeyRefreshAlgorithm.calculateWaitTimeInMillisec(config, totalPublicKeys));
+      EnigmailTimer.setTimeout(checkAndRetry, KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
       EnigmailLog.WRITE("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh\n");
     }
   },

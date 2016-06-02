@@ -22,12 +22,10 @@ function randomNumberGenerator() {
 
 function bytesToUInt(byteObject) {
   let randomNumber = new Uint32Array(1);
-  for (let key in byteObject) {
-    randomNumber[0] += byteObject[key];
-    if (key != Object.keys(byteObject).length-1) {
-      randomNumber[0] = randomNumber[0] << 8;
-    }
-  }
+  randomNumber[0] += byteObject[0] << (8 * 3);
+  randomNumber[0] += byteObject[1] << (8 * 2);
+  randomNumber[0] += byteObject[2] << 8;
+  randomNumber[0] += byteObject[3];
   return randomNumber[0];
 }
 
@@ -38,13 +36,13 @@ function getRandomUint32() {
 
 const hoursInMilliseconds = 60 * 60 * 1000;
 
-function calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys) {
+function calculateMaxTimeForRefreshInMilliseconds(config, totalPublicKeys) {
   let millisecondsAvailableForRefresh = config.hoursAWeekOnThunderbird * hoursInMilliseconds;
   return millisecondsAvailableForRefresh / totalPublicKeys;
 }
 
 const KeyRefreshAlgorithm = {
-  calculateWaitTimeInMillisec: function(config, totalPublicKeys) {
-    return getRandomUint32() % calculateMaxTimeForRefreshInMillisec(config, totalPublicKeys);
+  calculateWaitTimeInMilliseconds: function(config, totalPublicKeys) {
+    return getRandomUint32() % calculateMaxTimeForRefreshInMilliseconds(config, totalPublicKeys);
   }
 };
