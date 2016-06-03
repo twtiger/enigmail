@@ -23,6 +23,7 @@ Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
@@ -41,7 +42,7 @@ const EnigmailKeyServer = {
    * @return:      Subprocess object, or null in case process could not be started
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
+    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
     return this.submit(query.args, query.inputData, query.isDownload, query.errors);
   },
 
@@ -49,7 +50,7 @@ const EnigmailKeyServer = {
   refreshKey: function(key) {
   },
 
-  build: function(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService) {
+  build: function(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
     EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
 
     if (!keyserver) {
@@ -74,7 +75,7 @@ const EnigmailKeyServer = {
     const torPort9050 = "socks5-hostname://127.0.0.1:9050";
     const torPort9150 = "socks5-hostname://127.0.0.1:9150";
 
-    const proxyHost = proxyService.getHttpProxy(keyserver);
+    const proxyHost = httpProxy.getHttpProxy(keyserver);
 
     // TODO review what takes precedence
     // TODO discuss tor running on a different host/port.
