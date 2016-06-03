@@ -50,7 +50,7 @@ class TestRunner:
 
     def run(self):
         with open(TestRunner.TEST_OUTPUT_FILE, 'w') as test_output:
-            self.test_output = test_output
+            self.test_output = sys.stderr
             self.reset_total()
             for t in self.tests:
                 self.run_test(t)
