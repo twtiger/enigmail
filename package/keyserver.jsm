@@ -41,7 +41,7 @@ const EnigmailKeyServer = {
    * @return:      Subprocess object, or null in case process could not be started
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
     return this.submit(query.args, query.inputData, query.isDownload, query.errors);
   },
 
@@ -49,7 +49,7 @@ const EnigmailKeyServer = {
   refreshKey: function(key) {
   },
 
-  build: function(actionFlags, keyserver, searchTerms, errorMsgObj) {
+  build: function(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService) {
     EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
 
     if (!keyserver) {
@@ -62,7 +62,6 @@ const EnigmailKeyServer = {
       return null;
     }
 
-    const proxyHost = EnigmailHttpProxy.getHttpProxy(keyserver);
     let args = EnigmailGpg.getStandardArgs(true);
 
     if (actionFlags & nsIEnigmail.SEARCH_KEY) {
@@ -74,6 +73,8 @@ const EnigmailKeyServer = {
     // This could be in a TorState object... somewhere
     const torPort9050 = "socks5-hostname://127.0.0.1:9050";
     const torPort9150 = "socks5-hostname://127.0.0.1:9150";
+
+    const proxyHost = proxyService.getHttpProxy(keyserver);
 
     // TODO review what takes precedence
     // TODO discuss tor running on a different host/port.

@@ -15,13 +15,18 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 
 testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false*/
 
+function buildProxyService() {
+  return {getHttpProxy: function() {return null;}};
+}
+
 test(function testBasicQuery() {
   var actionFlags = nsIEnigmail.REFRESH_KEY;
   var keyserver = "keyserver0005";
   var searchTerms = "1";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args.indexOf("--refresh-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
@@ -34,8 +39,9 @@ test(function testBasicQueryWithInputData() {
   var keyserver = "keyserver0005";
   var searchTerms = "1";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args.indexOf("--search-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, "quit\n");
@@ -48,8 +54,9 @@ test(function testReceiveKey() {
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args["--recv-keys"] != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
@@ -63,8 +70,9 @@ test(function testUploadKey() {
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args.indexOf("--send-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
@@ -78,8 +86,9 @@ test(function testRefreshKeyOverTorProxy9050() {
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9050") != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
@@ -90,14 +99,13 @@ test(function testRefreshKeyOverTorProxy9050() {
 });
 
 test(function testRefreshKeyOverTorProxy9150() {
-  EnigmailLog.setLogLevel(800);
   var actionFlags = (nsIEnigmail.DOWNLOAD_KEY | nsIEnigmail.USE_TOR_9150);
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
-  EnigmailLog.DEBUG("getting args ____ " + keyRequestProps.args);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9150") != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
@@ -112,8 +120,9 @@ test(function testErrorQueryWithNoKeyserver() {
   var keyserver = null;
   var searchTerms = "0001";
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.equal(keyRequestProps, null);
   Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoServer"));
 });
@@ -123,8 +132,9 @@ test(function testErrorSearchQueryWithNoID() {
   var keyserver = "keyserver0005";
   var searchTerms = null;
   var errorMsgObj = {};
+  var proxyService = buildProxyService();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj);
+  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, proxyService);
   Assert.equal(keyRequestProps, null);
   Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoID"));
 });
