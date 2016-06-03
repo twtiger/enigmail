@@ -30,59 +30,73 @@ function withLogFiles(f) {
   };
 }
 
-function AssertInLog(expected) {
-  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, "Expected log to contain: " + expected);
-}
-
-test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysWillUpdateLog() {
-  KeyRefreshService.start({});
-  AssertInLog("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh");
-}))));
-
 function importKey() {
   const publicKey = do_get_file("resources/dev-tiger.asc", false);
   EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
 }
 
-let wasCalled = false;
-const TestKeyServer = {
+
+function AssertLogContains(expected) {
+  let failureMessage = "Expected log to contain: " + expected;
+  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, failureMessage);
+}
+
+let refreshKeyWasCalled = false;
+const MockKeyServer = {
   refreshKey: function(key) {
-    if (key !== null ) {
-      wasCalled = true;
+    if (key !== null) {
+      refreshKeyWasCalled = true;
     }
-    return wasCalled;
+    return refreshKeyWasCalled;
   }
 };
 
-test(function testRefreshKey(){
-  const config = { hoursAWeekOnThunderbird: 40 };
+function AssertRefreshKeyWasCalled() {
+  Assert.ok(refreshKeyWasCalled, "MockKeyServer.refreshKey() was not called.");
+  refreshKeyWasCalled = false;
+}
+
+let setTimeoutWasCalled = false;
+const MockTimer = {
+  setTimeout: function(f, time) {
+    setTimeoutWasCalled = true;
+  }
+};
+
+function AssertSetTimeoutWasCalled() {
+  Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called.");
+  setTimeoutWasCalled = false;
+}
+
+test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysWillUpdateLog() {
+  KeyRefreshService.start({}, MockKeyServer, MockTimer);
+  AssertLogContains("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh");
+}))));
+
+test(withLogFiles(function testRefreshKey(){
+  let config = { hoursAWeekOnThunderbird: 40 };
   importKey();
-  refreshKey(config, new Date().toUTCString(), TestKeyServer)();
 
-  Assert.ok(wasCalled);
-  AssertInLog("keyRefreshService.jsm: refreshKey: Refreshed Key:");
-});
+  refreshKey(config, MockKeyServer, MockTimer)();
 
-// TODO
-test(withTestGpgHome(withEnigmail(function testInvalidConfig() {
+  AssertRefreshKeyWasCalled();
+  AssertLogContains("keyRefreshService.jsm: refreshKey: Refreshed Key:");
+}));
+
+test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
+  importKey();
+  let config = {hoursAWeekOnThunderbird: 40};
+
+  KeyRefreshService.start(config, MockKeyServer, MockTimer);
+
+  AssertSetTimeoutWasCalled();
 })));
 
-// TODO
-test(withTestGpgHome(withEnigmail(function testRefreshKey() {
-})));
+test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
+  let config = { hoursAWeekOnThunderbird: 40 };
+  importKey();
 
-// TODO
-test(withTestGpgHome(withEnigmail(function testConnectOverTorSocksOnLinux() {
-})));
+  refreshKey(config, MockKeyServer, MockTimer)();
 
-// TODO
-test(withTestGpgHome(withEnigmail(function testConnectOverTorOnWindows() {
-})));
-
-// TODO
-test(withTestGpgHome(withEnigmail(function testConnectOverRegularConnectionIfTorIsNotAvailableAndStrictConnectIsFalse() {
-})));
-
-// TODO
-test(withTestGpgHome(withEnigmail(function testStrictConnectOnlyConnectsOverTor() {
+  AssertSetTimeoutWasCalled();
 })));

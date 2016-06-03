@@ -45,6 +45,10 @@ const EnigmailKeyServer = {
     return this.submit(query.args, query.inputData, query.isDownload, query.errors);
   },
 
+  // TODO needed by key refresh service
+  refreshKey: function(key) {
+  },
+
   build: function(actionFlags, keyserver, searchTerms, errorMsgObj) {
     EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
 

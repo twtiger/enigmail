@@ -270,15 +270,8 @@ Enigmail.prototype = {
 
     initializeObserver(this);
 
-    // TODO get proper config
-    let config = {
-      strictConnect: false,
-      //Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-      os: 'LOL',
-      hoursAWeekOnThunderbird: 7,
-    };
-
-    KeyRefreshService.start(config);
+    // TODO
+    // KeyRefreshService.start...
 
     this.initialized = true;
 
