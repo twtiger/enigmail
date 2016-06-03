@@ -36,7 +36,7 @@ function importKey() {
 }
 
 
-function AssertLogContains(expected) {
+function assertLogContains(expected) {
   let failureMessage = "Expected log to contain: " + expected;
   Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, failureMessage);
 }
@@ -51,7 +51,7 @@ const MockKeyServer = {
   }
 };
 
-function AssertRefreshKeyWasCalled() {
+function assertRefreshKeyWasCalled() {
   Assert.ok(refreshKeyWasCalled, "MockKeyServer.refreshKey() was not called.");
   refreshKeyWasCalled = false;
 }
@@ -63,14 +63,14 @@ const MockTimer = {
   }
 };
 
-function AssertSetTimeoutWasCalled() {
+function assertSetTimeoutWasCalled() {
   Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called.");
   setTimeoutWasCalled = false;
 }
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysWillUpdateLog() {
   KeyRefreshService.start({}, MockKeyServer, MockTimer);
-  AssertLogContains("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh");
+  assertLogContains("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh");
 }))));
 
 test(withLogFiles(function testRefreshKey(){
@@ -79,8 +79,8 @@ test(withLogFiles(function testRefreshKey(){
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
-  AssertRefreshKeyWasCalled();
-  AssertLogContains("keyRefreshService.jsm: refreshKey: Refreshed Key:");
+  assertRefreshKeyWasCalled();
+  assertLogContains("keyRefreshService.jsm: refreshKey: Refreshed Key:");
 }));
 
 test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
@@ -89,7 +89,7 @@ test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
 
   KeyRefreshService.start(config, MockKeyServer, MockTimer);
 
-  AssertSetTimeoutWasCalled();
+  assertSetTimeoutWasCalled();
 })));
 
 test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
@@ -98,5 +98,5 @@ test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
-  AssertSetTimeoutWasCalled();
+  assertSetTimeoutWasCalled();
 })));
