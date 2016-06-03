@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyRefreshService.jsm"); /*global KeyRefreshService: false, refreshKey: false */
+testing("keyRefreshService.jsm"); /*global KeyRefreshService: false, refreshKey: false, getRandomKey: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
@@ -30,11 +30,14 @@ function withLogFiles(f) {
   };
 }
 
-function importKey() {
+function importKeys() {
   const publicKey = do_get_file("resources/dev-tiger.asc", false);
+  const anotherKey = do_get_file("resources/notaperson.asc", false);
+  const strikeKey = do_get_file("resources/dev-strike.asc", false);
   EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
+  EnigmailKeyRing.importKeyFromFile(anotherKey, {}, {});
+  EnigmailKeyRing.importKeyFromFile(strikeKey, {}, {});
 }
-
 
 function assertLogContains(expected) {
   let failureMessage = "Expected log to contain: " + expected;
@@ -75,7 +78,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysW
 
 test(withLogFiles(function testRefreshKey(){
   let config = { hoursAWeekOnThunderbird: 40 };
-  importKey();
+  importKeys();
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
@@ -84,7 +87,7 @@ test(withLogFiles(function testRefreshKey(){
 }));
 
 test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
-  importKey();
+  importKeys();
   let config = {hoursAWeekOnThunderbird: 40};
 
   KeyRefreshService.start(config, MockKeyServer, MockTimer);
@@ -94,9 +97,14 @@ test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
 
 test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
   let config = { hoursAWeekOnThunderbird: 40 };
-  importKey();
+  importKeys();
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
   assertSetTimeoutWasCalled();
+})));
+
+test(withTestGpgHome(withEnigmail(function testGettingARandomKey() {
+  importKeys();
+  Assert.notEqual(getRandomKey(4), getRandomKey(5));
 })));
