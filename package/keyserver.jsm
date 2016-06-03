@@ -43,7 +43,7 @@ const EnigmailKeyServer = {
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
     var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-    return this.submit(query.args, query.inputData, query.isDownload, query.errors);
+    return this.submit(query.args, query.inputData, listener, query.isDownload);
   },
 
   // TODO needed by key refresh service
