@@ -11,5 +11,7 @@ script:
   - export DISPLAY=:99
   - make eslint
   - ./test.sh
+after_script:
+  - cat test_output.log
 after_failure:
   - cat test_output.log
