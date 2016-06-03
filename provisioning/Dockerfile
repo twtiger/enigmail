@@ -24,7 +24,7 @@ RUN apt-get install -y nodejs
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN apt-get install -y npm
 RUN npm install -g eslint
-RUN wget -O /tmp/jsunit-0.1.4.xpi https://www.enigmail.net/jsunit/jsunit-0.1.4.xpi
+RUN wget -O /tmp/jsunit-0.1.4.xpi https://olabini.se/tmp/jsunit-0.1.4.xpi
 RUN rm -rf /usr/lib/thunderbird-addons/extensions/jsunit@enigmail.net
 RUN unzip /tmp/jsunit-0.1.4.xpi -d /usr/lib/thunderbird-addons/extensions/jsunit@enigmail.net
 RUN rm -rf '/usr/lib/thunderbird-addons/extensions/{847b3a00-7ab1-11d4-8f02-006008948af5}'

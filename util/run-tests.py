@@ -50,7 +50,7 @@ class TestRunner:
 
     def run(self):
         with open(TestRunner.TEST_OUTPUT_FILE, 'w') as test_output:
-            self.test_output = sys.stderr
+            self.test_output = test_output
             self.reset_total()
             for t in self.tests:
                 self.run_test(t)
@@ -130,7 +130,6 @@ class TestRunner:
         self.total_executed = self.total_executed + self.executed
         self.total_succeeded = self.total_succeeded + self.succeeded
         self.total_failed = self.total_failed + self.failed
-
     def spin_test(self, dir_name, tmp_file):
         tsk = subprocess.Popen([self.tbpath, '-jsunit', os.path.basename(tmp_file)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=dir_name)
         ret = self.polling(tsk, self.combine(self.write_to_log(), self.reporting()), self.write_to_log())

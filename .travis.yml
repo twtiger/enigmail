@@ -6,13 +6,10 @@ install:
   provisioning/provision-travis.sh
 script:
   - ./configure --with-tb-path=$(which thunderbird)
-  - echo $(which thunderbird)
   - make > /dev/null 2>&1
   - Xvfb :99 -screen 0 1024x768x24 >/dev/null 2>&1 &
   - export DISPLAY=:99
   - make eslint
   - ./test.sh
-after_script:
-  - cat test_output.log
 after_failure:
   - cat test_output.log
