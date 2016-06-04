@@ -13,7 +13,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withE
 Components.utils.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 
-testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false*/
+testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false*/
 
 const HttpProxyBuilder = {
   build: function() {
@@ -50,7 +50,7 @@ test(function testBasicQuery() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args.indexOf("--refresh-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
@@ -66,7 +66,7 @@ test(function testBasicQueryWithInputData() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args.indexOf("--search-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, "quit\n");
@@ -82,7 +82,7 @@ test(function testReceiveKey() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args["--recv-keys"] != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
@@ -99,7 +99,7 @@ test(function testUploadKey() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args.indexOf("--send-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
@@ -116,7 +116,7 @@ test(function testRefreshKeyOverTorProxy9050() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().withConfiguration(9050).get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
   Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9050") != -1);
@@ -135,7 +135,7 @@ test(function testRefreshKeyOverTorProxy9150() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().withConfiguration(9150).get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
   Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9150") != -1);
@@ -154,7 +154,7 @@ test(function testErrorQueryWithNoKeyserver() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.equal(keyRequestProps, null);
   Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoServer"));
 });
@@ -167,7 +167,7 @@ test(function testErrorSearchQueryWithNoID() {
   var httpProxy = HttpProxyBuilder.build();
   var tor = TorBuilder.build().get();
 
-  var keyRequestProps = EnigmailKeyServer.build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
   Assert.equal(keyRequestProps, null);
   Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoID"));
 });

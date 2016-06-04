@@ -41,6 +41,120 @@ function checkForTorifiedActions(actionFlags, tor) {
   }
   return false;
 }
+function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
+  EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
+
+  if (!keyserver) {
+    errorMsgObj.value = EnigmailLocale.getString("failNoServer");
+    return null;
+  }
+
+  if (!searchTerms && !(actionFlags & nsIEnigmail.REFRESH_KEY)) {
+    errorMsgObj.value = EnigmailLocale.getString("failNoID");
+    return null;
+  }
+
+  let args = EnigmailGpg.getStandardArgs(true);
+
+  if (actionFlags & nsIEnigmail.SEARCH_KEY) {
+    args = EnigmailGpg.getStandardArgs(false).
+      concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
+  }
+
+  const proxyHost = httpProxy.getHttpProxy(keyserver);
+
+
+  args = args.concat(["--keyserver", keyserver.trim()]);
+
+  if (proxyHost !== null) {
+    args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
+  }
+
+  // proxy settings takes precedance over tor
+  if (proxyHost === null) {
+    let useTor = checkForTorifiedActions(actionFlags, tor);
+
+    if (useTor === true) {
+      const torConfig = tor.getConfiguration;
+      const socksProxy = "socks5-hostname://";
+      const proxy = socksProxy + torConfig.host + ":" + torConfig.port;
+      args = args.concat(["--keyserver-options", "http-proxy=" + proxy]);
+    }
+  }
+
+  let inputData = null;
+  const searchTermsList = searchTerms.split(" ");
+
+  if (actionFlags & actions.downloadKey) {
+    args.push("--recv-keys");
+    args = args.concat(searchTermsList);
+  }
+  else if (actionFlags & actions.refreshKeys) {
+    args.push("--refresh-keys");
+  }
+  else if (actionFlags & actions.searchKey) {
+    args.push("--search-keys");
+    args = args.concat(searchTermsList);
+    inputData = "quit\n";
+  }
+  else if (actionFlags & actions.uploadKey) {
+    args.push("--send-keys");
+    args = args.concat(searchTermsList);
+  }
+
+  const isDownload = actionFlags & (nsIEnigmail.REFRESH_KEY | nsIEnigmail.DOWNLOAD_KEY);
+
+  return {"args": args, "inputData": inputData, "isDownload": isDownload, errors: errorMsgObj};
+}
+
+function submit(args, inputData, listener, isDownload) {
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
+
+  let proc = null;
+  let exitCode = null;
+
+  try {
+    proc = subprocess.call({
+      command: EnigmailGpgAgent.agentPath,
+      arguments: args,
+      environment: EnigmailCore.getEnvList(),
+      charset: null,
+      stdin: inputData,
+      stdout: function(data) {
+        listener.stdout(data);
+      },
+      stderr: function(data) {
+        if (data.search(/^\[GNUPG:\] ERROR/m) >= 0) {
+          exitCode = 4;
+        }
+        listener.stderr(data);
+      },
+      done: function(result) {
+        try {
+          if (result.exitCode === 0 && isDownload) {
+            EnigmailKeyRing.clearCache();
+          }
+          if (exitCode === null) {
+            exitCode = result.exitCode;
+          }
+          listener.done(exitCode);
+        }
+        catch (ex) {}
+      },
+      mergeStderr: false
+    });
+  }
+  catch (ex) {
+    EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
+    throw ex;
+  }
+
+  if (!proc) {
+    EnigmailLog.ERROR("keyserver.jsm: access: subprocess failed due to unknown reasons\n");
+    return null;
+  }
+  return proc;
+}
 
 const EnigmailKeyServer = {
 
@@ -57,127 +171,11 @@ const EnigmailKeyServer = {
    * @return:      Subprocess object, or null in case process could not be started
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    var query = this.build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-    return this.submit(query.args, query.inputData, listener, query.isDownload);
+    var query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
+    return submit(query.args, query.inputData, listener, query.isDownload);
   },
 
   // TODO needed by key refresh service
   refreshKey: function(key) {
   },
-
-  build: function(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
-    EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
-
-    if (!keyserver) {
-      errorMsgObj.value = EnigmailLocale.getString("failNoServer");
-      return null;
-    }
-
-    if (!searchTerms && !(actionFlags & nsIEnigmail.REFRESH_KEY)) {
-      errorMsgObj.value = EnigmailLocale.getString("failNoID");
-      return null;
-    }
-
-    let args = EnigmailGpg.getStandardArgs(true);
-
-    if (actionFlags & nsIEnigmail.SEARCH_KEY) {
-      args = EnigmailGpg.getStandardArgs(false).
-      concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
-    }
-
-    const proxyHost = httpProxy.getHttpProxy(keyserver);
-
-
-    args = args.concat(["--keyserver", keyserver.trim()]);
-
-    if (proxyHost !== null) {
-      args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
-    }
-
-    // proxy settings takes precedance over tor
-    if (proxyHost === null) {
-      let useTor = checkForTorifiedActions(actionFlags, tor);
-
-      if (useTor === true) {
-        const torConfig = tor.getConfiguration;
-        const socksProxy = "socks5-hostname://";
-        const proxy = socksProxy + torConfig.host + ":" + torConfig.port;
-        args = args.concat(["--keyserver-options", "http-proxy=" + proxy]);
-      }
-    }
-
-    let inputData = null;
-    const searchTermsList = searchTerms.split(" ");
-
-    if (actionFlags & actions.downloadKey) {
-      args.push("--recv-keys");
-      args = args.concat(searchTermsList);
-    }
-    else if (actionFlags & actions.refreshKeys) {
-      args.push("--refresh-keys");
-    }
-    else if (actionFlags & actions.searchKey) {
-      args.push("--search-keys");
-      args = args.concat(searchTermsList);
-      inputData = "quit\n";
-    }
-    else if (actionFlags & actions.uploadKey) {
-      args.push("--send-keys");
-      args = args.concat(searchTermsList);
-    }
-
-    const isDownload = actionFlags & (nsIEnigmail.REFRESH_KEY | nsIEnigmail.DOWNLOAD_KEY);
-
-    return {"args": args, "inputData": inputData, "isDownload": isDownload, errors: errorMsgObj};
-  },
-
-  submit: function(args, inputData, listener, isDownload) {
-    EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
-
-    let proc = null;
-    let exitCode = null;
-
-    try {
-      proc = subprocess.call({
-        command: EnigmailGpgAgent.agentPath,
-        arguments: args,
-        environment: EnigmailCore.getEnvList(),
-        charset: null,
-        stdin: inputData,
-        stdout: function(data) {
-          listener.stdout(data);
-        },
-        stderr: function(data) {
-          if (data.search(/^\[GNUPG:\] ERROR/m) >= 0) {
-            exitCode = 4;
-          }
-          listener.stderr(data);
-        },
-        done: function(result) {
-          try {
-            if (result.exitCode === 0 && isDownload) {
-              EnigmailKeyRing.clearCache();
-            }
-            if (exitCode === null) {
-              exitCode = result.exitCode;
-            }
-            listener.done(exitCode);
-          }
-          catch (ex) {}
-        },
-        mergeStderr: false
-      });
-    }
-    catch (ex) {
-      EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
-      throw ex;
-    }
-
-    if (!proc) {
-      EnigmailLog.ERROR("keyserver.jsm: access: subprocess failed due to unknown reasons\n");
-      return null;
-    }
-
-    return proc;
-  }
 };
