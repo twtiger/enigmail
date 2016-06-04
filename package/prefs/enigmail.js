@@ -193,6 +193,16 @@ pref("extensions.enigmail.wrapHtmlBeforeSend", true);
 pref("extensions.enigmail.protectHeaders", false);
 pref("extensions.enigmail.protectedSubjectText", "");
 
+// tor configuration
+pref("extensions.enigmail.host", "127.0.0.1");
+pref("extensions.enigmail.port", "probe");
+
+// gpg tor actions
+pref("extensions.enigmail.tor.downloadKey", true);
+pref("extensions.enigmail.tor.refreshKeys", false);
+pref("extensions.enigmail.tor.searchKey", false);
+pref("extensions.enigmail.tor.uploadKey", false);
+
 // enable experimental features.
 // WARNING: such features may unfinished functions or tests that can break
 // existing functionality in Enigmail and Thunderbird!
