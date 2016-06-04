@@ -27,6 +27,21 @@ Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
+const actions = { downloadKey: nsIEnigmail.DOWNLOAD_KEY,
+  refreshKeys: nsIEnigmail.REFRESH_KEY,
+  searchKey: nsIEnigmail.SEARCH_KEY,
+  uploadKey: nsIEnigmail.UPLOAD_KEY };
+
+
+function checkForTorifiedActions(actionFlags, tor) {
+  for (let key in actions) {
+    if ((tor.gpgActions[key] === true) && (actionFlags & actions[key])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const EnigmailKeyServer = {
 
   /**
@@ -70,41 +85,43 @@ const EnigmailKeyServer = {
       concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
     }
 
-    // TODO set these constants in a more sane place
-    // This could be in a TorState object... somewhere
-    const torPort9050 = "socks5-hostname://127.0.0.1:9050";
-    const torPort9150 = "socks5-hostname://127.0.0.1:9150";
-
     const proxyHost = httpProxy.getHttpProxy(keyserver);
 
-    // TODO review what takes precedence
-    // TODO discuss tor running on a different host/port.
-    // This would be an edge case, if the user hasn't already configured thunderbird to use these custom settings.
-    if (proxyHost) {
-      args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
-    } else if (actionFlags & nsIEnigmail.USE_TOR_9050) {
-      args.push("--keyserver-options ",  "http-proxy=" + torPort9050);
-    } else if (actionFlags & nsIEnigmail.USE_TOR_9150) {
-      args.push("--keyserver-options ",  "http-proxy=" + torPort9150);
-    }
+
     args = args.concat(["--keyserver", keyserver.trim()]);
+
+    if (proxyHost !== null) {
+      args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
+    }
+
+    // proxy settings takes precedance over tor
+    if (proxyHost === null) {
+      let useTor = checkForTorifiedActions(actionFlags, tor);
+
+      if (useTor === true) {
+        const torConfig = tor.getConfiguration;
+        const socksProxy = "socks5-hostname://";
+        const proxy = socksProxy + torConfig.host + ":" + torConfig.port;
+        args = args.concat(["--keyserver-options", "http-proxy=" + proxy]);
+      }
+    }
 
     let inputData = null;
     const searchTermsList = searchTerms.split(" ");
 
-    if (actionFlags & nsIEnigmail.DOWNLOAD_KEY) {
+    if (actionFlags & actions.downloadKey) {
       args.push("--recv-keys");
       args = args.concat(searchTermsList);
     }
-    else if (actionFlags & nsIEnigmail.REFRESH_KEY) {
+    else if (actionFlags & actions.refreshKeys) {
       args.push("--refresh-keys");
     }
-    else if (actionFlags & nsIEnigmail.SEARCH_KEY) {
+    else if (actionFlags & actions.searchKey) {
       args.push("--search-keys");
       args = args.concat(searchTermsList);
       inputData = "quit\n";
     }
-    else if (actionFlags & nsIEnigmail.UPLOAD_KEY) {
+    else if (actionFlags & actions.uploadKey) {
       args.push("--send-keys");
       args = args.concat(searchTermsList);
     }
