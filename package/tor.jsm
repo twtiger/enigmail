@@ -12,7 +12,7 @@ var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 const EnigmailTor = {
 
-  getConfiguration: function() {
-    return { host: 'something', port: 'port' };
-  }
+  getConfiguration: { host: 'something', port: 'port' },
+
+  getGpgActions: { }
 };
