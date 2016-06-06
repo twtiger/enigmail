@@ -174,8 +174,4 @@ const EnigmailKeyServer = {
     var query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
     return submit(query.args, query.inputData, listener, query.isDownload);
   },
-
-  // TODO needed by key refresh service
-  refreshKey: function(key) {
-  },
 };
