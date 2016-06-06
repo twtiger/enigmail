@@ -245,3 +245,44 @@ function withEnigmail(f) {
 }
 
 CustomAssert.registerExtraAssertionsOn(Assert);
+
+Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+function withLogFiles(f) {
+  return function () {
+    try {
+      EnigmailLog.setLogLevel(5);
+      f();
+    } finally {
+      EnigmailLog.onShutdown();
+      EnigmailLog.createLogFiles();
+    }
+  };
+}
+function assertLogContains(expected) {
+  let failureMessage = "Expected log to contain: " + expected;
+  Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, failureMessage);
+}
+
+
+let setTimeoutWasCalled = false;
+const MockTimer = {
+  setTimeout: function(f, time) {
+    setTimeoutWasCalled = true;
+  },
+  resetMock: function() {
+    setTimeoutWasCalled = false;
+  }
+};
+function assertSetTimeoutWasCalled(testName, expectedCallbackFunction) {
+  Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called. in test: " + testName);
+}
+function withMockTimer(f) {
+  return function() {
+    try {
+      f();
+    } finally {
+      MockTimer.resetMock();
+    }
+  };
+}
