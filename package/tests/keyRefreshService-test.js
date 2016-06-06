@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyRefreshService.jsm"); /*global KeyRefreshService: false, refreshKey: false, getRandomKey: false */
+testing("keyRefreshService.jsm"); /*global KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKey: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
@@ -51,29 +51,37 @@ const MockKeyServer = {
       refreshKeyWasCalled = true;
     }
     return refreshKeyWasCalled;
+  },
+  resetMock: function() {
+    refreshKeyWasCalled = false;
   }
 };
 
 function assertRefreshKeyWasCalled() {
   Assert.ok(refreshKeyWasCalled, "MockKeyServer.refreshKey() was not called.");
-  refreshKeyWasCalled = false;
 }
 
 let setTimeoutWasCalled = false;
 const MockTimer = {
   setTimeout: function(f, time) {
     setTimeoutWasCalled = true;
+  },
+  resetMock: function() {
+    setTimeoutWasCalled = false;
   }
 };
 
-function assertSetTimeoutWasCalled() {
-  Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called.");
-  setTimeoutWasCalled = false;
+function assertSetTimeoutWasCalled(testName, expectedCallbackFunction) {
+  Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called. in test: " + testName);
 }
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function initializingWithoutKeysWillUpdateLog() {
   KeyRefreshService.start({}, MockKeyServer, MockTimer);
   assertLogContains("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh");
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+  EnigmailLog.DEBUG("ASSERTED: setTimeoutWasCalled is " + setTimeoutWasCalled + "\n");
 }))));
 
 test(withLogFiles(function testRefreshKey(){
@@ -82,7 +90,11 @@ test(withLogFiles(function testRefreshKey(){
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
-  assertRefreshKeyWasCalled();
+  assertRefreshKeyWasCalled("testRefreshKey");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
   assertLogContains("keyRefreshService.jsm: refreshKey: Refreshed Key:");
 }));
 
@@ -92,7 +104,12 @@ test(withTestGpgHome(withEnigmail(function testTestTimerWasCalled() {
 
   KeyRefreshService.start(config, MockKeyServer, MockTimer);
 
-  assertSetTimeoutWasCalled();
+  assertSetTimeoutWasCalled("testTestTimerWasCalled");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+  EnigmailLog.DEBUG("ASSERTED: setTimeoutWasCalled is " + setTimeoutWasCalled + "\n");
 })));
 
 test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
@@ -101,10 +118,60 @@ test(withTestGpgHome(withEnigmail(function testSetupNextKeyRefresh() {
 
   refreshKey(config, MockKeyServer, MockTimer)();
 
-  assertSetTimeoutWasCalled();
+  assertSetTimeoutWasCalled("testSetupNextKeyRefresh");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+  EnigmailLog.DEBUG("ASSERTED: setTimeoutWasCalled is " + setTimeoutWasCalled + "\n");
 })));
 
 test(withTestGpgHome(withEnigmail(function testGettingARandomKey() {
   importKeys();
+
   Assert.notEqual(getRandomKey(4), getRandomKey(5));
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
 })));
+
+test(withTestGpgHome(withEnigmail(function withNoKeys_testSetTimeToCheckForKeysLater() {
+  EnigmailLog.setLogLevel(9000);
+  EnigmailKeyRing.clearCache();
+  const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
+
+  let config = { hoursAWeekOnThunderbird: 40 };
+  KeyRefreshService.start(config, MockKeyServer, MockTimer);
+  assertSetTimeoutWasCalled("withNoKeys_testSetTimeToCheckForKeysLater");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+})));
+
+test(withTestGpgHome(withEnigmail(function ifKeysExistLater_startRefresh() {
+  let config = { hoursAWeekOnThunderbird: 40 };
+  importKeys();
+
+  checkKeysAndRestart(config, MockKeyServer, MockTimer)();
+
+  assertSetTimeoutWasCalled("ifKeysExistLater_startRefresh");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+})));
+
+test(withTestGpgHome(withEnigmail(withLogFiles(function ifKeysDontExistLater_checkLater() {
+  let config = { hoursAWeekOnThunderbird: 40 };
+
+  checkKeysAndRestart(config, MockKeyServer, MockTimer)();
+
+  assertSetTimeoutWasCalled("ifKeysDontExistLater_checkLater");
+  assertLogContains("keyRefreshService.jsm: checkKeysAndRestart: Still no keys at: ");
+
+  MockKeyServer.resetMock();
+  MockTimer.resetMock();
+  EnigmailKeyRing.clearCache();
+}))));
