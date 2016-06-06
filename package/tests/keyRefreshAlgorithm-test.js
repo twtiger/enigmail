@@ -62,19 +62,6 @@ test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   Assert.ok(calculateMaxTimeForRefreshInMilliseconds(config, totalKeys) == maxTimeForRefresh);
 });
 
-test(function testConversionFromByteObjectToUnsignedInteger(){
-  // 1100 1110 0000 1001 1100 0111 1101 1111
-  let expected = 3456747487;
-  let byteObject = {
-    0:206, // 1100 1110
-    1:9,   // 0000 1001
-    2:199, // 1100 0111
-    3:223  // 1101 1111
-  };
-
-  Assert.equal(bytesToUInt(byteObject), expected);
-});
-
 test(function waitTimeShouldBeLessThanMax() {
   let totalKeys = 4;
   let config = {

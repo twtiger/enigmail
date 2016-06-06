@@ -54,6 +54,7 @@ MODFILES = \
            keyRing.jsm \
            keyRefreshService.jsm \
            keyRefreshAlgorithm.jsm \
+           randomNumber.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \
