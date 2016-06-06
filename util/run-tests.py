@@ -153,14 +153,17 @@ class TestRunner:
 
 
 class OptionsEvaluator:
-    SEED_OPTION = '-seed='
-    HELP_OPTION = '-h'
+    SEED_OPTION = ['--seed=', '-s=']
+    HELP_OPTION = ['-h', '--help']
 
+    @staticmethod
     def print_help():
         print('Usage: run-tests.py [OPTION] [PATH TO TEST FILES]')
+        print('')
         print('By default, this will run all the tests in random order based on a seed, which will be printed before the tests. You can rerun an order by using the -seed option below.')
         print('  [OPTIONS]')
-        print('  -seed=\t Specify a seed to get the same shuffle order more than once')
+        print('  --seed=\t Specify a seed to get the same shuffle order more than once')
+        print('  -h, --help\t Print usage')
 
     @staticmethod
     def random_shuffle(seed, tests):
@@ -174,9 +177,10 @@ class OptionsEvaluator:
         return tests
 
     def evaluate(self):
-        if OptionsEvaluator.HELP_OPTION in sys.argv:
-            self.print_help()
-            sys.exit(1)
+        for op in OptionsEvaluator.HELP_OPTION:
+            if op in sys.argv:
+                self.print_help()
+                sys.exit(1)
 
         if len(sys.argv) == 1:
             return OptionsEvaluator.random_shuffle(False, [f for f in TestRunner.all_tests()])
@@ -191,9 +195,10 @@ class OptionsEvaluator:
             return OptionsEvaluator.random_shuffle(False, [f for f in sys.argv[1:]])
 
     def grab_seed(self):
-        for o in sys.argv:
-            if OptionsEvaluator.SEED_OPTION in o:
-                return o.split(OptionsEvaluator.SEED_OPTION)[1]
+        for op in OptionsEvaluator.SEED_OPTION:
+            for arg in sys.argv:
+                if op in arg:
+                    return arg.split(op)[1]
         return False
 
 if __name__ == '__main__':
