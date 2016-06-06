@@ -36,10 +36,11 @@ function checkKeysAndRestart(config, keyserver, timer) {
   };
 }
 
+// If this operation is interrupted, it will not keep track of
+// what key it was trying to refresh or what time the key was
+// going to be refreshed at. It will choose a new key and a new
+// refresh time each run.
 function start(config, keyserver, timer) {
-  // TODO
-  // handle the case where we couldn't refresh a key in the time you were on TB last session
-  //    save next key refresh time?
   const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
   if (totalPublicKeys) {
     timer.setTimeout(refreshKey(config, keyserver), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
