@@ -36,6 +36,12 @@ function checkKeysAndRestart(config, keyserver, timer) {
   };
 }
 
+function getRandomKey(randomNumber) {
+  let maxIndex= EnigmailKeyRing.getAllKeys().keyList.length - 1;
+  let index = randomNumber % maxIndex;
+  return EnigmailKeyRing.getAllKeys().keyList[index];
+}
+
 // If this operation is interrupted, it will not keep track of
 // what key it was trying to refresh or what time the key was
 // going to be refreshed at. It will choose a new key and a new
@@ -48,12 +54,6 @@ function start(config, keyserver, timer) {
     timer.setTimeout(checkKeysAndRestart(config, keyserver, timer), ONE_HOUR_IN_MILLISEC);
     EnigmailLog.WRITE("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh\n");
   }
-}
-
-function getRandomKey(randomNumber) {
-  let maxIndex= EnigmailKeyRing.getAllKeys().keyList.length - 1;
-  let index = randomNumber % maxIndex;
-  return EnigmailKeyRing.getAllKeys().keyList[index];
 }
 
 const KeyRefreshService = {

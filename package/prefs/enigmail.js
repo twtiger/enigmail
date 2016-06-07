@@ -203,6 +203,11 @@ pref("extensions.enigmail.tor.refreshKeys", false);
 pref("extensions.enigmail.tor.searchKey", false);
 pref("extensions.enigmail.tor.uploadKey", false);
 
+// Hours per week that Enigmail is available for refreshing keys
+// The smaller the hours available, the more often the refresh
+// will happen to accommodate.
+pref("extensions.enigmail.hoursAWeekOnThunderbird", 40);
+
 // enable experimental features.
 // WARNING: such features may unfinished functions or tests that can break
 // existing functionality in Enigmail and Thunderbird!
