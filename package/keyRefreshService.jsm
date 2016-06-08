@@ -12,7 +12,7 @@ Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global Random
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
-function refreshKey(config, keyserver, timer) {
+function refreshKey(keyserver, timer) {
   return function() {
     const key = getRandomKey(RandomNumberGenerator.getUint32());
     keyserver.refreshKey(key);
@@ -20,17 +20,17 @@ function refreshKey(config, keyserver, timer) {
 
     // Get the total amount of public keys in case the amount has changed
     const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-    timer.setTimeout(refreshKey(config, keyserver, timer), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
+    timer.setTimeout(refreshKey(keyserver, timer), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys));
   };
 }
 
-function checkKeysAndRestart(config, keyserver, timer) {
+function checkKeysAndRestart(keyserver, timer) {
   return function() {
     const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
     if (totalPublicKeys) {
-      timer.setTimeout(refreshKey(config, keyserver, timer), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
+      timer.setTimeout(refreshKey(keyserver, timer), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys));
     } else {
-      timer.setTimeout(checkKeysAndRestart(config, keyserver, timer), ONE_HOUR_IN_MILLISEC);
+      timer.setTimeout(checkKeysAndRestart(keyserver, timer), ONE_HOUR_IN_MILLISEC);
       EnigmailLog.WRITE("keyRefreshService.jsm: checkKeysAndRestart: Still no keys at: " + new Date().toUTCString() + ". Will retry to restart key refresh service in one hour.\n");
     }
   };
@@ -46,12 +46,12 @@ function getRandomKey(randomNumber) {
 // what key it was trying to refresh or what time the key was
 // going to be refreshed at. It will choose a new key and a new
 // refresh time each run.
-function start(config, keyserver, timer) {
+function start(keyserver, timer) {
   const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
   if (totalPublicKeys) {
-    timer.setTimeout(refreshKey(config, keyserver), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(config, totalPublicKeys));
+    timer.setTimeout(refreshKey(keyserver), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys));
   } else {
-    timer.setTimeout(checkKeysAndRestart(config, keyserver, timer), ONE_HOUR_IN_MILLISEC);
+    timer.setTimeout(checkKeysAndRestart(keyserver, timer), ONE_HOUR_IN_MILLISEC);
     EnigmailLog.WRITE("keyRefreshService.jsm: KeyRefreshService.start: No keys available to refresh\n");
   }
 }

@@ -24,13 +24,17 @@ Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
-const actions = { downloadKey: nsIEnigmail.DOWNLOAD_KEY,
+const actions = {
+  downloadKey: nsIEnigmail.DOWNLOAD_KEY,
   refreshKeys: nsIEnigmail.REFRESH_KEY,
   searchKey: nsIEnigmail.SEARCH_KEY,
-  uploadKey: nsIEnigmail.UPLOAD_KEY };
+  uploadKey: nsIEnigmail.UPLOAD_KEY
+};
 
 
 function checkForTorifiedActions(actionFlags, tor) {
@@ -156,8 +160,70 @@ function submit(args, inputData, listener, isDownload) {
   return proc;
 }
 
-const EnigmailKeyServer = {
+function getKeyserverName() {
+  return EnigmailPrefs.getPref("autoKeyServerSelection") ? EnigmailPrefs.getPref("keyserver").split(/[ ,;]/g)[0] : null;
+}
 
+function buildHkpListener() {
+  return {
+    done: function (exitCode) {
+      // do nothing
+    },
+    stdout: function(data) {
+      // do nothing
+    },
+    stderr: function(data) {
+      let response = GpgResponseParser.parse(data);
+      EnigmailLog.ERROR("hkp key request fails with: gpg: keyserver receive failed: General error\n");
+    }
+  };
+}
+
+function buildHkpKeyRequest(key) {
+  return {
+    actionFlags: actions.downloadKey,
+    keyserver: "hkp://" + getKeyserverName() + ":11371",
+    searchTerms: key.keyId,
+    listener: buildHkpListener()
+  };
+}
+
+function buildHkpsKeyRequest(key) {
+  return {
+    actionFlags: actions.downloadKey,
+    keyserver: "hkps://" + getKeyserverName() + ":443",
+    searchTerms: key.keyId,
+    listener: buildHkpsListener()
+  };
+}
+
+function buildHkpsListener(key) {
+  return {
+    done: function(exitCode) {
+      // do nothing
+    },
+    stdout: function() {
+      // do nothing
+    },
+    stderr: function(data) {
+      let response = GpgResponseParser.parse(data);
+      if (response.status === "General Error" || response.status === "Connection Error") {
+        let request = buildHkpKeyRequest(key);
+        let errorMsgObj = {};
+        let query = build(request.actionFlags, request.keyserver, request.searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
+        submit(query.args, query.inputData, request.listener, query.isDownload);
+      }
+      if (response.status === "Key not changed") {
+        EnigmailLog.WRITE("keyserver.jsm: Current key is the most up to date\n");
+      }
+      if (response.status === "Success") {
+        EnigmailLog.WRITE("keyserver.jsm: Key successfully imported!\n");
+      }
+    }
+  };
+}
+
+const EnigmailKeyServer = {
   /**
    * search, download or upload key on, from or to a keyserver
    *
@@ -171,7 +237,14 @@ const EnigmailKeyServer = {
    * @return:      Subprocess object, or null in case process could not be started
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    var query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
+    let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
     return submit(query.args, query.inputData, listener, query.isDownload);
   },
+
+  refreshKey: function(key) {
+    let request = buildHkpsKeyRequest(key);
+    let errorMsgObj = {};
+    let query = build(request.actionFlags, request.keyserver, request.searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
+    submit(query.args, query.inputData, request.listener, query.isDownload);
+  }
 };
