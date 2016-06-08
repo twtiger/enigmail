@@ -20,16 +20,18 @@ test(function testRegisteringFetchError() {
   Assert.equal(response.status, "Connection Error");
 });
 
+//change to accommodate language
 test(function testRegisteringUnchangedKeyError() {
   let errMsg = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n" +
-    "gpg: key 2080080C: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
+    "gpg: key KEYID: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:              unchanged: 1\n";
   let response = GpgResponseParser.parse(errMsg);
   Assert.equal(response.status, "Key not changed");
 });
 
-test(function testRegisteringUnchangedKeyError() {
+//change to accommodate language
+test(function testRegisteringSuccessfulNewImport() {
   let importSuccessMsg = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n" +
     "gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n" +
     "gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n" +
