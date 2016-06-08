@@ -164,17 +164,25 @@ function getKeyserverName() {
   return EnigmailPrefs.getPref("autoKeyServerSelection") ? EnigmailPrefs.getPref("keyserver").split(/[ ,;]/g)[0] : null;
 }
 
-function buildHkpListener() {
+function hkpExit(key, exitCode, stderr, stdout) {
+  let response = GpgResponseParser.parse(stderr);
+  if (response.status == "General Error") {
+    EnigmailLog.ERROR("hkp key request for Key ID: " + key.keyId + " fails with: gpg: keyserver receive failed: General error\n");
+  }
+}
+
+function buildHkpListener(key) {
+  let stderr = "";
+  let stdout = "";
   return {
     done: function (exitCode) {
-      // do nothing
+      hkpExit(key, exitCode, stderr, stdout);
     },
     stdout: function(data) {
-      // do nothing
+      stdout += data;
     },
     stderr: function(data) {
-      let response = GpgResponseParser.parse(data);
-      EnigmailLog.ERROR("hkp key request fails with: gpg: keyserver receive failed: General error\n");
+      stderr += data;
     }
   };
 }
@@ -184,7 +192,7 @@ function buildHkpKeyRequest(key) {
     actionFlags: actions.downloadKey,
     keyserver: "hkp://" + getKeyserverName() + ":11371",
     searchTerms: key.keyId,
-    listener: buildHkpListener()
+    listener: buildHkpListener(key)
   };
 }
 
@@ -193,32 +201,38 @@ function buildHkpsKeyRequest(key) {
     actionFlags: actions.downloadKey,
     keyserver: "hkps://" + getKeyserverName() + ":443",
     searchTerms: key.keyId,
-    listener: buildHkpsListener()
+    listener: buildHkpsListener(key)
   };
 }
 
+
+function hkpsExit(key, exitCode, stderr, stdout) {
+  let response = GpgResponseParser.parse(stderr);
+  if (response.status === "General Error" || response.status === "Connection Error") {
+    let request = buildHkpKeyRequest(key);
+    let errorMsgObj = {};
+    EnigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
+  }
+  if (response.status === "Key not changed") {
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
+  }
+  if (response.status === "Success") {
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+  }
+}
+
 function buildHkpsListener(key) {
+  let stderr = "";
+  let stdout = "";
   return {
     done: function(exitCode) {
-      // do nothing
+      hkpsExit(key, exitCode, stderr, stdout);
     },
-    stdout: function() {
-      // do nothing
+    stdout: function(data) {
+      stdout += data;
     },
     stderr: function(data) {
-      let response = GpgResponseParser.parse(data);
-      if (response.status === "General Error" || response.status === "Connection Error") {
-        let request = buildHkpKeyRequest(key);
-        let errorMsgObj = {};
-        let query = build(request.actionFlags, request.keyserver, request.searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-        submit(query.args, query.inputData, request.listener, query.isDownload);
-      }
-      if (response.status === "Key not changed") {
-        EnigmailLog.WRITE("keyserver.jsm: Current key is the most up to date\n");
-      }
-      if (response.status === "Success") {
-        EnigmailLog.WRITE("keyserver.jsm: Key successfully imported!\n");
-      }
+      stderr += data;
     }
   };
 }
@@ -244,7 +258,6 @@ const EnigmailKeyServer = {
   refreshKey: function(key) {
     let request = buildHkpsKeyRequest(key);
     let errorMsgObj = {};
-    let query = build(request.actionFlags, request.keyserver, request.searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-    submit(query.args, query.inputData, request.listener, query.isDownload);
+    this.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
   }
 };

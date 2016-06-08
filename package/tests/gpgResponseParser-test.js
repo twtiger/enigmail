@@ -7,7 +7,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 testing("gpgResponseParser.jsm"); /* global GpgResponseParser:false */
 
 test(function testRegisteringGeneralError() {
-  let errMsg = "gpg: keyserver receive failed: General error";
+  let errMsg = "gpg: keyserver receive failed: General error\n";
   let response = GpgResponseParser.parse(errMsg);
   Assert.equal(response.status, "General Error");
 });

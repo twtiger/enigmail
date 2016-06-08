@@ -221,34 +221,44 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   Assert.equal(request.searchTerms, key.keyId);
 })));
 
-test(withLogFiles(function testHandlingUnchangedKey() {
-  let errMsg = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n" +
+test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey() {
+  importKey();
+  let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let errMsg = "gpg: requesting key "+ key.keyId +" from hkps server pgp.mit.edu\n" +
     "gpg: key 2080080C: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:              unchanged: 1\n";
-  let listener = buildHkpsListener();
+  let listener = buildHkpsListener(key);
   listener.stderr(errMsg);
-  assertLogContains("keyserver.jsm: Current key is the most up to date\n");
-}));
+  listener.done();
+  assertLogContains("keyserver.jsm: Key ID "+ key.keyId +" is the most up to date\n");
+}))));
 
-test(withLogFiles(function testHandlingSuccessfulImport() {
-  let importSuccessMsg = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n" +
-    "gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n" +
-    "gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n" +
-    "gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
+test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulImport() {
+  importKey();
+  let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let importSuccessMsg1 = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n";
+  let importSuccessMsg2 = "gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n";
+  let importSuccessMsg3 = "gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n";
+  let importSuccessMsg4 = "gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:               imported: 1  (RSA: 1)\n";
-  let listener = buildHkpsListener();
-  listener.stderr(importSuccessMsg);
-  assertLogContains("keyserver.jsm: Key successfully imported!\n");
-}));
+  let listener = buildHkpsListener(key);
+  listener.stderr(importSuccessMsg1);
+  listener.stderr(importSuccessMsg2);
+  listener.stderr(importSuccessMsg3);
+  listener.stderr(importSuccessMsg4);
+  listener.done();
+  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+}))));
 
-// scheme can be hkp:11371, hkps:443, ldap:389, keybase:http (specific)
-// pref("extensions.enigmail.keyserver", "pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu");
-// enigmailMessengerOverlay.js +2384
-test(withLogFiles(function testHkpResponseToGeneralError() {
-  let listener = buildHkpListener();
+test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneralError() {
+  importKey();
+  let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let listener = buildHkpListener(key);
+
   let errMsg = "gpg: keyserver receive failed: General error";
   listener.stderr(errMsg);
-  assertLogContains("[ERROR] hkp key request fails with: " + errMsg + "\n");
-}));
+  listener.done();
+  assertLogContains("[ERROR] hkp key request for Key ID: " + key.keyId + " fails with: " + errMsg + "\n");
+}))));
