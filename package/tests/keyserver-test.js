@@ -7,23 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// QA NOTES
-// Good response
-// gpg: requesting key 2080080C from hkps server pgp.mit.edu
-// gpg: key 2080080C: "Andrew Ayer <agwa@andrewayer.name>" not changed
-// gpg: Total number processed: 1
-// gpg:              unchanged: 1
-//
-// Error 1
-// gpg: requesting key 2080080C from hkps server keys.gnupg.net
-// gpgkeys: HTTP fetch error 60: Peer's Certificate has expired.
-// gpg: no valid OpenPGP data found.
-//
-// Error2
-// gpg: keyserver receive failed: General error
-//
-
-
 "use strict";
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true, assertLogContains: false, withLogFiles: false */
@@ -33,7 +16,7 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
-testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildHkpsKeyRequest: false, getKeyserver: false, buildHkpKeyRequest: false, buildHkpsListener: false, buildHkpListener: false */
+testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildHkpsKeyRequest: false, getKeyserver: false, buildHkpKeyRequest: false, buildHkpsListener: false, buildListener: false, StateMachine: false */
 
 const HttpProxyBuilder = {
   build: function() {
@@ -60,6 +43,11 @@ const TorBuilder = {
   get: function() {
     return this.tor;
   }
+};
+
+const dummyStates = {
+  "hkps": {exec: function(){}, next: "hkp"},
+  "hkp": {exec: function(){}, next: "hkp"}
 };
 
 test(function testBasicQuery() {
@@ -200,9 +188,10 @@ function importKey() {
 test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let stateMachine = new StateMachine("hkps", dummyStates);
   EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
 
-  let request = buildHkpsKeyRequest(key);
+  let request = buildHkpsKeyRequest(key, stateMachine);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkps://pool.sks-keyservers.net:443");
@@ -214,7 +203,8 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
 
-  let request = buildHkpKeyRequest(key);
+  let stateMachine = new StateMachine("hkp", dummyStates);
+  let request = buildHkpKeyRequest(key, stateMachine);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkp://pool.sks-keyservers.net:11371");
@@ -224,11 +214,12 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey() {
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let stateMachine = new StateMachine("hkps", dummyStates);
   let errMsg = "gpg: requesting key "+ key.keyId +" from hkps server pgp.mit.edu\n" +
     "gpg: key 2080080C: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:              unchanged: 1\n";
-  let listener = buildHkpsListener(key);
+  let listener = buildListener(key, stateMachine);
   listener.stderr(errMsg);
   listener.done();
   assertLogContains("keyserver.jsm: Key ID "+ key.keyId +" is the most up to date\n");
@@ -243,7 +234,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
   let importSuccessMsg4 = "gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:               imported: 1  (RSA: 1)\n";
-  let listener = buildHkpsListener(key);
+  let listener = buildListener(key, dummyStates);
   listener.stderr(importSuccessMsg1);
   listener.stderr(importSuccessMsg2);
   listener.stderr(importSuccessMsg3);
@@ -255,10 +246,19 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneralError() {
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
-  let listener = buildHkpListener(key);
+  let stateMachine = new StateMachine("hkp", dummyStates);
+  let listener = buildListener(key, stateMachine);
 
   let errMsg = "gpg: keyserver receive failed: General error";
   listener.stderr(errMsg);
   listener.done();
-  assertLogContains("[ERROR] hkp key request for Key ID: " + key.keyId + " fails with: " + errMsg + "\n");
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " fails with: General Error\n");
+}))));
+
+
+test(withTestGpgHome(withEnigmail(withLogFiles(function StateMachineChange() {
+  let sm = new StateMachine("hkps", dummyStates);
+  Assert.equal(sm.currentState, "hkps");
+  sm.next();
+  Assert.equal(sm.currentState, "hkp");
 }))));
