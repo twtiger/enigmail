@@ -14,8 +14,7 @@
 "use strict";
 
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://gre/modules/Services.jsm"); 
-
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -34,13 +33,11 @@ const EnigmailTor = {
 function checkTorRequest(host, port){
   let torRequest = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
   torRequest.open("GET", "https://check.torproject.org/api/ip", false);
-  torRequest.send(null);	
+  torRequest.send(null);
   return torRequest;
-};
-
-function isTorRunning(host, port){
-	let response = checkTorRequest(host, port).response;
-	return JSON.parse(response).IsTor;
 }
 
-
+function isTorRunning(host, port){
+  let response = checkTorRequest(host, port).response;
+  return JSON.parse(response).IsTor;
+}
