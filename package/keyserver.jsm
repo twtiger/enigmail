@@ -45,7 +45,30 @@ function checkForTorifiedActions(actionFlags, tor) {
   }
   return false;
 }
-function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
+
+function buildGpgProxyInfo(tor) {
+   let torConfig = tor.getConfiguration; // TODO this might change depending on whether we can determine where tor is running before we make a request
+   let socksProxy = "socks5-hostname://";
+   let proxy = socksProxy + torConfig.host + ":" + torConfig.port;
+   return ["--keyserver-options", "http-proxy=" + proxy];
+}
+
+function buildTorProxyInfo(gpgAgent, tor) {
+  // TODO check for correct version of curl for gpg2 and gpg
+  if (gpgAgent.agentPath.path.indexOf('gpg2') > -1){
+    // TODO this is actually wrong
+    // We need to investigate how to refresh over socks5 proxy in gpg2
+    return buildGpgProxyInfo(tor);
+  } else if (gpgAgent.agentPath.path.indexOf('gpg') > -1){
+    return buildGpgProxyInfo(tor);
+  } else if (tor.hasTorsocks === true) {
+  } else if (tor.hasTorify === true) {
+  } else if (gpgAgent.hasGpgCurl === true) {
+  }
+  return null;
+}
+
+function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor, gpg) {
   EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
 
   if (!keyserver) {
@@ -67,7 +90,6 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 
   const proxyHost = httpProxy.getHttpProxy(keyserver);
 
-
   args = args.concat(["--keyserver", keyserver.trim()]);
 
   if (proxyHost !== null) {
@@ -79,10 +101,10 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
     let useTor = checkForTorifiedActions(actionFlags, tor);
 
     if (useTor === true) {
-      const torConfig = tor.getConfiguration; // TODO this might change depending on whether we can determine where tor is running before we make a request
-      const socksProxy = "socks5-hostname://";
-      const proxy = socksProxy + torConfig.host + ":" + torConfig.port;
-      args = args.concat(["--keyserver-options", "http-proxy=" + proxy]);
+      let proxyInfo = buildTorProxyInfo(EnigmailGpgAgent, tor);
+      if (proxyInfo !== null) {
+        args = args.concat(proxyInfo);
+      }
     }
   }
 

@@ -15,6 +15,7 @@ Components.utils.import("resource://enigmail/locale.jsm"); /*global EnigmailLoca
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 
 testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildHkpsKeyRequest: false, getKeyserver: false, buildHkpKeyRequest: false, buildHkpsListener: false, buildListener: false, StateMachine: false */
 
@@ -66,21 +67,22 @@ test(function testBasicQuery() {
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.REFRESH_KEY);
 });
 
-test(function testBasicQueryWithInputData() {
-  var actionFlags = nsIEnigmail.SEARCH_KEY;
-  var keyserver = "keyserver0005";
-  var searchTerms = "1";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
-  var tor = TorBuilder.build().get();
+test(withTestGpgHome(withEnigmail(function testBasicQueryWithInputData() {
+  let actionFlags = nsIEnigmail.SEARCH_KEY;
+  let keyserver = "keyserver0005";
+  let searchTerms = "1";
+  let errorMsgObj = {};
+  let httpProxy = HttpProxyBuilder.build();
+  let tor = TorBuilder.build().get();
 
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  let keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+
   Assert.ok(keyRequestProps.args.indexOf("--search-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, "quit\n");
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, 0);
-});
+})));
 
 test(function testReceiveKey() {
   var actionFlags = nsIEnigmail.DOWNLOAD_KEY;
@@ -99,7 +101,7 @@ test(function testReceiveKey() {
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
 });
 
-test(function testUploadKey() {
+test(withTestGpgHome(withEnigmail(function testUploadKey() {
   var actionFlags = nsIEnigmail.UPLOAD_KEY;
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
@@ -108,15 +110,16 @@ test(function testUploadKey() {
   var tor = TorBuilder.build().get();
 
   var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+
   Assert.ok(keyRequestProps.args.indexOf("--send-keys") != -1);
   Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
   Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, 0);
-});
+})));
 
-test(function testRefreshKeyOverTorProxy9050() {
+test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9050() {
   var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
@@ -133,9 +136,9 @@ test(function testRefreshKeyOverTorProxy9050() {
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-});
+})));
 
-test(function testRefreshKeyOverTorProxy9150() {
+test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9150() {
   var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
   var keyserver = "keyserver0005";
   var searchTerms = "0001";
@@ -152,7 +155,7 @@ test(function testRefreshKeyOverTorProxy9150() {
   Assert.equal(keyRequestProps.inputData, null);
   Assert.equal(keyRequestProps.errors.value, null);
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-});
+})));
 
 test(function testErrorQueryWithNoKeyserver() {
   var actionFlags = nsIEnigmail.UPLOAD_KEY;
