@@ -14,30 +14,63 @@
 "use strict";
 
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false*/
+Components.utils.import("resource://gre/modules/Services.jsm"); /*global Services: false*/
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-
-
 var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 const EnigmailTor = {
-
   getConfiguration: { host: 'something', port: 'port' },
-
   getGpgActions: {}
 };
 
-function checkTorRequest(host, port){
-  let torRequest = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-  torRequest.open("GET", "https://check.torproject.org/api/ip", false);
-  torRequest.send(null);
-  return torRequest;
+const callback = {
+  onProxyAvailable: function(cancelableRequest, uri, proxyInfo, status) {
+    EnigmailLog.DEBUG('IN PROXY AVAILABLE\n');
+    EnigmailLog.DEBUG("status: ", status);
+    let socketTransportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+      .getService(Components.interfaces.nsISocketTransportService);
+    let socketTransport = socketTransportService.createTransport([], 0, "127.0.0.1", 9050, proxyInfo);
+    EnigmailLog.DEBUG("CALLBACK IS ALIVE? " + socketTransport.isAlive() + "\n");
+  },
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyCallback, Ci.nsISupports])
+};
+
+function createURI(){
+  let iOService = Components.classes["@mozilla.org/network/io-service;1"]
+    .getService(Components.interfaces.nsIIOService);
+  return iOService.newURI("https://check.torproject.org/api/ip", "UTF-8", null);
 }
 
-function isTorRunning(host, port){
-  let response = checkTorRequest(host, port).response;
-  return JSON.parse(response).IsTor;
+function isTorRunning(){
+  EnigmailLog.setLogLevel(9000);
+
+
+  let protocolProxyService = Components.classes["@mozilla.org/network/protocol-proxy-service;1"]
+    .getService(Components.interfaces.nsIProtocolProxyService);
+  let cancel = protocolProxyService.asyncResolve(createURI(), Ci.nsIProtocolProxyService.RESOLVE_PREFER_SOCKS_PROXY, callback);
+
+  let socketTransportService = Components.classes["@mozilla.org/network/socket-transport-service;1"]
+    .getService(Components.interfaces.nsISocketTransportService);
+  let socks5 = protocolProxyService.newProxyInfo("socks", "127.0.0.1", 9050, 0, 5 /* wait5Seconds */, null);
+  let socketTransport = socketTransportService.createTransport([], 0, "127.0.0.1", 9050, socks5);
+
+  EnigmailLog.DEBUG("GETTING: " + socketTransport.toString() + "\n");
+
+  socketTransport.setEventSink({
+    onTransportStatus: function(transport, status, progress, progressMax)
+    {
+      EnigmailLog.DEBUG('ON TRANSPORT STATUS\n');
+      EnigmailLog.DEBUG("Status: " + status + "\n");
+    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsITransportEventSink])
+  }, Services.tm.currentThread);
+  let inputStream = socketTransport.openInputStream(0,0,0);
+  let outputStream = socketTransport.openOutputStream(0,0,0);
+
+  return socketTransport;
 }

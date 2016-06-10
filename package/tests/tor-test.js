@@ -11,18 +11,10 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
 testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTorRequest: false, isTorRunning: false */
+component("enigmail/log.jsm"); /* global EnigmailLog: false */
 
-
-test(function testCheckTorRequestReturnsOk(){
-  const host = "127.0.0.1";
-  const port = "9050";
-  let response = checkTorRequest(host, port);
-  Assert.equal(response.status, 200);
+test(function testAbleToConnectToTor(){
+  let socket = isTorRunning();
+  EnigmailLog.DEBUG("ALIVE??? " + socket.isAlive() + "\n");
 });
 
-test(function testCheckRequestIsNotGoingThroughTorProxyWithIncorrectPort(){
-  const host = "127.0.0.1";
-  const port = "9000";
-  let response = isTorRunning(host, port);
-  Assert.equal(response, false);
-});
