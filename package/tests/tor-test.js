@@ -13,16 +13,16 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withE
 testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTorRequest: false, checkTor: false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 
-let threadmanager = null;
-function threadManager() {
-  if (threadmanager === null) {
-    threadmanager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
+let threadManager = null;
+function currentThread() {
+  if (threadManager === null) {
+    threadManager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
   }
-  return threadmanager;
+  return threadManager.currentThread;
 }
 
 test(function testAbleToConnectToTor(){
-  //checkTor();
-  //while(!EnigmailTor.doneCheckingTor) threadManager().currentThread.processNextEvent(true);
-  //Assert.ok(EnigmailTor.torIsAvailable);
+  checkTor();
+  while(!EnigmailTor.doneCheckingTor) currentThread().processNextEvent(true);
+  Assert.ok(EnigmailTor.torIsAvailable);
 });
