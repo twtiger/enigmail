@@ -10,9 +10,19 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTorRequest: false, isTorRunning: false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTorRequest: false, checkTor: false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 
+let threadmanager = null;
+function threadManager() {
+  if (threadmanager === null) {
+    threadmanager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
+  }
+  return threadmanager;
+}
+
 test(function testAbleToConnectToTor(){
-  //Assert.ok(isTorRunning());
+  //checkTor();
+  //while(!EnigmailTor.doneCheckingTor) threadManager().currentThread.processNextEvent(true);
+  //Assert.ok(EnigmailTor.torIsAvailable);
 });

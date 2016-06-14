@@ -22,14 +22,43 @@ const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-const ScriptableInputStream = CC("@mozilla.org/scriptableinputstream;1", "nsIScriptableInputStream", "init");
-const iOService = Cc["@mozilla.org/network/io-service;1"]
-  .getService(Ci.nsIIOService);
+const DOCKER_ADAPTER = ""; // For local testing (TODO: remove)
+const LOCALHOST = "127.0.0.1";
+const LOCAL_TOR_PORT = 9050;
+const CHECK_TOR_URI = "https://check.torproject.org/api/ip";
+const CONNECTION_FLAGS = 0; // Require DNS lookup
+const SECONDS_TO_WAIT = -1;
+const FAILOVER_PROXY = null;
+const SHARED_CONTEXT = null;
+const LOADING_NODE = null;
+const LOADING_PRINCIPAL = null;
+const SECURITY_FLAGS = null;
+const CONTENT_POLICY = null;
+const BASE_URI = null;
 
-const EnigmailTor = {
-  getConfiguration: { host: 'something', port: 'port' },
-  getGpgActions: {}
-};
+const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
+
+let ioservice= null;
+function createCheckTorURIChannel() {
+  if (ioservice === null) {
+    ioservice = Cc["@mozilla.org/network/io-service;1"]
+      .getService(Ci.nsIIOService);
+  }
+  return ioservice.newChannel2(CHECK_TOR_URI, "UTF-8", BASE_URI, LOADING_NODE, LOADING_PRINCIPAL, LOADING_PRINCIPAL, SECURITY_FLAGS, CONTENT_POLICY);
+}
+
+let pps = null;
+function protocolProxyService() {
+  if (pps === null) {
+    pps = Components.classes["@mozilla.org/network/protocol-proxy-service;1"]
+      .getService(Components.interfaces.nsIProtocolProxyService);
+  }
+  return pps;
+}
+
+function createScriptableInputStream(inputStream) {
+  return CC("@mozilla.org/scriptableinputstream;1", "nsIScriptableInputStream", "init")(inputStream);
+}
 
 const listener = {
   onStartRequest: function(request, context) {
@@ -37,51 +66,35 @@ const listener = {
   },
   onStopRequest: function(request, context, statusCode) {
     EnigmailLog.DEBUG("ON STOP REQUEST\n");
-    EnigmailLog.DEBUG("QUE ES MI STATUS?? " + statusCode +"\n");
+    EnigmailTor.doneCheckingTor = true;
   },
   onDataAvailable: function(request, context, inputStream, offset, count) {
     EnigmailLog.DEBUG("ON DATA AVAILABLE\n");
-    let responseStream = new ScriptableInputStream(inputStream);
-    let response = responseStream.read(count);
+    let response = createScriptableInputStream(inputStream).read(count);
 
     EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
     EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
+
+    EnigmailTor.torIsAvailable = response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1;
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
 
-const DOCKER_ADAPTER = ""; // For local testing (TODO: remove)
-const LOCALHOST = "127.0.0.1";
-const LOCAL_TOR_PORT = 9050;
-const CHECK_TOR_URI = "https://check.torproject.org/api/ip";
-const SECONDS_TO_WAIT = -1;
-const CONNECTION_FLAGS = 0; // Require DNS lookup
-const FAILOVER_PROXY = null;
-const EXPECTED_TOR_CHECK_RESPONSE = "\"IsTor\":true";
-
 const filter = {
   applyFilter: function(proxyService, uri, proxyInfo) {
-    return proxyService.newProxyInfo("socks", DOCKER_ADAPTER, LOCAL_TOR_PORT, CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
+    return proxyService.newProxyInfo("socks", LOCALHOST, LOCAL_TOR_PORT, CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
 
-function isTorRunning() {
-  EnigmailLog.setLogLevel(9000);
-  let protocolProxyService = Components.classes["@mozilla.org/network/protocol-proxy-service;1"]
-    .getService(Components.interfaces.nsIProtocolProxyService);
-  protocolProxyService.registerFilter(filter, 1);
-
-  // TODO: use asyncOpen(listener, null) instead
-  let httpChannel = iOService.newChannel2(CHECK_TOR_URI, "UTF-8", null, null, null, null, null, null);
-  let responseStream = new ScriptableInputStream(httpChannel.open());
-  let responseCount = responseStream.available();
-  let response = responseStream.read(responseCount);
-
-  EnigmailLog.DEBUG("RESPONSE COUNT: " + responseCount + "\n");
-  EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
-
-  responseStream.close();
-
-  return response.indexOf(EXPECTED_TOR_CHECK_RESPONSE) !== -1;
+function checkTor() {
+  protocolProxyService().registerFilter(filter, 1);
+  createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
 }
+
+const EnigmailTor = {
+  getConfiguration: { host: 'something', port: 'port' },
+  getGpgActions: {},
+  doneCheckingTor: false,
+  torIsAvailable: false
+};
