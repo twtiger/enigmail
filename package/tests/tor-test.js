@@ -14,7 +14,5 @@ testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTorRequest: false,
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 
 test(function testAbleToConnectToTor(){
-  let socket = isTorRunning();
-  EnigmailLog.DEBUG("ALIVE??? " + socket.isAlive() + "\n");
+  //Assert.ok(isTorRunning());
 });
-
