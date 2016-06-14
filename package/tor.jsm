@@ -15,6 +15,8 @@
 
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
+Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/randomNumber.jsm"); /* global RandomNumberGenerator: false */
 
 var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -36,6 +38,8 @@ const CONTENT_POLICY = null;
 const BASE_URI = null;
 
 const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
+const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
+const TOR_IP_PORT_PREF = "extensions.enigmail.torIpPort";
 
 let ioservice= null;
 function createCheckTorURIChannel() {
@@ -81,7 +85,7 @@ const listener = {
 
 const filter = {
   applyFilter: function(proxyService, uri, proxyInfo) {
-    return proxyService.newProxyInfo("socks", LOCALHOST, LOCAL_TOR_PORT, CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
+    return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), EnigmailPrefs.getPref(TOR_IP_PORT_PREF), CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
@@ -91,9 +95,16 @@ function checkTor() {
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
 }
 
+function buildGpgProxyArguments() {
+
+  const username = RandomNumberGenerator.getUint32();
+  const password = RandomNumberGenerator.getUint32();
+  return ["--keyserver-options", "http-proxy=socks5h://" + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
+}
+
 const EnigmailTor = {
-  getConfiguration: { host: 'something', port: 'port' },
-  getGpgActions: {},
   doneCheckingTor: false,
-  torIsAvailable: false
+  torIsAvailable: false,
+  checkTor: checkTor,
+  buildGpgProxyArguments: buildGpgProxyArguments
 };
