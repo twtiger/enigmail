@@ -13,7 +13,7 @@ const HOUR_IN_MILLISEC = 60 * 60 * 1000;
 const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "extensions.enigmail.hoursAWeekOnThunderbird";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
-  let millisecondsAvailableForRefresh = EnigmailPrefs.getPref("extensions.enigmail.hoursAWeekOnThunderbird") * HOUR_IN_MILLISEC;
+  let millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME) * HOUR_IN_MILLISEC;
   return millisecondsAvailableForRefresh / totalPublicKeys;
 }
 
