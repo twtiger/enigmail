@@ -56,6 +56,7 @@ MODFILES = \
            keyRefreshAlgorithm.jsm \
            randomNumber.jsm \
            gpgResponseParser.jsm \
+           curl.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \

@@ -90,7 +90,11 @@ const filter = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
 
-function checkTor() {
+function checkCurlVersion() {
+  const minCurlVer = '7.21.7';
+}
+
+function canUseTor() {
   protocolProxyService().registerFilter(filter, 1);
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
 }
@@ -105,6 +109,6 @@ function buildGpgProxyArguments() {
 const EnigmailTor = {
   doneCheckingTor: false,
   torIsAvailable: false,
-  checkTor: checkTor,
+  canUseTor: canUseTor,
   buildGpgProxyArguments: buildGpgProxyArguments
 };

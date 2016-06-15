@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, checkTor: false, TOR_IP_ADDR_PREF: false, TOR_IP_PORT_PREF: false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, TOR_IP_ADDR_PREF: false, TOR_IP_PORT_PREF: false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 
@@ -36,7 +36,7 @@ const TOR_IP_PORT_FOR_TESTS = 9050;
 test(function testConnectingToTor() {
   setupTorPreferences();
 
-  checkTor();
+  canUseTor();
   while(!EnigmailTor.doneCheckingTor) currentThread().processNextEvent(true);
 
   Assert.ok(EnigmailTor.torIsAvailable, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + TOR_IP_PORT_FOR_TESTS);
@@ -48,7 +48,7 @@ test(function testConnectingToTorFails() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
   EnigmailPrefs.setPref(TOR_IP_PORT_PREF, portWithoutTor);
 
-  checkTor();
+  canUseTor();
   while(!EnigmailTor.doneCheckingTor) currentThread().processNextEvent(true);
 
   Assert.ok(!EnigmailTor.torIsAvailable, "Tor should not be available on port " + portWithoutTor);

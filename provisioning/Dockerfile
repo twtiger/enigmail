@@ -26,6 +26,7 @@ RUN apt-get install -y haveged
 RUN apt-get install -y nodejs
 RUN apt-get install deb.torproject.org-keyring
 RUN apt-get install -y tor
+RUN apt-get install -y curl
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN apt-get install -y npm
 RUN npm install -g eslint
