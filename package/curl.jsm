@@ -32,12 +32,17 @@ function environment() {
   return env;
 }
 
-function createVersionRequest() {
+function createVersionRequest(os) {
   const command = ["curl"];
   const args = ["--version"];
+  let isDosLike = false;
+
+  if (os == "WINNT" || os == "OS2") {
+    isDosLike = false;
+  }
 
   const request = {
-    command: EnigmailFiles.resolvePath("curl", environment().get("PATH"), EnigmailOS.isDosLike()),
+    command: EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike),
     arguments: args,
     done: function(result) {
       exitCode = result.exitCode;
@@ -49,28 +54,46 @@ function createVersionRequest() {
   return request;
 }
 
-function curlVersionOver(main, release, patch ) {
-  let request = createVersionRequest();
+function parseVersion(curlResponse) {
+  let curlVersionParts = curlResponse.split(".");
+  let parsedVersion = [];
+  for (let i=0; i < curlVersionParts.length; i++) {
+    parsedVersion[i] = parseInt(curlVersionParts[i], numericBase);
+  }
+  if (curlVersionParts.length === 1) {
+    parsedVersion[1] = 0;
+    parsedVersion[2] = 0;
+  }
+  if (curlVersionParts.length === 2) {
+    parsedVersion[2] = 0;
+  }
+
+  return {
+    main: parsedVersion[0],
+    release: parsedVersion[1],
+    patch: parsedVersion[2]
+  };
+}
+
+function curlVersionOver(minimumVersion, os) {
+  let request = createVersionRequest(os);
 
   subprocess.call(request).wait();
 
-  let versionTotal = stdout.split(" ")[1];
-  EnigmailLog.DEBUG("Curl Version Found: " + versionTotal + "\n");
+  let versionResponse = stdout.split(" ")[1];
+  EnigmailLog.DEBUG("Curl Version Found: " + versionResponse + "\n");
 
-  let versionParts = versionTotal.split(".");
-
-  if (versionParts[0] > main) {
+  let currentVersion = parseVersion(versionResponse);
+  if (currentVersion.main > minimumVersion.main) {
     return true;
-  } else if (versionParts[0] == main) {
-    if (versionParts[1] > release) {
-      EnigmailLog.DEBUG("I MADE IT!\n");
+  } else if (currentVersion.main === minimumVersion.main) {
+    if (currentVersion.release > minimumVersion.release) {
       return true;
-    } else if (versionParts[1] == release) {
-      if (versionParts[2] >= patch) return true;
+    } else if (currentVersion.release === minimumVersion.release) {
+      if (currentVersion.patch >= minimumVersion.patch) return true;
       else return false;
     }
   }
-
-  EnigmailLog.DEBUG("What.\n");
+  EnigmailLog.DEBUG("HELLO!\n");
   return false;
 }

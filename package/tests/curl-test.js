@@ -4,18 +4,68 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
 testing("curl.jsm"); /*global CurlLOL: false, createVersionRequest:false, curlVersionOver:false */
-component("enigmail/log.jsm"); /*global EnigmailLog:false */
+component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 
 test(function constructVersionArguments() {
-  let request = createVersionRequest();
+  const request = createVersionRequest("Linux");
   Assert.deepEqual(request.arguments, ['--version']);
 });
 
-test(function constructCommandToCheckCurlOnLinux() {
+test(function checkCurlVersionIsOver() {
   EnigmailLog.setLogLevel(9000);
-  Assert.ok(curlVersionOver(7, 21, 7));
+  const minimumCurlVersion = {
+    main: 7,
+    release: 21,
+    patch: 7
+  };
+  Assert.ok(curlVersionOver(minimumCurlVersion, "Linux"));
 });
 
-test(function constructCommandToCheckCurlOnLinux() {
-  Assert.ok(!curlVersionOver(100, 0, 0));
+test(function checkCurlVersionEqualToIsOver() {
+  EnigmailLog.setLogLevel(9000);
+  const minimumCurlVersion = {
+    main: 7,
+    release: 47,
+    patch: 0
+  };
+  Assert.ok(curlVersionOver(minimumCurlVersion, "Linux"));
+});
+
+test(function checkCurlVersionIsLess() {
+  const minimumCurlVersion = {
+    main: 100,
+    release: 0,
+    patch: 0
+  };
+  Assert.ok(!curlVersionOver(minimumCurlVersion, "Linux"));
+});
+
+test(function parseFulVersionResponse() {
+  const curlVersionResponse = "10.12.5";
+  const expectedParsedVersion = {
+    main: 10,
+    release: 12,
+    patch: 5
+  };
+  Assert.deepEqual(parseVersion(curlVersionResponse), expectedParsedVersion);
+});
+
+test(function parseReleaseOnlyResponse() {
+  const curlVersionResponse = "7.12";
+  const expectedParsedVersion = {
+    main: 7,
+    release: 12,
+    patch: 0
+  };
+  Assert.deepEqual(parseVersion(curlVersionResponse), expectedParsedVersion);
+});
+
+test(function parseMainOnlyResponse() {
+  const curlVersionResponse = "6";
+  const expectedParsedVersion = {
+    main: 6,
+    release: 0,
+    patch: 0
+  };
+  Assert.deepEqual(parseVersion(curlVersionResponse), expectedParsedVersion);
 });

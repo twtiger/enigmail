@@ -24,6 +24,12 @@ const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+const minimumCurlVersion = {
+  main: 7,
+  release: 21,
+  patch: 7
+};
+
 const LOCALHOST = "127.0.0.1";
 const LOCAL_TOR_PORT = 9050;
 const CHECK_TOR_URI = "https://check.torproject.org/api/ip";
@@ -89,10 +95,6 @@ const filter = {
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
-
-function checkCurlVersion() {
-  const minCurlVer = '7.21.7';
-}
 
 function canUseTor() {
   protocolProxyService().registerFilter(filter, 1);

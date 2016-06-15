@@ -58,7 +58,7 @@ test(function testConnectingToTorFails() {
 test(function testBuildGpgArgumentsForTorProxy() {
   setupTorPreferences();
 
-  let torRequests = EnigmailTor.buildGpgProxyArguments();
+  const torRequests = EnigmailTor.buildGpgProxyArguments();
 
   Assert.equal(torRequests[0], "--keyserver-options");
   Assert.ok(torRequests[1].indexOf("http-proxy=socks5h://") > -1);
@@ -75,8 +75,8 @@ function getPassword(thing) {
 test(function createRandomUsernameAndPassword() {
   setupTorPreferences();
 
-  let firstRequest = EnigmailTor.buildGpgProxyArguments();
-  let secondRequest = EnigmailTor.buildGpgProxyArguments();
+  const firstRequest = EnigmailTor.buildGpgProxyArguments();
+  const secondRequest = EnigmailTor.buildGpgProxyArguments();
 
   Assert.ok(getUsername(firstRequest) !== getUsername(secondRequest));
   Assert.ok(getUsername(firstRequest) !== getPassword(secondRequest));
