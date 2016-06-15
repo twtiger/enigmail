@@ -36,7 +36,6 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-
 function checkForTorifiedActions(actionFlags, tor) {
   for (let key in actions) {
     if ((tor.gpgActions[key] === true) && (actionFlags & actions[key])) {
@@ -68,9 +67,7 @@ function buildTorProxyInfo(gpgAgent, tor) {
   return null;
 }
 
-function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor, gpg) {
-  EnigmailLog.DEBUG("keyserver.jsm: access: " + searchTerms + "\n");
-
+function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
     return null;
@@ -182,63 +179,44 @@ function submit(args, inputData, listener, isDownload) {
   return proc;
 }
 
-function getKeyserverName() {
-  return EnigmailPrefs.getPref("autoKeyServerSelection") ? EnigmailPrefs.getPref("keyserver").split(/[ ,;]/g)[0] : null;
+function getKeyserversFrom(string){
+  let keyservers = string.split(/\s*[,;]\s*/g);
+  return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
-
-function buildHkpKeyRequest(key, stateMachine) {
-  return {
-    actionFlags: actions.downloadKey,
-    keyserver: "hkp://" + getKeyserverName() + ":11371",
-    searchTerms: key.keyId,
-    listener: buildListener(key, stateMachine)
-  };
-}
-
-function buildHkpsKeyRequest(key, stateMachine) {
-  return {
-    actionFlags: actions.downloadKey,
-    keyserver: "hkps://" + getKeyserverName() + ":443",
-    searchTerms: key.keyId,
-    listener: buildListener(key, stateMachine)
-  };
-}
-
-function submitHkpRequest(key, stateMachine) {
-  let request = buildHkpKeyRequest(key, stateMachine);
+function submitRequest(key, keyserverIndex, stateMachine){
+  let request = buildKeyRequest(key, keyserverIndex, stateMachine); 
   let errorMsgObj = {};
   let p = EnigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
   p.wait();
 }
 
-function requestExit(key, exitCode, stderr, stdout, stateMachine) {
-  let response = GpgResponseParser.parse(stderr);
-  if (response.status === "General Error" || response.status === "Connection Error") {
-    EnigmailLog.ERROR("key request for Key ID: " + key.keyId + " fails with: " + response.status + "\n");
-    stateMachine.next(key);
-  }
-  if (response.status === "Key not changed") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
-  }
-  if (response.status === "Success") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+function buildKeyRequest(key, keyserverIndex, stateMachine) {
+  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
+  if (stateMachine.currentState === "hkps"){
+    return {
+      actionFlags: actions.downloadKey,
+      keyserver: "hkps://" + keyservers[keyserverIndex] + ":443",
+      searchTerms: key.keyId,
+      listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
+    }
+  } else {
+    return {
+      actionFlags: actions.downloadKey,
+      keyserver: "hkp://" + keyservers[0] + ":11371",
+      searchTerms: key.keyId,
+      listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
+    }
   }
 }
 
-function submitHkpsRequest(key, stateMachine) {
-  let request = buildHkpsKeyRequest(key, stateMachine);
-  let errorMsgObj = {};
-  let p = EnigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
-  p.wait(); // might only have to do this in higher level?
-}
-
-function buildListener(key, stateMachine) {
+function buildListener(key, stateMachine, keyserverIndex, keyservers) {
   let stderr = "";
   let stdout = "";
   return {
     done: function(exitCode) {
-      requestExit(key, exitCode, stderr, stdout, stateMachine);
+      EnigmailLog.DEBUG("Request exit with: " + exitCode + " and " + stderr + "\n");
+      requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers);
     },
     stdout: function(data) {
       stdout += data;
@@ -249,26 +227,47 @@ function buildListener(key, stateMachine) {
   };
 }
 
+function requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers) {
+  EnigmailLog.setLogLevel(2000);
+  const response = GpgResponseParser.parse(stderr);
+  if (response.status === "General Error" || response.status === "Connection Error") {
+    EnigmailLog.ERROR("key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[keyserverIndex] + " fails with: " + response.status + "\n");
+    
+    if (keyserverIndex != (keyservers.length - 1)){
+      submitRequest(key, keyserverIndex + 1, stateMachine.currentState, stateMachine);
+    } else {
+      stateMachine.next(key); 
+    }
+  }
+  if (response.status === "Key not changed") {
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
+  }
+  if (response.status === "Success") {
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+  }
+}
+
 // TODO we need a builder for if the user has gpg, gpg2, and gpg-curl
 const allStates = {
-  "hkps": {exec: submitHkpsRequest, next: "hkp"},
-  "hkp": {exec: submitHkpRequest, next: null},
+  "hkps": {exec: submitRequest, next: "hkp"},
+  "hkp": {exec: submitRequest, next: null},
 };
 
-function StateMachine(initialState, states) {
+function StateMachine(initialState, states, key) {
+  EnigmailLog.setLogLevel(2000);
   this.currentState = initialState;
   this.states = states;
 
-  this.start = function() {
-    this.states[this.currentState].exec();
+  this.start = function(key) {
+    this.states[this.currentState].exec(key, 0, this.currentState);
   };
 
   this.next = function(key) {
     let nextState = this.states[this.currentState].next;
     this.currentState = nextState;
     if (nextState !== null) {
-      this.states[nextState].exec();
-    }
+      this.states[nextState].exec(key, 0, this.currentState);
+    } 
   };
 }
 
@@ -292,7 +291,7 @@ const EnigmailKeyServer = {
 
   refreshKey: function(key) {
     // TODO this should actually start in a Tor state
-    let sm = new StateMachine("hkps"), allStates;
-    sm.start(key);
+    let stateMachine = new StateMachine("hkps", allStates, key);
+    stateMachine.start(key);
   }
 };

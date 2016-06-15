@@ -139,8 +139,18 @@ function canUseTor(minimumCurlVersion) {
   else return checkTorExists(torServiceFilter);
 }
 
+function getGpgActions(){ //needed for keyserver tests to run - implementation needs to be updated
+  return {downloadKey: true, refreshKeys: false, searchKey: false, uploadKey: false};
+}
+
+function getConfiguration(){ //needed for keyserver tests to run - implementation needs to be updated
+  return {};
+}
+
 const EnigmailTor = {
   MINIMUM_CURL_VERSION: MINIMUM_CURL_VERSION,
   canUseTor: canUseTor,
   buildGpgProxyArguments: buildGpgProxyArguments,
+  gpgActions: getGpgActions,
+  getConfiguration: getConfiguration
 };
