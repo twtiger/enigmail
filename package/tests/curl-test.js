@@ -12,21 +12,10 @@ test(function constructVersionArguments() {
 });
 
 test(function checkCurlVersionIsOver() {
-  EnigmailLog.setLogLevel(9000);
   const minimumCurlVersion = {
     main: 7,
     release: 21,
     patch: 7
-  };
-  Assert.ok(versionOver(minimumCurlVersion, "Linux"));
-});
-
-test(function checkCurlVersionEqualToIsOver() {
-  EnigmailLog.setLogLevel(9000);
-  const minimumCurlVersion = {
-    main: 7,
-    release: 47,
-    patch: 0
   };
   Assert.ok(versionOver(minimumCurlVersion, "Linux"));
 });

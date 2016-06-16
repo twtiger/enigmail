@@ -81,7 +81,7 @@ function versionOver(minimumVersion, os) {
   subprocess.call(request).wait();
 
   let versionResponse = stdout.split(" ")[1];
-  EnigmailLog.DEBUG("Curl Version Found: " + versionResponse + "\n");
+  EnigmailLog.WRITE("Curl Version Found: " + versionResponse + "\n");
 
   let currentVersion = parseVersion(versionResponse);
   if (currentVersion.main > minimumVersion.main) {
@@ -94,7 +94,6 @@ function versionOver(minimumVersion, os) {
       else return false;
     }
   }
-  EnigmailLog.DEBUG("HELLO!\n");
   return false;
 }
 
