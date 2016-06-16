@@ -75,7 +75,7 @@ function parseVersion(curlResponse) {
   };
 }
 
-function curlVersionOver(minimumVersion, os) {
+function versionOver(minimumVersion, os) {
   let request = createVersionRequest(os);
 
   subprocess.call(request).wait();
@@ -97,3 +97,7 @@ function curlVersionOver(minimumVersion, os) {
   EnigmailLog.DEBUG("HELLO!\n");
   return false;
 }
+
+const Curl = {
+  versionOver: versionOver
+};

@@ -8,39 +8,22 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, TOR_IP_ADDR_PREF: false, TOR_IP_PORT_PREF: false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_IP_PORT_PREF: false, currentThread:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 
-let threadManager = null;
-function currentThread() {
-  if (threadManager === null) {
-    threadManager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
-  }
-  return threadManager.currentThread;
-}
-
-function resetTorCheckFlags() {
-  EnigmailTor.torIsAvailable = false;
-  EnigmailTor.doneCheckingTor = false;
-}
+const TOR_IP_FOR_TESTS = "127.0.0.1";
+const TOR_IP_PORT_FOR_TESTS = 9050;
 
 function setupTorPreferences() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
   EnigmailPrefs.setPref(TOR_IP_PORT_PREF, TOR_IP_PORT_FOR_TESTS);
 }
 
-const TOR_IP_FOR_TESTS = "127.0.0.1";
-const TOR_IP_PORT_FOR_TESTS = 9050;
-
 test(function testConnectingToTor() {
   setupTorPreferences();
 
-  canUseTor();
-  while(!EnigmailTor.doneCheckingTor) currentThread().processNextEvent(true);
-
-  Assert.ok(EnigmailTor.torIsAvailable, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + TOR_IP_PORT_FOR_TESTS);
-  resetTorCheckFlags();
+  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + TOR_IP_PORT_FOR_TESTS);
 });
 
 test(function testConnectingToTorFails() {
@@ -48,11 +31,16 @@ test(function testConnectingToTorFails() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
   EnigmailPrefs.setPref(TOR_IP_PORT_PREF, portWithoutTor);
 
-  canUseTor();
-  while(!EnigmailTor.doneCheckingTor) currentThread().processNextEvent(true);
+  Assert.ok(!canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor should not be available on port " + portWithoutTor);
+});
 
-  Assert.ok(!EnigmailTor.torIsAvailable, "Tor should not be available on port " + portWithoutTor);
-  resetTorCheckFlags();
+test(function checksForMinimumCurl() {
+  const absurdlyHighCurlRequirement = {
+    main: 100,
+    release: 100,
+    patch: 100
+  };
+  Assert.ok(!canUseTor(absurdlyHighCurlRequirement));
 });
 
 test(function testBuildGpgArgumentsForTorProxy() {

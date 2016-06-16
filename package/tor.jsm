@@ -6,10 +6,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// TODO read in from preferences at initialization and set attributes
 // TODO implement probe for where, or if, tor is running
 // TODO check for torsocks binary
-// TODO gpg version to see if we support tor
 
 "use strict";
 
@@ -17,6 +15,7 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/randomNumber.jsm"); /* global RandomNumberGenerator: false */
+Components.utils.import("resource://enigmail/curl.jsm"); /* global Curl: false */
 
 var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -24,7 +23,7 @@ const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-const minimumCurlVersion = {
+const MINIMUM_CURL_VERSION = {
   main: 7,
   release: 21,
   patch: 7
@@ -69,13 +68,16 @@ function createScriptableInputStream(inputStream) {
   return CC("@mozilla.org/scriptableinputstream;1", "nsIScriptableInputStream", "init")(inputStream);
 }
 
+let doneCheckingTor = false;
+let torIsAvailable = false;
+
 const listener = {
   onStartRequest: function(request, context) {
     EnigmailLog.DEBUG("ON START REQUEST\n");
   },
   onStopRequest: function(request, context, statusCode) {
     EnigmailLog.DEBUG("ON STOP REQUEST\n");
-    EnigmailTor.doneCheckingTor = true;
+    doneCheckingTor = true;
   },
   onDataAvailable: function(request, context, inputStream, offset, count) {
     EnigmailLog.DEBUG("ON DATA AVAILABLE\n");
@@ -84,7 +86,7 @@ const listener = {
     EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
     EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
 
-    EnigmailTor.torIsAvailable = response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1;
+    torIsAvailable = response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1;
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
@@ -96,7 +98,7 @@ const filter = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
 
-function canUseTor() {
+function checkTorExists() {
   protocolProxyService().registerFilter(filter, 1);
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
 }
@@ -108,9 +110,29 @@ function buildGpgProxyArguments() {
   return ["--keyserver-options", "http-proxy=socks5h://" + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
 }
 
+let threadManager = null;
+function currentThread() {
+  if (threadManager === null) {
+    threadManager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
+  }
+  return threadManager.currentThread;
+}
+
+function canUseTor(minimumCurlVersion) {
+  if (!Curl.versionOver(minimumCurlVersion)) return false;
+
+  checkTorExists();
+  while(!doneCheckingTor) currentThread().processNextEvent(true);
+
+  let status = torIsAvailable;
+  doneCheckingTor = false;
+  torIsAvailable = false;
+
+  return status;
+}
+
 const EnigmailTor = {
-  doneCheckingTor: false,
-  torIsAvailable: false,
+  MINIMUM_CURL_VERSION: MINIMUM_CURL_VERSION,
   canUseTor: canUseTor,
-  buildGpgProxyArguments: buildGpgProxyArguments
+  buildGpgProxyArguments: buildGpgProxyArguments,
 };

@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("curl.jsm"); /*global CurlLOL: false, createVersionRequest:false, curlVersionOver:false */
+testing("curl.jsm"); /*global CurlLOL: false, createVersionRequest:false, versionOver:false */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 
 test(function constructVersionArguments() {
@@ -18,7 +18,7 @@ test(function checkCurlVersionIsOver() {
     release: 21,
     patch: 7
   };
-  Assert.ok(curlVersionOver(minimumCurlVersion, "Linux"));
+  Assert.ok(versionOver(minimumCurlVersion, "Linux"));
 });
 
 test(function checkCurlVersionEqualToIsOver() {
@@ -28,7 +28,7 @@ test(function checkCurlVersionEqualToIsOver() {
     release: 47,
     patch: 0
   };
-  Assert.ok(curlVersionOver(minimumCurlVersion, "Linux"));
+  Assert.ok(versionOver(minimumCurlVersion, "Linux"));
 });
 
 test(function checkCurlVersionIsLess() {
@@ -37,7 +37,7 @@ test(function checkCurlVersionIsLess() {
     release: 0,
     patch: 0
   };
-  Assert.ok(!curlVersionOver(minimumCurlVersion, "Linux"));
+  Assert.ok(!versionOver(minimumCurlVersion, "Linux"));
 });
 
 test(function parseFulVersionResponse() {
