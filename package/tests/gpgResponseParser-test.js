@@ -20,6 +20,20 @@ test(function testRegisteringFetchError() {
   Assert.equal(response.status, "Connection Error");
 });
 
+test(function testRegisteringFetchError() {
+  let errMsg = "[GNUPG:] FAILURE recv-keys KEYID\n" +
+    "gpg: keyserver receive failed: Network is unreachable\n";
+  let response = GpgResponseParser.parse(errMsg);
+  Assert.equal(response.status, "Connection Error");
+});
+
+test(function testRegisteringFetchError() {
+  let errMsg = "[GNUPG:] FAILURE recv-keys KEYID\n" +
+    "gpg: keyserver receive failed: Connection refused\n";
+  let response = GpgResponseParser.parse(errMsg);
+  Assert.equal(response.status, "Connection Error");
+});
+
 //change to accommodate language
 test(function testRegisteringUnchangedKeyError() {
   let errMsg = "gpg: requesting key KEYID from hkps server pgp.mit.edu\n" +

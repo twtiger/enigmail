@@ -4,7 +4,7 @@ const EXPORTED_SYMBOLS = ["GpgResponseParser"];
 
 function parse(message) {
   let status = "Success";
-  if (message.indexOf("fetch error") > -1) {
+  if (message.indexOf("fetch error") > -1 || message.indexOf("Network is unreachable") > -1 || message.indexOf("Connection refused") > -1) {
     status = "Connection Error";
   } else if (message.indexOf("General error") > -1) {
     status = "General Error";
