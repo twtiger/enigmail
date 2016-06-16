@@ -44,7 +44,8 @@ const BASE_URI = null;
 
 const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
 const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
-const TOR_IP_PORT_PREF = "extensions.enigmail.torIpPort";
+const TOR_SERVICE_PORT_PREF = "extensions.enigmail.torServicePort";
+const TOR_BROWSER_BUNDLE_PORT_PREF = "extensions.enigmail.torBrowserBundlePort";
 
 let ioservice= null;
 function createCheckTorURIChannel() {
@@ -91,20 +92,34 @@ const listener = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
 
-const filter = {
+const torServiceFilter = {
   applyFilter: function(proxyService, uri, proxyInfo) {
-    return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), EnigmailPrefs.getPref(TOR_IP_PORT_PREF), CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
+    return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF), CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
 };
 
-function checkTorExists() {
+const torBrowserBundleFilter = {
+  applyFilter: function(proxyService, uri, proxyInfo) {
+    return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF), CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
+  },
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIProtocolProxyFilter, Ci.nsISupports])
+};
+
+
+function checkTorExists(filter) {
   protocolProxyService().registerFilter(filter, 1);
+
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
+  while(!doneCheckingTor) currentThread().processNextEvent(true);
+
+  let status = torIsAvailable;
+  doneCheckingTor = false;
+  torIsAvailable = false;
+  return status;
 }
 
 function buildGpgProxyArguments() {
-
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   return ["--keyserver-options", "http-proxy=socks5h://" + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
@@ -120,15 +135,8 @@ function currentThread() {
 
 function canUseTor(minimumCurlVersion) {
   if (!Curl.versionOver(minimumCurlVersion)) return false;
-
-  checkTorExists();
-  while(!doneCheckingTor) currentThread().processNextEvent(true);
-
-  let status = torIsAvailable;
-  doneCheckingTor = false;
-  torIsAvailable = false;
-
-  return status;
+  if (checkTorExists(torBrowserBundleFilter)) return true;
+  else return checkTorExists(torServiceFilter);
 }
 
 const EnigmailTor = {

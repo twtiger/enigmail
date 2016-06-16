@@ -8,28 +8,42 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_IP_PORT_PREF: false, currentThread:false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 
 const TOR_IP_FOR_TESTS = "127.0.0.1";
-const TOR_IP_PORT_FOR_TESTS = 9050;
+const GOOD_TOR_PORT_FOR_TEST = 9050;
+const PORT_WITHOUT_TOR = 9876;
 
-function setupTorPreferences() {
+function setupGoodPortInTorServicePref() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
-  EnigmailPrefs.setPref(TOR_IP_PORT_PREF, TOR_IP_PORT_FOR_TESTS);
+  EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, GOOD_TOR_PORT_FOR_TEST);
+  EnigmailPrefs.setPref(TOR_BROWSER_BUNDLE_PORT_PREF, PORT_WITHOUT_TOR);
 }
 
-test(function testConnectingToTor() {
-  setupTorPreferences();
+function setupGoodPortInBrowserBundlePref() {
+  EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
+  EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, PORT_WITHOUT_TOR);
+  EnigmailPrefs.setPref(TOR_BROWSER_BUNDLE_PORT_PREF, GOOD_TOR_PORT_FOR_TEST);
+}
 
-  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + TOR_IP_PORT_FOR_TESTS);
+test(function testCheckTorBrowserBundlePortForTor() {
+  setupGoodPortInBrowserBundlePref();
+
+  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
+});
+
+test(function testCheckForTorInServicePort() {
+  setupGoodPortInTorServicePref();
+
+  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
 });
 
 test(function testConnectingToTorFails() {
   const portWithoutTor = 9999;
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
-  EnigmailPrefs.setPref(TOR_IP_PORT_PREF, portWithoutTor);
+  EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, portWithoutTor);
 
   Assert.ok(!canUseTor(EnigmailTor.MINIMUM_CURL_VERSION), "Tor should not be available on port " + portWithoutTor);
 });
@@ -44,7 +58,7 @@ test(function checksForMinimumCurl() {
 });
 
 test(function testBuildGpgArgumentsForTorProxy() {
-  setupTorPreferences();
+  setupGoodPortInTorServicePref();
 
   const torRequests = EnigmailTor.buildGpgProxyArguments();
 
@@ -61,7 +75,7 @@ function getPassword(thing) {
 }
 
 test(function createRandomUsernameAndPassword() {
-  setupTorPreferences();
+  setupGoodPortInTorServicePref();
 
   const firstRequest = EnigmailTor.buildGpgProxyArguments();
   const secondRequest = EnigmailTor.buildGpgProxyArguments();
