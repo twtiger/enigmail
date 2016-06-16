@@ -32,17 +32,12 @@ function environment() {
   return env;
 }
 
-function createVersionRequest(os) {
+function createVersionRequest(file) {
   const command = ["curl"];
   const args = ["--version"];
-  let isDosLike = false;
-
-  if (os == "WINNT" || os == "OS2") {
-    isDosLike = false;
-  }
 
   const request = {
-    command: EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike),
+    command: file,
     arguments: args,
     done: function(result) {
       exitCode = result.exitCode;
@@ -75,8 +70,22 @@ function parseVersion(curlResponse) {
   };
 }
 
+function executableExists(file){
+  if (file === null) {
+    return false;
+  }
+  return true;
+}
+
 function versionOver(minimumVersion, os) {
-  let request = createVersionRequest(os);
+  let isDosLike = false;
+  if (os == "WINNT" || os == "OS2") {
+    isDosLike = true;
+  }
+  let file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike);
+  if (!executableExists(file)) return false;
+
+  let request = createVersionRequest(file);
 
   subprocess.call(request).wait();
 

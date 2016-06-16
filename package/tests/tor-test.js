@@ -63,15 +63,15 @@ test(function testBuildGpgArgumentsForTorProxy() {
   const torRequests = EnigmailTor.buildGpgProxyArguments();
 
   Assert.equal(torRequests[0], "--keyserver-options");
-  Assert.ok(torRequests[1].indexOf("http-proxy=socks5h://") > -1);
+  Assert.ok(torRequests[1].indexOf(KEYSERVER_OPTION_FOR_CURL_7_21_7) > -1);
 });
 
 function getUsername(thing) {
-  return thing[1].split("http-proxy=socks5h://")[1].split(":")[0];
+  return thing[1].split(KEYSERVER_OPTION_FOR_CURL_7_21_7)[1].split(":")[0];
 }
 
 function getPassword(thing) {
-  return thing[1].split("http-proxy=socks5h://")[1].split(":")[1].split("@")[0];
+  return thing[1].split(KEYSERVER_OPTION_FOR_CURL_7_21_7)[1].split(":")[1].split("@")[0];
 }
 
 test(function createRandomUsernameAndPassword() {

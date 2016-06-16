@@ -3,11 +3,12 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("curl.jsm"); /*global CurlLOL: false, createVersionRequest:false, versionOver:false */
+testing("curl.jsm"); /*global Curl: false, createVersionRequest:false, executableExists:false, versionOver:false, environment:false */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
+component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
 test(function constructVersionArguments() {
-  const request = createVersionRequest("Linux");
+  const request = createVersionRequest(EnigmailFiles.resolvePath("curl", environment().get("PATH"), false));
   Assert.deepEqual(request.arguments, ['--version']);
 });
 
@@ -57,4 +58,8 @@ test(function parseMainOnlyResponse() {
     patch: 0
   };
   Assert.deepEqual(parseVersion(curlVersionResponse), expectedParsedVersion);
+});
+
+test(function reportCurlDoesNotExist() {
+  Assert.ok(!executableExists(null));
 });

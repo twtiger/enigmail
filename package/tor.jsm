@@ -46,6 +46,7 @@ const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
 const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
 const TOR_SERVICE_PORT_PREF = "extensions.enigmail.torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "extensions.enigmail.torBrowserBundlePort";
+const KEYSERVER_OPTION_FOR_CURL_7_21_7 = "http-proxy=socks5://";
 
 let ioservice= null;
 function createCheckTorURIChannel() {
@@ -122,7 +123,7 @@ function checkTorExists(filter) {
 function buildGpgProxyArguments() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
-  return ["--keyserver-options", "http-proxy=socks5h://" + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
+  return ["--keyserver-options", KEYSERVER_OPTION_FOR_CURL_7_21_7 + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
 }
 
 let threadManager = null;
