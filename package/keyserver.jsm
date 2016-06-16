@@ -199,14 +199,14 @@ function buildKeyRequest(key, keyserverIndex, stateMachine) {
       keyserver: "hkps://" + keyservers[keyserverIndex] + ":443",
       searchTerms: key.keyId,
       listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
-    }
+    };
   } else {
     return {
       actionFlags: actions.downloadKey,
       keyserver: "hkp://" + keyservers[0] + ":11371",
       searchTerms: key.keyId,
       listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
-    }
+    };
   }
 }
 
