@@ -215,7 +215,6 @@ function buildListener(key, stateMachine, keyserverIndex, keyservers) {
   let stdout = "";
   return {
     done: function(exitCode) {
-      EnigmailLog.DEBUG("Request exit with: " + exitCode + " and " + stderr + "\n");
       requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers);
     },
     stdout: function(data) {
@@ -230,11 +229,11 @@ function buildListener(key, stateMachine, keyserverIndex, keyservers) {
 function requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers) {
   EnigmailLog.setLogLevel(2000);
   const response = GpgResponseParser.parse(stderr);
-  if (response.status === "General Error" || response.status === "Connection Error") {
+  if (response.status === "General Error" || response.status === "Connection Error" || exitCode === 2) {
     EnigmailLog.ERROR("key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[keyserverIndex] + " fails with: " + response.status + "\n");
     
     if (keyserverIndex != (keyservers.length - 1)){
-      submitRequest(key, keyserverIndex + 1, stateMachine.currentState, stateMachine);
+      submitRequest(key, keyserverIndex + 1, stateMachine);
     } else {
       stateMachine.next(key); 
     }

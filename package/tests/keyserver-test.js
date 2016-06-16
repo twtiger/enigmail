@@ -287,28 +287,28 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer()
   EnigmailLog.setLogLevel(2000);
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
-  let keyservers = ["keys.gnupg.net", "keys.gnupg.net"];
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keys.gnupg.net, keys.gnupg.net");
+  let keyservers = ["keyserver.1", "keyserver.2"];
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1, keyserver.2");
   EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", false);
 
   let stateMachine = new StateMachine("hkps", dummyStates);
 
   submitRequest(key, 0, stateMachine);
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[0] + " fails with: General Error\n");
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[1] + " fails with: General Error\n");
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[0] + " fails with:");
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[1] + " fails with:");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledIfHkpsFailsOverAllServers(){
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
-  const keyservers = ["keys.gnupg.net", "keys.gnupg.net", "keys.gnupg.net"];
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keys.gnupg.net, keys.gnupg.net, keys.gnupg.net");
+  const keyservers = ["keyserver.1", "keyserver.2", "keyserver.3"];
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1, keyserver.2, keyserver.3");
   EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", false);
 
   let stateMachine = new StateMachine("hkps", dummyStates);
 
   submitRequest(key, 2, stateMachine);
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[2] + " fails with: General Error\n");
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[2] + " fails with:");
   Assert.equal(stateMachine.currentState, "hkp");
 }))));
 
