@@ -1,4 +1,4 @@
-/* global testing: false, do_load_module: false, do_get_cwd: false, test: false, Assert:false, component: false */
+/*global testing: false, do_load_module: false, do_get_cwd: false, test: false, Assert:false, component: false */
 "use strict";
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
@@ -8,8 +8,8 @@ component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc:
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
 test(function constructVersionArguments() {
-  const request = createVersionRequest(EnigmailFiles.resolvePath("curl", environment().get("PATH"), false));
-  Assert.deepEqual(request.arguments, ['--version']);
+  const requestAndResponse = createVersionRequest(EnigmailFiles.resolvePath("curl", environment().get("PATH"), false));
+  Assert.deepEqual(requestAndResponse[1].arguments, ['--version']);
 });
 
 test(function checkCurlVersionIsOver() {

@@ -9,7 +9,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["Curl"];
+const EXPORTED_SYMBOLS = ["Curl"];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
@@ -20,47 +20,40 @@ Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 
-let stderr = "";
-let stdout = "";
-let exitCode = -1;
-let numericBase = 10;
+const VERSION_NUMERIC_BASE = 10;
 
 let env = null;
 function environment() {
-  if (env === null)
+  if (env === null) {
     env = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
+  }
   return env;
 }
 
 function createVersionRequest(file) {
-  const command = ["curl"];
   const args = ["--version"];
+  const r = {
+    stderr: "",
+    stdout: "",
+    exitCode: -1
+  };
 
-  const request = {
+  return [r, {
     command: file,
     arguments: args,
     done: function(result) {
-      exitCode = result.exitCode;
-      stdout = result.stdout;
-      stderr = result.stderr;
+      r.exitCode = result.exitCode;
+      r.stdout = result.stdout;
+      r.stderr = result.stderr;
     }
-  };
-
-  return request;
+  }];
 }
 
 function parseVersion(curlResponse) {
-  let curlVersionParts = curlResponse.split(".");
-  let parsedVersion = [];
+  const curlVersionParts = curlResponse.split(".");
+  const parsedVersion = [0,0,0];
   for (let i=0; i < curlVersionParts.length; i++) {
-    parsedVersion[i] = parseInt(curlVersionParts[i], numericBase);
-  }
-  if (curlVersionParts.length === 1) {
-    parsedVersion[1] = 0;
-    parsedVersion[2] = 0;
-  }
-  if (curlVersionParts.length === 2) {
-    parsedVersion[2] = 0;
+    parsedVersion[i] = parseInt(curlVersionParts[i], VERSION_NUMERIC_BASE);
   }
 
   return {
@@ -71,39 +64,36 @@ function parseVersion(curlResponse) {
 }
 
 function executableExists(file){
-  if (file === null) {
-    return false;
+  return file !== null;
+}
+
+function versionGreaterThanOrEqual(left, right) {
+  if (left.main > right.main) {
+    return true;
+  } else if (left.main === right.main) {
+    return left.release > right.release || 
+      ((left.release === right.release) &&
+       left.patch >= right.patch);
   }
-  return true;
+  return false;
+
 }
 
 function versionOver(minimumVersion, os) {
-  let isDosLike = false;
-  if (os == "WINNT" || os == "OS2") {
-    isDosLike = true;
-  }
-  let file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike);
+  const isDosLike = os === "WINNT" || os === "OS2";
+  const file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike);
   if (!executableExists(file)) return false;
 
-  let request = createVersionRequest(file);
+  const requestAndResult = createVersionRequest(file);
+  const result = requestAndResult[0];
+  const request = requestAndResult[1];
 
   subprocess.call(request).wait();
 
-  let versionResponse = stdout.split(" ")[1];
+  const versionResponse = result.stdout.split(" ")[1];
   EnigmailLog.WRITE("Curl Version Found: " + versionResponse + "\n");
 
-  let currentVersion = parseVersion(versionResponse);
-  if (currentVersion.main > minimumVersion.main) {
-    return true;
-  } else if (currentVersion.main === minimumVersion.main) {
-    if (currentVersion.release > minimumVersion.release) {
-      return true;
-    } else if (currentVersion.release === minimumVersion.release) {
-      if (currentVersion.patch >= minimumVersion.patch) return true;
-      else return false;
-    }
-  }
-  return false;
+  return versionGreaterThanOrEqual(parseVersion(versionResponse), minimumVersion);
 }
 
 const Curl = {
