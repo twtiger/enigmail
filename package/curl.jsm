@@ -71,17 +71,16 @@ function versionGreaterThanOrEqual(left, right) {
   if (left.main > right.main) {
     return true;
   } else if (left.main === right.main) {
-    return left.release > right.release || 
+    return left.release > right.release ||
       ((left.release === right.release) &&
-       left.patch >= right.patch);
+        left.patch >= right.patch);
   }
   return false;
 
 }
 
-function versionOver(minimumVersion, os) {
-  const isDosLike = os === "WINNT" || os === "OS2";
-  const file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), isDosLike);
+function versionOver(minimumVersion) {
+  const file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), EnigmailOS.isDosLike());
   if (!executableExists(file)) return false;
 
   const requestAndResult = createVersionRequest(file);

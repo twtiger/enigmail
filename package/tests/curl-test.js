@@ -18,7 +18,7 @@ test(function checkCurlVersionIsOver() {
     release: 21,
     patch: 7
   };
-  Assert.ok(versionOver(minimumCurlVersion, "Linux"));
+  Assert.ok(versionOver(minimumCurlVersion));
 });
 
 test(function checkCurlVersionIsLess() {
@@ -27,7 +27,7 @@ test(function checkCurlVersionIsLess() {
     release: 0,
     patch: 0
   };
-  Assert.ok(!versionOver(minimumCurlVersion, "Linux"));
+  Assert.ok(!versionOver(minimumCurlVersion));
 });
 
 test(function parseFulVersionResponse() {
