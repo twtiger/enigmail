@@ -194,8 +194,9 @@ pref("extensions.enigmail.protectHeaders", false);
 pref("extensions.enigmail.protectedSubjectText", "");
 
 // tor configuration
-pref("extensions.enigmail.host", "127.0.0.1");
-pref("extensions.enigmail.port", "probe");
+pref("extensions.enigmail.torIpAddr", "127.0.0.1");
+pref("extensions.enigmail.torServicePort", "9050");
+pref("extensions.enigmail.torBrowserBundlePort", "9150");
 
 // gpg tor actions
 pref("extensions.enigmail.tor.downloadKey", true);
