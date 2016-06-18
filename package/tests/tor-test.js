@@ -6,9 +6,9 @@
  */
 
 "use strict";
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertStringContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, KEYSERVER_OPTION_FOR_CURL_7_21_7: false, MINIMUM_WINDOWS_GPG_VERSION:false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 
@@ -77,28 +77,56 @@ test(function checkLessThanMinimumGpgVersionInWindows() {
 });
 
 test(function testBuildGpgArgumentsForTorProxy() {
-  setupGoodPortInTorServicePref();
-
-  const torRequests = EnigmailTor.buildGpgProxyArguments();
+  const type = {
+    os: "Linux",
+    port_pref: TOR_SERVICE_PORT_PREF
+  };
+  const torRequests = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.equal(torRequests[0], "--keyserver-options");
-  Assert.ok(torRequests[1].indexOf(KEYSERVER_OPTION_FOR_CURL_7_21_7) > -1);
+  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+NEW_CURL_PROTOCOL, "testBuildGpgArgumentsForTorProxy");
 });
 
 function getUsername(thing) {
-  return thing[1].split(KEYSERVER_OPTION_FOR_CURL_7_21_7)[1].split(":")[0];
+  return thing[1].split(HTTP_PROXY_GPG_OPTION+NEW_CURL_PROTOCOL)[1].split(":")[0];
 }
 
 function getPassword(thing) {
-  return thing[1].split(KEYSERVER_OPTION_FOR_CURL_7_21_7)[1].split(":")[1].split("@")[0];
+  return thing[1].split(HTTP_PROXY_GPG_OPTION+NEW_CURL_PROTOCOL)[1].split(":")[1].split("@")[0];
 }
 
 test(function createRandomUsernameAndPassword() {
-  setupGoodPortInTorServicePref();
+  const type = {
+    os: "Linux",
+    port_pref: TOR_SERVICE_PORT_PREF
+  };
 
-  const firstRequest = EnigmailTor.buildGpgProxyArguments();
-  const secondRequest = EnigmailTor.buildGpgProxyArguments();
+  const firstRequest = EnigmailTor.buildGpgProxyArguments(type);
+  const secondRequest = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.ok(getUsername(firstRequest) !== getUsername(secondRequest));
   Assert.ok(getUsername(firstRequest) !== getPassword(secondRequest));
+});
+
+test(function buildGpgProxyArgumentsForWindows() {
+  const type = {
+    os: "OS2",
+    port_pref: TOR_SERVICE_PORT_PREF
+  };
+  const torRequests = EnigmailTor.buildGpgProxyArguments(type);
+
+  Assert.equal(torRequests[0], "--keyserver-options");
+  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL, "buildGpgProxyArgumentsForWindows");
+});
+
+test(function buildGpgProxyArgumentsFor32bitWindows() {
+  const type = {
+    os: "WINNT",
+    port_pref: TOR_SERVICE_PORT_PREF
+  };
+  const torRequests = EnigmailTor.buildGpgProxyArguments(type);
+
+  Assert.equal(torRequests[0], "--keyserver-options");
+  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL, "buildGpgProxyArgumentsFor32bitWindows");
+
 });

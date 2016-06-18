@@ -54,7 +54,9 @@ const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
 const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
 const TOR_SERVICE_PORT_PREF = "extensions.enigmail.torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "extensions.enigmail.torBrowserBundlePort";
-const KEYSERVER_OPTION_FOR_CURL_7_21_7 = "http-proxy=socks5://";
+const HTTP_PROXY_GPG_OPTION = "http-proxy=";
+const NEW_CURL_PROTOCOL = "socks5://";
+const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
 let ioservice= null;
 function createCheckTorURIChannel() {
@@ -122,10 +124,17 @@ function checkTorExists(filter) {
   return status;
 }
 
-function buildGpgProxyArguments() {
+function buildGpgProxyArguments(type) {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
-  return ["--keyserver-options", KEYSERVER_OPTION_FOR_CURL_7_21_7 + username + ":" + password + "@"+EnigmailPrefs.getPref(TOR_IP_ADDR_PREF)+":9050"];
+  const args = ["--keyserver-options", HTTP_PROXY_GPG_OPTION];
+  if (type.os === "OS2" || type.os === "WINNT") {
+    args[1] += OLD_CURL_PROTOCOL;
+  } else {
+    args[1] += NEW_CURL_PROTOCOL;
+  }
+  args[1] += username + ":" + password + "@" + EnigmailPrefs.getPref(TOR_IP_ADDR_PREF) + ":" + EnigmailPrefs.getPref(type.port_pref);
+  return args;
 }
 
 let threadManager = null;

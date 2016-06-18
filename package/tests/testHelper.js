@@ -246,6 +246,11 @@ function withEnigmail(f) {
 
 CustomAssert.registerExtraAssertionsOn(Assert);
 
+function assertStringContains(actual, expected, testName) {
+  const failureMessage = "TEST: " + testName + ", Expected [" + expected + "] in [" + actual +"]";
+  Assert.ok(actual.indexOf(expected) !== -1, failureMessage);
+}
+
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 function withLogFiles(f) {
