@@ -1,4 +1,4 @@
-/*global do_load_module: false, do_get_cwd: false, testing: false, test: false, Assert: false, component: false, Cc: false, Ci: false */
+/*global do_load_module: false, do_get_cwd: false, testing: false, test: false, Assert:false, component: false, Cc: false, Ci: false */
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,7 +6,7 @@
  */
 
 "use strict";
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertStringContains: false, withEnigmail: false, withTestGpgHome: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
 testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
@@ -103,7 +103,7 @@ test(function testBuildGpgArgumentsForTorProxy() {
   const torRequests = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.equal(torRequests[0], "--keyserver-options");
-  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+NEW_CURL_PROTOCOL, "testBuildGpgArgumentsForTorProxy");
+  Assert.assertContains(torRequests[1], HTTP_PROXY_GPG_OPTION+NEW_CURL_PROTOCOL);
 });
 
 function getUsername(thing) {
@@ -135,7 +135,7 @@ test(function buildGpgProxyArgumentsForWindows() {
   const torRequests = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.equal(torRequests[0], "--keyserver-options");
-  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL, "buildGpgProxyArgumentsForWindows");
+  Assert.assertContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL);
 });
 
 test(function buildGpgProxyArgumentsFor32bitWindows() {
@@ -146,6 +146,5 @@ test(function buildGpgProxyArgumentsFor32bitWindows() {
   const torRequests = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.equal(torRequests[0], "--keyserver-options");
-  assertStringContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL, "buildGpgProxyArgumentsFor32bitWindows");
-
+  Assert.assertContains(torRequests[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL);
 });
