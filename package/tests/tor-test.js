@@ -35,13 +35,19 @@ function setupGoodPortInBrowserBundlePref() {
 test(function testCheckTorBrowserBundlePortForTor() {
   setupGoodPortInBrowserBundlePref();
 
-  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux"), "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
+  const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux");
+
+  Assert.ok(response.status, "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
+  Assert.equal(response.port_pref, TOR_BROWSER_BUNDLE_PORT_PREF);
 });
 
 test(function testCheckForTorInServicePort() {
   setupGoodPortInTorServicePref();
 
-  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux"), "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
+  const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux");
+
+  Assert.ok(response.status, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
+  Assert.equal(response.port_pref, TOR_SERVICE_PORT_PREF);
 });
 
 test(function testConnectingToTorFails() {
@@ -49,7 +55,9 @@ test(function testConnectingToTorFails() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
   EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, portWithoutTor);
 
-  Assert.ok(!canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux"), "Tor should not be available on port " + portWithoutTor);
+  const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux");
+
+  Assert.ok(!response.status, "Tor should not be available on port " + portWithoutTor);
 });
 
 test(function checksForMinimumCurl() {
@@ -58,7 +66,10 @@ test(function checksForMinimumCurl() {
     release: 100,
     patch: 100
   };
-  Assert.ok(!canUseTor(absurdlyHighCurlRequirement, gpg, "Linux"));
+
+  const response = canUseTor(absurdlyHighCurlRequirement, gpg, "Linux");
+
+  Assert.ok(!response.status, "Not checking curl requirement properly");
 });
 
 test(function checkEqualToMinimumGpgVersionInWindows() {
@@ -66,14 +77,21 @@ test(function checkEqualToMinimumGpgVersionInWindows() {
   const gpg = {
     agentVersion: '2.0.30'
   };
-  Assert.ok(canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "WINNT"));
+
+  const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "WINNT");
+
+  Assert.ok(response.status);
+  Assert.equal(response.port_pref, TOR_SERVICE_PORT_PREF);
 });
 
 test(function checkLessThanMinimumGpgVersionInWindows() {
   const gpg = {
     agentVersion: '1.4.20'
   };
-  Assert.ok(!canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "OS2"));
+
+  const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "OS2");
+
+  Assert.ok(!response.status);
 });
 
 test(function testBuildGpgArgumentsForTorProxy() {
@@ -81,6 +99,7 @@ test(function testBuildGpgArgumentsForTorProxy() {
     os: "Linux",
     port_pref: TOR_SERVICE_PORT_PREF
   };
+
   const torRequests = EnigmailTor.buildGpgProxyArguments(type);
 
   Assert.equal(torRequests[0], "--keyserver-options");

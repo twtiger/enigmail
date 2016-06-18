@@ -103,7 +103,7 @@ const listener = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
 
-function buildFilter(port) {
+function filterWith(port) {
   return {
     applyFilter: function(proxyService, uri, proxyInfo) {
       return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), port, CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
@@ -175,8 +175,25 @@ function canUseTor(minimumCurlVersion, gpg, os) {
   } else {
     if (!Curl.versionOver(minimumCurlVersion)) return false;
   }
-  return checkTorExists(buildFilter(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF))) ||
-    checkTorExists(buildFilter(EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF)));
+
+  if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
+    return {
+      status: true,
+      port_pref: TOR_BROWSER_BUNDLE_PORT_PREF
+    };
+  }
+
+  if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF)))) {
+    return {
+      status: true,
+      port_pref: TOR_SERVICE_PORT_PREF
+    };
+  }
+
+  return {
+    status: false,
+    port_pref: null
+  };
 }
 
 function getGpgActions(){ //needed for keyserver tests to run - implementation needs to be updated
