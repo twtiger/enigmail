@@ -9,7 +9,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["Curl"];
+const EXPORTED_SYMBOLS = ["ExecutableEvaluator"];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
@@ -19,6 +19,7 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 const VERSION_NUMERIC_BASE = 10;
 
@@ -49,16 +50,16 @@ function createVersionRequest(file) {
   }];
 }
 
-function parseVersion(curlResponse) {
-  const curlVersionParts = curlResponse.split(".");
+function parseVersion(systemResponse) {
+  const versionParts = systemResponse.split(".");
   const parsedVersion = [0,0,0];
-  for (let i=0; i < curlVersionParts.length; i++) {
-    parsedVersion[i] = parseInt(curlVersionParts[i], VERSION_NUMERIC_BASE);
+  for (let i=0; i < versionParts.length; i++) {
+    parsedVersion[i] = parseInt(versionParts[i], VERSION_NUMERIC_BASE);
   }
-
   return {
-    main: parsedVersion[0],
-    release: parsedVersion[1],
+    // Defaults to major, minor, patch for consistency across many executables
+    major: parsedVersion[0],
+    minor: parsedVersion[1],
     patch: parsedVersion[2]
   };
 }
@@ -68,28 +69,31 @@ function executableExists(file){
 }
 
 function versionGreaterThanOrEqual(left, right) {
-  if (left.main > right.main) {
+  if (left.major > right.major) {
     return true;
-  } else if (left.main === right.main) {
-    return left.release > right.release ||
-      ((left.release === right.release) &&
+  } else if (left.major === right.major) {
+    return left.minor > right.minor ||
+      ((left.minor === right.minor) &&
         left.patch >= right.patch);
   }
   return false;
-
 }
 
 const executor = {
   callAndWait: function(request) {
     subprocess.call(request).wait();
   },
-  findFile: function(executable) {
+  findExecutable: function(executable) {
     return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+  },
+  gpgVersionOverOrEqual: function(agentVersion, minimumVersion) {
+    return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
   }
 };
 
-function versionOverOrEqual(minimumVersion, executor) {
-  const file = executor.findFile('curl');
+function versionOverOrEqual(executable, minimumVersion, executor) {
+  if (executable === 'gpg') return executor.gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
+  const file = executor.findExecutable(executable);
   if (!executableExists(file)) return false;
 
   const requestAndResult = createVersionRequest(file);
@@ -99,12 +103,15 @@ function versionOverOrEqual(minimumVersion, executor) {
   executor.callAndWait(request);
 
   const versionResponse = result.stdout.split(" ")[1];
-  EnigmailLog.WRITE("Curl Version Found: " + versionResponse + "\n");
+  EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
 
   return versionGreaterThanOrEqual(parseVersion(versionResponse), minimumVersion);
 }
 
-const Curl = {
-  executorForVersionOverOrEqual: executor,
-  versionOverOrEqual: versionOverOrEqual
+function exists() {}
+
+const ExecutableEvaluator = {
+  executor: executor,
+  versionOverOrEqual: versionOverOrEqual,
+  exists: exists
 };

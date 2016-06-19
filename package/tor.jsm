@@ -14,7 +14,7 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/randomNumber.jsm"); /* global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/curl.jsm"); /* global Curl: false */
+Components.utils.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
 
 var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -23,8 +23,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 const MINIMUM_CURL_VERSION = {
-  main: 7,
-  release: 21,
+  major: 7,
+  minor: 21,
   patch: 7
 };
 
@@ -150,40 +150,13 @@ function currentThread() {
   return threadManager.currentThread;
 }
 
-function parseVersion(version) {
-  const versionParts = version.split(".");
-  const parsedVersion = [0,0,0];
-  for (let i=0; i < versionParts.length; i++) {
-    parsedVersion[i] = parseInt(versionParts[i], VERSION_NUMERIC_BASE);
-  }
-  return {
-    major: parsedVersion[0],
-    minor: parsedVersion[1],
-    patch: parsedVersion[2]
-  };
-}
-
-function versionGreaterThanOrEqual(left, right) {
-  //if (!versionGreaterThanOrEqual(parseVersion(gpg.agentVersion), MINIMUM_WINDOWS_GPG_VERSION)) return false;
-  if (left.major > right.major) {
-    return true;
-  } else if (left.major === right.major) {
-    return left.minor > right.minor ||
-      ((left.minor === right.minor) &&
-        left.patch >= right.patch);
-  }
-  return false;
-}
-
-function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
+function canUseTor(gpg, os, executableChecker) {
   const failure = {
     status: false,
-    type: null,
-    port_pref: null
   };
 
   if (os === "WINNT" || os === "OS2") {
-    if (!executableChecker.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION)) return failure;
+    if (!executableChecker.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor)) return failure;
   } else {
     if (executableChecker.exists('torsocks')) {
       return {
@@ -191,7 +164,7 @@ function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
         type: 'torsocks',
       };
     }
-    if (!executableChecker.versionOverOrEqual('curl', minimumCurlVersion)) return failure;
+    if (!executableChecker.versionOverOrEqual('curl', MINIMUM_CURL_VERSION)) return failure;
   }
 
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
@@ -222,7 +195,6 @@ function getConfiguration(){ //needed for keyserver tests to run - implementatio
 }
 
 const EnigmailTor = {
-  MINIMUM_CURL_VERSION: MINIMUM_CURL_VERSION,
   canUseTor: canUseTor,
   buildGpgProxyArguments: buildGpgProxyArguments,
   gpgActions: getGpgActions,
