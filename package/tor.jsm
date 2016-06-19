@@ -169,16 +169,23 @@ function versionGreaterThanOrEqual(left, right) {
   return false;
 }
 
-function canUseTor(minimumCurlVersion, gpg, os) {
+function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
   if (os === "WINNT" || os === "OS2") {
     if (!versionGreaterThanOrEqual(parseVersion(gpg.agentVersion), MINIMUM_WINDOWS_GPG_VERSION)) return false;
   } else {
+    if (executableChecker.exists('torsocks')) {
+      return {
+        status: true,
+        type: 'torsocks',
+      };
+    }
     if (!Curl.versionOver(minimumCurlVersion)) return false;
   }
 
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
     return {
       status: true,
+      type: 'proxy',
       port_pref: TOR_BROWSER_BUNDLE_PORT_PREF
     };
   }
@@ -186,12 +193,14 @@ function canUseTor(minimumCurlVersion, gpg, os) {
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF)))) {
     return {
       status: true,
+      type: 'proxy',
       port_pref: TOR_SERVICE_PORT_PREF
     };
   }
 
   return {
     status: false,
+    type: null,
     port_pref: null
   };
 }
