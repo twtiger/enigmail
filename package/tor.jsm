@@ -164,6 +164,7 @@ function parseVersion(version) {
 }
 
 function versionGreaterThanOrEqual(left, right) {
+  //if (!versionGreaterThanOrEqual(parseVersion(gpg.agentVersion), MINIMUM_WINDOWS_GPG_VERSION)) return false;
   if (left.major > right.major) {
     return true;
   } else if (left.major === right.major) {
@@ -175,8 +176,14 @@ function versionGreaterThanOrEqual(left, right) {
 }
 
 function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
+  const failure = {
+    status: false,
+    type: null,
+    port_pref: null
+  };
+
   if (os === "WINNT" || os === "OS2") {
-    if (!versionGreaterThanOrEqual(parseVersion(gpg.agentVersion), MINIMUM_WINDOWS_GPG_VERSION)) return false;
+    if (!executableChecker.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION)) return failure;
   } else {
     if (executableChecker.exists('torsocks')) {
       return {
@@ -184,7 +191,7 @@ function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
         type: 'torsocks',
       };
     }
-    if (!Curl.versionOver(minimumCurlVersion)) return false;
+    if (!executableChecker.versionOverOrEqual('curl', minimumCurlVersion)) return failure;
   }
 
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
@@ -203,11 +210,7 @@ function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
     };
   }
 
-  return {
-    status: false,
-    type: null,
-    port_pref: null
-  };
+  return failure;
 }
 
 function getGpgActions(){ //needed for keyserver tests to run - implementation needs to be updated

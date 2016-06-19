@@ -37,12 +37,15 @@ test(function testCheckTorBrowserBundlePortForTor() {
   const executableChecker = {
     exists: function(executable) {
       return false;
-    }
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return true;
+    },
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux", executableChecker);
 
-  Assert.ok(response.status, "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
+  Assert.equal(response.status, true, "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
   Assert.equal(response.type, 'gpg-proxy');
   Assert.equal(response.port_pref, TOR_BROWSER_BUNDLE_PORT_PREF);
 });
@@ -52,12 +55,15 @@ test(function testCheckForTorInServicePort() {
   const executableChecker = {
     exists: function(executable) {
       return false;
-    }
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return true;
+    },
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux", executableChecker);
 
-  Assert.ok(response.status, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
+  Assert.equal(response.status, true, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
   Assert.equal(response.type, 'gpg-proxy');
   Assert.equal(response.port_pref, TOR_SERVICE_PORT_PREF);
 });
@@ -69,12 +75,15 @@ test(function testConnectingToTorFails() {
   const executableChecker = {
     exists: function(executable) {
       return false;
-    }
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return true;
+    },
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux", executableChecker);
 
-  Assert.ok(!response.status, "Tor should not be available on port " + portWithoutTor);
+  Assert.equal(response.status, false);
 });
 
 test(function checksForMinimumCurl() {
@@ -86,12 +95,15 @@ test(function checksForMinimumCurl() {
   const executableChecker = {
     exists: function(executable) {
       return false;
-    }
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return false;
+    },
   };
 
   const response = canUseTor(absurdlyHighCurlRequirement, gpg, "Linux", executableChecker);
 
-  Assert.ok(!response.status, "Not checking curl requirement properly");
+  Assert.equal(response.status, false);
 });
 
 test(function checkEqualToMinimumGpgVersionInWindows() {
@@ -102,12 +114,15 @@ test(function checkEqualToMinimumGpgVersionInWindows() {
   const executableChecker = {
     exists: function(executable) {
       return false;
-    }
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return true;
+    },
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "WINNT", executableChecker);
 
-  Assert.ok(response.status);
+  Assert.equal(response.status, true);
   Assert.equal(response.type, 'gpg-proxy');
   Assert.equal(response.port_pref, TOR_SERVICE_PORT_PREF);
 });
@@ -119,24 +134,27 @@ test(function checkLessThanMinimumGpgVersionInWindows() {
   const executableChecker = {
     exists: function(executable) {
       return false;
+    },
+    versionOverOrEqual: function(executable, minimum) {
+      return false;
     }
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "OS2", executableChecker);
 
-  Assert.ok(!response.status);
+  Assert.equal(response.status, false);
 });
 
 test(function checkForTorsocks() {
   const executableChecker = {
     exists: function(executable) {
       return true;
-    }
+    },
   };
 
   const response = canUseTor(EnigmailTor.MINIMUM_CURL_VERSION, gpg, "Linux", executableChecker);
 
-  Assert.ok(response.status);
+  Assert.equal(response.status, true);
   Assert.equal(response.type, 'torsocks');
 });
 
