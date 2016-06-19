@@ -127,6 +127,11 @@ function checkTorExists(filter) {
 function buildGpgProxyArguments(type) {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
+
+  if (type.type === 'torsocks') {
+    return ['torsocks', '--user', username, '--pass', password];
+  }
+
   const args = ["--keyserver-options", HTTP_PROXY_GPG_OPTION];
   if (type.os === "OS2" || type.os === "WINNT") {
     args[1] += OLD_CURL_PROTOCOL;
@@ -185,7 +190,7 @@ function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
     return {
       status: true,
-      type: 'proxy',
+      type: 'gpg-proxy',
       port_pref: TOR_BROWSER_BUNDLE_PORT_PREF
     };
   }
@@ -193,7 +198,7 @@ function canUseTor(minimumCurlVersion, gpg, os, executableChecker) {
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF)))) {
     return {
       status: true,
-      type: 'proxy',
+      type: 'gpg-proxy',
       port_pref: TOR_SERVICE_PORT_PREF
     };
   }
