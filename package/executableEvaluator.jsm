@@ -88,14 +88,17 @@ const executor = {
   },
   gpgVersionOverOrEqual: function(agentVersion, minimumVersion) {
     return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
+  },
+  exists: function(executable) {
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike()) === null;
   }
 };
 
 function versionOverOrEqual(executable, minimumVersion, executor) {
   if (executable === 'gpg') return executor.gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
-  const file = executor.findExecutable(executable);
-  if (!executableExists(file)) return false;
+  if (!executor.exists(executable)) return false;
 
+  const file = executor.findExecutable(executable);
   const requestAndResult = createVersionRequest(file);
   const result = requestAndResult[0];
   const request = requestAndResult[1];
@@ -108,10 +111,7 @@ function versionOverOrEqual(executable, minimumVersion, executor) {
   return versionGreaterThanOrEqual(parseVersion(versionResponse), minimumVersion);
 }
 
-function exists() {}
-
 const ExecutableEvaluator = {
   executor: executor,
   versionOverOrEqual: versionOverOrEqual,
-  exists: exists
 };

@@ -150,21 +150,21 @@ function currentThread() {
   return threadManager.currentThread;
 }
 
-function canUseTor(gpg, os, executableChecker) {
+function canUseTor(gpg, os, executableEvaluator) {
   const failure = {
     status: false,
   };
 
   if (os === "WINNT" || os === "OS2") {
-    if (!executableChecker.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor)) return failure;
+    if (!executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor)) return failure;
   } else {
-    if (executableChecker.exists('torsocks')) {
+    if (executableEvaluator.exists('torsocks')) {
       return {
         status: true,
         type: 'torsocks',
       };
     }
-    if (!executableChecker.versionOverOrEqual('curl', MINIMUM_CURL_VERSION)) return failure;
+    if (!executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION)) return failure;
   }
 
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {

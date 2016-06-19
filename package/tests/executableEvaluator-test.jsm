@@ -20,9 +20,8 @@ const testExecutor = {
     };
     request.done(result);
   },
-  findExecutable: function() {
-    return {};
-  }
+  findExecutable: function() { return {}; },
+  exists: function() { return true; }
 };
 
 test(function checkCurlVersionIsOver() {
@@ -55,8 +54,8 @@ test(function parseMajorOnlyResponse() {
 
 test(function reportCurlDoesNotExist() {
   const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  const executorFindsNoFile= {
-    findExecutable: function() { return null; }
+  const executorFindsNoFile = {
+    exists: function() { return false; }
   };
   Assert.equal(versionOverOrEqual('curl', minimumCurlVersion, executorFindsNoFile), false);
 });
@@ -70,7 +69,7 @@ test(function gpgNotOverOrEqual() {
 });
 
 test(function evaluatleGpgWithEnigmailGpg() {
-  const executor = ExecutableEvaluator.executorForVersionOverOrEqual;
+  const executor = ExecutableEvaluator.executor;
 
   const status = executor.gpgVersionOverOrEqual('2.1.12', { major: 2, minor: 0, patch: 30 });
 
