@@ -1,4 +1,4 @@
-/*global Components: false, unescape: false */
+/*global Components: false */
 /*jshint -W097 */
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -79,15 +79,24 @@ function versionGreaterThanOrEqual(left, right) {
 
 }
 
-function versionOver(minimumVersion) {
-  const file = EnigmailFiles.resolvePath("curl", environment().get("PATH"), EnigmailOS.isDosLike());
+const executor = {
+  callAndWait: function(request) {
+    subprocess.call(request).wait();
+  },
+  findFile: function(executable) {
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+  }
+};
+
+function versionOverOrEqual(minimumVersion, executor) {
+  const file = executor.findFile('curl');
   if (!executableExists(file)) return false;
 
   const requestAndResult = createVersionRequest(file);
   const result = requestAndResult[0];
   const request = requestAndResult[1];
 
-  subprocess.call(request).wait();
+  executor.callAndWait(request);
 
   const versionResponse = result.stdout.split(" ")[1];
   EnigmailLog.WRITE("Curl Version Found: " + versionResponse + "\n");
@@ -96,5 +105,6 @@ function versionOver(minimumVersion) {
 }
 
 const Curl = {
-  versionOver: versionOver
+  executorForVersionOverOrEqual: executor,
+  versionOverOrEqual: versionOverOrEqual
 };
