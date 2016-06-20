@@ -32,7 +32,6 @@ function setupGoodPortInBrowserBundlePref() {
   EnigmailPrefs.setPref(TOR_BROWSER_BUNDLE_PORT_PREF, GOOD_TOR_PORT_FOR_TEST);
 }
 
-// TODO: setup timeout for torcheck
 test(function testCheckTorBrowserBundlePortForTor() {
   setupGoodPortInBrowserBundlePref();
   const executableChecker = {
@@ -102,8 +101,8 @@ test(function checkLessThanMinimumGpgVersionInWindows() {
   Assert.equal(response.status, false);
 });
 
-// TODO: MUST still check that tor is registered on a port
 test(function checkForTorsocks() {
+  setupGoodPortInTorServicePref();
   const executableChecker = {
     exists: function(executable) { return true; },
   };
@@ -112,6 +111,23 @@ test(function checkForTorsocks() {
 
   Assert.equal(response.status, true);
   Assert.equal(response.type, 'torsocks');
+});
+
+function setupBadPorts() {
+  EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
+  EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, PORT_WITHOUT_TOR);
+  EnigmailPrefs.setPref(TOR_BROWSER_BUNDLE_PORT_PREF, PORT_WITHOUT_TOR);
+}
+
+test(function cannotUseTorWhenTorsocksExistsButTorNotSetup() {
+  setupBadPorts();
+  const executableChecker = {
+    exists: function(executable) { return true; },
+  };
+
+  const response = torIsAvailable(gpg, "Linux", executableChecker);
+
+  Assert.equal(response.status, false);
 });
 
 test(function buildArgumentsForTorsocks() {

@@ -159,6 +159,11 @@ function currentThread() {
   return threadManager.currentThread;
 }
 
+function torOnEither(browserBundlePortPref, servicePortPref) {
+  return checkTorExists(filterWith(EnigmailPrefs.getPref(browserBundlePortPref))) ||
+    checkTorExists(filterWith(EnigmailPrefs.getPref(servicePortPref)));
+}
+
 function torIsAvailable(gpg, os, executableEvaluator) {
   const failure = {
     status: false,
@@ -168,10 +173,11 @@ function torIsAvailable(gpg, os, executableEvaluator) {
     if (!executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor)) return failure;
   } else {
     if (executableEvaluator.exists('torsocks')) {
-      return {
-        status: true,
-        type: 'torsocks',
-      };
+      if (torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF)) {
+        return { status: true, type: 'torsocks' };
+      } else {
+        return failure;
+      }
     }
     if (!executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION)) return failure;
   }
