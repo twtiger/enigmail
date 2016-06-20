@@ -164,7 +164,7 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
     checkTorExists(filterWith(EnigmailPrefs.getPref(servicePortPref)));
 }
 
-function torIsAvailable(gpg, os, executableEvaluator) {
+function torIsAvailable(os, executableEvaluator) {
   const failure = {
     status: false,
   };

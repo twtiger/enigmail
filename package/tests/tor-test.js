@@ -16,10 +16,6 @@ const TOR_IP_FOR_TESTS = "127.0.0.1";
 const GOOD_TOR_PORT_FOR_TEST = 9050;
 const PORT_WITHOUT_TOR = 9876;
 
-const gpg = {
-  agentVersion: "doesn't matter"
-};
-
 function setupGoodPortInTorServicePref() {
   EnigmailPrefs.setPref(TOR_IP_ADDR_PREF, TOR_IP_FOR_TESTS);
   EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, GOOD_TOR_PORT_FOR_TEST);
@@ -39,7 +35,7 @@ test(function testCheckTorBrowserBundlePortForTor() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "Linux", executableChecker);
+  const response = torIsAvailable("Linux", executableChecker);
 
   Assert.equal(response.status, true, "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
   Assert.equal(response.type, 'gpg-proxy');
@@ -53,7 +49,7 @@ test(function testCheckForTorInServicePort() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "Linux", executableChecker);
+  const response = torIsAvailable("Linux", executableChecker);
 
   Assert.equal(response.status, true, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
   Assert.equal(response.type, 'gpg-proxy');
@@ -69,20 +65,19 @@ test(function testConnectingToTorFails() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "Linux", executableChecker);
+  const response = torIsAvailable("Linux", executableChecker);
 
   Assert.equal(response.status, false);
 });
 
 test(function checkEqualToMinimumGpgVersionInWindows() {
   setupGoodPortInTorServicePref();
-  const gpg = { agentVersion: '2.0.30' };
   const executableChecker = {
     exists: function(executable) { return false; },
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "WINNT", executableChecker);
+  const response = torIsAvailable("WINNT", executableChecker);
 
   Assert.equal(response.status, true);
   Assert.equal(response.type, 'gpg-proxy');
@@ -90,13 +85,12 @@ test(function checkEqualToMinimumGpgVersionInWindows() {
 });
 
 test(function checkLessThanMinimumGpgVersionInWindows() {
-  const gpg = { agentVersion: '1.4.20' };
   const executableChecker = {
     exists: function(executable) { return false; },
     versionOverOrEqual: function(executable, minimum) { return false; }
   };
 
-  const response = torIsAvailable(gpg, "OS2", executableChecker);
+  const response = torIsAvailable("OS2", executableChecker);
 
   Assert.equal(response.status, false);
 });
@@ -107,7 +101,7 @@ test(function checkForTorsocks() {
     exists: function(executable) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "Linux", executableChecker);
+  const response = torIsAvailable("Linux", executableChecker);
 
   Assert.equal(response.status, true);
   Assert.equal(response.type, 'torsocks');
@@ -125,7 +119,7 @@ test(function cannotUseTorWhenTorsocksExistsButTorNotSetup() {
     exists: function(executable) { return true; },
   };
 
-  const response = torIsAvailable(gpg, "Linux", executableChecker);
+  const response = torIsAvailable("Linux", executableChecker);
 
   Assert.equal(response.status, false);
 });
