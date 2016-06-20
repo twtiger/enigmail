@@ -17,7 +17,10 @@ Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKey
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 Components.utils.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
-// Components.utils.import("resource://enigmail/httpProxy.jsm"); global EnigmailHttpProxy: false 
+Components.utils.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
+Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Components.utils.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
+Components.utils.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 
 testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildKeyRequest: false, getKeyserversFrom: false, buildListener: false, StateMachine: false, submitRequest: false */
 
@@ -33,6 +36,7 @@ const TorBuilder = {
     this.tor = {};
     this.tor.gpgActions = {downloadKey: true, refreshKeys: false, searchKey: false, uploadKey: false};
     this.tor.getConfiguration = {}; // TODO what to set if tor is not available?
+    this.tor.userWantsActionOverTor = function() { return false; };
     return this;
   },
   withConfiguration: function(port) {
@@ -126,43 +130,30 @@ test(withTestGpgHome(withEnigmail(function testUploadKey() {
   Assert.equal(keyRequestProps.isDownload, 0);
 })));
 
-//test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9050() {
-//  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
-//  var keyserver = "keyserver0005";
-//  var searchTerms = "0001";
-//  var errorMsgObj = {};
-//  var httpProxy = HttpProxyBuilder.build();
-//  var tor = TorBuilder.build().withConfiguration(9050).get();
-//
-//  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
-//  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9050") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-//  Assert.equal(keyRequestProps.inputData, null);
-//  Assert.equal(keyRequestProps.errors.value, null);
-//  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-//})));
-//
-//test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9150() {
-//  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
-//  var keyserver = "keyserver0005";
-//  var searchTerms = "0001";
-//  var errorMsgObj = {};
-//  var httpProxy = HttpProxyBuilder.build();
-//  var tor = TorBuilder.build().withConfiguration(9150).get();
-//
-//  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
-//  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9150") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-//  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-//  Assert.equal(keyRequestProps.inputData, null);
-//  Assert.equal(keyRequestProps.errors.value, null);
-//  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-//})));
+test(withTestGpgHome(withEnigmail(function testTorsocksUsage() {
+  const actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
+  const keyserver = "keyserver0005";
+  const searchTerms = "0001";
+  const errorMsgObj = {};
+  const httpProxy = HttpProxyBuilder.build();
+  const tor = {
+    userWantsActionOverTor: function() { return true; },
+    torIsAvailable: function(os, evaluator) { return { status:true, type: 'torsocks'}; },
+    buildGpgProxyArguments: function(type, os) {EnigmailTor.buildGpgProxyArguments(type, os);}
+  };
+
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+
+  Assert.assertArrayContains(keyRequestProps.prefix, 'torsocks');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--user');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--pass');
+  Assert.equal(keyRequestProps.prefix.length, 5);
+
+  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
+  Assert.assertArrayContains(keyRequestProps.args, "--recv-keys");
+  Assert.assertArrayNotContains(keyRequestProps.args, "--keyserver-options");
+  Assert.assertArrayNotContains(keyRequestProps.args, "http-proxy=socks5-hostname://127.0.0.1:9050");
+})));
 
 test(function testErrorQueryWithNoKeyserver() {
   var actionFlags = nsIEnigmail.UPLOAD_KEY;

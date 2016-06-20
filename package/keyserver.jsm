@@ -26,6 +26,8 @@ Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
@@ -36,29 +38,45 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-function buildGpgProxyInfo(tor) {
-   let torConfig = tor.getConfiguration; // TODO this might change depending on whether we can determine where tor is running before we make a request
-   let socksProxy = "socks5-hostname://";
-   let proxy = socksProxy + torConfig.host + ":" + torConfig.port;
-   return ["--keyserver-options", "http-proxy=" + proxy];
-}
+function useTorsocks(keyserver) {
+  const environment = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
+  const torsocksPath = EnigmailFiles.resolvePath('torsocks', environment.get("PATH"), EnigmailOS.isDosLike());
+  const gpgPath = EnigmailFiles.resolvePath('gpg2', environment.get("PATH"), EnigmailOS.isDosLike());
 
-function buildTorProxyInfo(gpgAgent, tor) {
-  // TODO check for correct version of curl for gpg2 and gpg
-  if (gpgAgent.agentPath.path.indexOf('gpg2') > -1){
-    // TODO this is actually wrong
-    // We need to investigate how to refresh over socks5 proxy in gpg2
-    return buildGpgProxyInfo(tor);
-  } else if (gpgAgent.agentPath.path.indexOf('gpg') > -1){
-    return buildGpgProxyInfo(tor);
-  } else if (tor.hasTorsocks === true) {
-  } else if (tor.hasTorify === true) {
-  } else if (gpgAgent.hasGpgCurl === true) {
-  }
-  return null;
+  subprocess.call({
+    command: torsocksPath,
+    arguments: [ gpgPath.path, '--keyserver', keyserver ],
+    environment: EnigmailCore.getEnvList(),
+    charset: null,
+    stdin: null,
+    stdout: function(data) {
+      EnigmailLog.DEBUG("stdout data: " + data + "\n");
+    },
+    stderr: function(data) {
+      EnigmailLog.DEBUG("stderr data: " + data + "\n");
+    },
+    done: function(exitCode) {
+      EnigmailLog.DEBUG("exitCode " + exitCode);
+    }
+  }).wait();
 }
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
+  const prefix = [];
+  if (tor.userWantsActionOverTor(actionFlags)) {
+    const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
+    if (torProperties.status) {
+      const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
+      for (let i=0; i<torArgs.length; i++)
+        if (torProperties.type === 'torsocks') prefix.push(torArgs[i]);
+    }
+    //TODO: Tor test gpg-proxy bundle port
+    //TODO: Tor test gpg-proxy service port
+    //TODO: User requires tor
+    //TODO: No Tor
+  }
+
+
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
     return null;
@@ -76,24 +94,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
       concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
   }
 
-  const proxyHost = httpProxy.getHttpProxy(keyserver);
-
   args = args.concat(["--keyserver", keyserver.trim()]);
-
-  if (proxyHost !== null) {
-    args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
-  }
-
-  // proxy settings takes precedance over tor
-  if (proxyHost === null) {
-    //let useTor = EnigmailTor.userWantsActionOverTor(actionFlags);
-    //if (useTor === true) {
-    //  let proxyInfo = buildTorProxyInfo(EnigmailGpgAgent, tor);
-    //  if (proxyInfo !== null) {
-    //    args = args.concat(proxyInfo);
-    //  }
-    //}
-  }
 
   let inputData = null;
   const searchTermsList = searchTerms.split(" ");
@@ -117,7 +118,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 
   const isDownload = actionFlags & (nsIEnigmail.REFRESH_KEY | nsIEnigmail.DOWNLOAD_KEY);
 
-  return {"args": args, "inputData": inputData, "isDownload": isDownload, errors: errorMsgObj};
+  return { prefix: prefix, "args": args, "inputData": inputData, "isDownload": isDownload, errors: errorMsgObj};
 }
 
 function submit(args, inputData, listener, isDownload) {

@@ -133,16 +133,17 @@ function checkTorExists(filter) {
   return status;
 }
 
-function buildGpgProxyArguments(type) {
+function buildGpgProxyArguments(type, os) {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
 
+  EnigmailLog.DEBUG("TYPE AGAIN: ", type.type);
   if (type.type === 'torsocks') {
     return ['torsocks', '--user', username, '--pass', password];
   }
 
   const args = ["--keyserver-options", HTTP_PROXY_GPG_OPTION];
-  if (type.os === "OS2" || type.os === "WINNT") {
+  if (os === "OS2" || os === "WINNT") {
     args[1] += OLD_CURL_PROTOCOL;
   } else {
     args[1] += NEW_CURL_PROTOCOL;
