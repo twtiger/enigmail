@@ -58,6 +58,15 @@ const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
+const DOWNLOAD_KEY_PREF = "extensions.enigmail.tor.downloadKey";
+const DOWNLOAD_KEY_REQUIRED_PREF = "extensions.enigmail.tor.downloadKeyRequireTor";
+const REFRESH_KEY_PREF = "extensions.enigmail.tor.refreshKeys";
+const REFRESH_KEY_REQUIRED_PREF = "extensions.enigmail.tor.refreshKeysRequireTor";
+const SEARCH_KEY_PREF = "extensions.enigmail.tor.searchKey";
+const SEARCH_KEY_REQUIRED_PREF = "extensions.enigmail.tor.searchKeyRequireTor";
+const UPLOAD_KEY_PREF = "extensions.enigmail.tor.uploadKey";
+const UPLOAD_KEY_REQUIRED_PREF = "extensions.enigmail.tor.uploadKeyRequireTor";
+
 let ioservice= null;
 function createCheckTorURIChannel() {
   if (ioservice === null) {
@@ -81,7 +90,7 @@ function createScriptableInputStream(inputStream) {
 }
 
 let doneCheckingTor = false;
-let torIsAvailable = false;
+let foundTor = false;
 
 const listener = {
   onStartRequest: function(request, context) {
@@ -98,7 +107,7 @@ const listener = {
     EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
     EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
 
-    torIsAvailable = response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1;
+    foundTor = response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1;
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
@@ -118,9 +127,9 @@ function checkTorExists(filter) {
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);
   while(!doneCheckingTor) currentThread().processNextEvent(true);
 
-  let status = torIsAvailable;
+  let status = foundTor;
   doneCheckingTor = false;
-  torIsAvailable = false;
+  foundTor = false;
   return status;
 }
 
@@ -150,7 +159,7 @@ function currentThread() {
   return threadManager.currentThread;
 }
 
-function canUseTor(gpg, os, executableEvaluator) {
+function torIsAvailable(gpg, os, executableEvaluator) {
   const failure = {
     status: false,
   };
@@ -186,8 +195,35 @@ function canUseTor(gpg, os, executableEvaluator) {
   return failure;
 }
 
-function getGpgActions(){ //needed for keyserver tests to run - implementation needs to be updated
-  return {downloadKey: true, refreshKeys: false, searchKey: false, uploadKey: false};
+const nsIEnigmail = Ci.nsIEnigmail;
+function userWantsActionOverTor(actionFlags) {
+  switch(actionFlags) {
+    case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
+      return EnigmailPrefs.getPref(DOWNLOAD_KEY_PREF) === true;
+    case actionFlags & nsIEnigmail.REFRESH_KEY:
+      return EnigmailPrefs.getPref(REFRESH_KEY_PREF) === true;
+    case actionFlags & nsIEnigmail.SEARCH_KEY:
+      return EnigmailPrefs.getPref(SEARCH_KEY_PREF) === true;
+    case actionFlags & nsIEnigmail.UPLOAD_KEY:
+      return EnigmailPrefs.getPref(UPLOAD_KEY_PREF) === true;
+    default:
+      return false;
+  }
+}
+
+function userRequiresTor(actionFlags) {
+  switch(actionFlags) {
+    case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
+      return EnigmailPrefs.getPref(DOWNLOAD_KEY_REQUIRED_PREF) === true;
+    case actionFlags & nsIEnigmail.REFRESH_KEY:
+      return EnigmailPrefs.getPref(REFRESH_KEY_REQUIRED_PREF) === true;
+    case actionFlags & nsIEnigmail.SEARCH_KEY:
+      return EnigmailPrefs.getPref(SEARCH_KEY_REQUIRED_PREF) === true;
+    case actionFlags & nsIEnigmail.UPLOAD_KEY:
+      return EnigmailPrefs.getPref(UPLOAD_KEY_REQUIRED_PREF) === true;
+    default:
+      return false;
+  }
 }
 
 function getConfiguration(){ //needed for keyserver tests to run - implementation needs to be updated
@@ -195,8 +231,9 @@ function getConfiguration(){ //needed for keyserver tests to run - implementatio
 }
 
 const EnigmailTor = {
-  canUseTor: canUseTor,
+  torIsAvailable: torIsAvailable,
   buildGpgProxyArguments: buildGpgProxyArguments,
-  gpgActions: getGpgActions,
+  userWantsActionOverTor: userWantsActionOverTor,
+  userRequiresTor: userRequiresTor,
   getConfiguration: getConfiguration
 };

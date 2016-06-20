@@ -8,9 +8,9 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, canUseTor: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false */
+testing("tor.jsm"); /*global EnigmailTor, connect: true, torIsAvailable: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false, userWantsActionOverTor:false, userRequiresTor:false, nsIEnigmail:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
-component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
+component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 
 const TOR_IP_FOR_TESTS = "127.0.0.1";
 const GOOD_TOR_PORT_FOR_TEST = 9050;
@@ -32,6 +32,7 @@ function setupGoodPortInBrowserBundlePref() {
   EnigmailPrefs.setPref(TOR_BROWSER_BUNDLE_PORT_PREF, GOOD_TOR_PORT_FOR_TEST);
 }
 
+// TODO: setup timeout for torcheck
 test(function testCheckTorBrowserBundlePortForTor() {
   setupGoodPortInBrowserBundlePref();
   const executableChecker = {
@@ -39,7 +40,7 @@ test(function testCheckTorBrowserBundlePortForTor() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = canUseTor(gpg, "Linux", executableChecker);
+  const response = torIsAvailable(gpg, "Linux", executableChecker);
 
   Assert.equal(response.status, true, "Tor should be available in the TOR_IP_FOR_TESTS:TOR_BROWSER_BUNDLE_PORT_PREF");
   Assert.equal(response.type, 'gpg-proxy');
@@ -53,7 +54,7 @@ test(function testCheckForTorInServicePort() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = canUseTor(gpg, "Linux", executableChecker);
+  const response = torIsAvailable(gpg, "Linux", executableChecker);
 
   Assert.equal(response.status, true, "Tor is not available on " + TOR_IP_FOR_TESTS + ":" + GOOD_TOR_PORT_FOR_TEST);
   Assert.equal(response.type, 'gpg-proxy');
@@ -69,7 +70,7 @@ test(function testConnectingToTorFails() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = canUseTor(gpg, "Linux", executableChecker);
+  const response = torIsAvailable(gpg, "Linux", executableChecker);
 
   Assert.equal(response.status, false);
 });
@@ -82,7 +83,7 @@ test(function checkEqualToMinimumGpgVersionInWindows() {
     versionOverOrEqual: function(executable, minimum) { return true; },
   };
 
-  const response = canUseTor(gpg, "WINNT", executableChecker);
+  const response = torIsAvailable(gpg, "WINNT", executableChecker);
 
   Assert.equal(response.status, true);
   Assert.equal(response.type, 'gpg-proxy');
@@ -96,17 +97,18 @@ test(function checkLessThanMinimumGpgVersionInWindows() {
     versionOverOrEqual: function(executable, minimum) { return false; }
   };
 
-  const response = canUseTor(gpg, "OS2", executableChecker);
+  const response = torIsAvailable(gpg, "OS2", executableChecker);
 
   Assert.equal(response.status, false);
 });
 
+// TODO: MUST still check that tor is registered on a port
 test(function checkForTorsocks() {
   const executableChecker = {
     exists: function(executable) { return true; },
   };
 
-  const response = canUseTor(gpg, "Linux", executableChecker);
+  const response = torIsAvailable(gpg, "Linux", executableChecker);
 
   Assert.equal(response.status, true);
   Assert.equal(response.type, 'torsocks');
@@ -166,4 +168,22 @@ test(function buildGpgProxyArgumentsFor32bitWindows() {
 
   Assert.equal(torArguments[0], "--keyserver-options");
   Assert.assertContains(torArguments[1], HTTP_PROXY_GPG_OPTION+OLD_CURL_PROTOCOL);
+});
+
+test(function actionCanHaveTor() {
+  EnigmailPrefs.setPref(DOWNLOAD_KEY_PREF, true);
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
+  Assert.equal(userWantsActionOverTor(actionFlags), true);
+});
+
+test(function actionCannotHaveTor() {
+  EnigmailPrefs.setPref(REFRESH_KEY_PREF, false);
+  const actionFlags = nsIEnigmail.REFRESH_KEY;
+  Assert.equal(userWantsActionOverTor(actionFlags), false);
+});
+
+test(function actionMustUseTor() {
+  EnigmailPrefs.setPref(SEARCH_KEY_REQUIRED_PREF, false);
+  const actionFlags = nsIEnigmail.SEARCH_KEY;
+  Assert.equal(userRequiresTor(actionFlags), false);
 });

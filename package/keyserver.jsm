@@ -36,15 +36,6 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-function checkForTorifiedActions(actionFlags, tor) {
-  for (let key in actions) {
-    if ((tor.gpgActions[key] === true) && (actionFlags & actions[key])) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function buildGpgProxyInfo(tor) {
    let torConfig = tor.getConfiguration; // TODO this might change depending on whether we can determine where tor is running before we make a request
    let socksProxy = "socks5-hostname://";
@@ -95,14 +86,13 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 
   // proxy settings takes precedance over tor
   if (proxyHost === null) {
-    let useTor = checkForTorifiedActions(actionFlags, tor);
-
-    if (useTor === true) {
-      let proxyInfo = buildTorProxyInfo(EnigmailGpgAgent, tor);
-      if (proxyInfo !== null) {
-        args = args.concat(proxyInfo);
-      }
-    }
+    //let useTor = EnigmailTor.userWantsActionOverTor(actionFlags);
+    //if (useTor === true) {
+    //  let proxyInfo = buildTorProxyInfo(EnigmailGpgAgent, tor);
+    //  if (proxyInfo !== null) {
+    //    args = args.concat(proxyInfo);
+    //  }
+    //}
   }
 
   let inputData = null;

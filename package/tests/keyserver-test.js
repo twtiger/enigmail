@@ -126,43 +126,43 @@ test(withTestGpgHome(withEnigmail(function testUploadKey() {
   Assert.equal(keyRequestProps.isDownload, 0);
 })));
 
-test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9050() {
-  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
-  var keyserver = "keyserver0005";
-  var searchTerms = "0001";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
-  var tor = TorBuilder.build().withConfiguration(9050).get();
-
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
-  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9050") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, null);
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-})));
-
-test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9150() {
-  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
-  var keyserver = "keyserver0005";
-  var searchTerms = "0001";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
-  var tor = TorBuilder.build().withConfiguration(9150).get();
-
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
-  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9150") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, null);
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
-})));
+//test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9050() {
+//  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
+//  var keyserver = "keyserver0005";
+//  var searchTerms = "0001";
+//  var errorMsgObj = {};
+//  var httpProxy = HttpProxyBuilder.build();
+//  var tor = TorBuilder.build().withConfiguration(9050).get();
+//
+//  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+//  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9050") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
+//  Assert.equal(keyRequestProps.inputData, null);
+//  Assert.equal(keyRequestProps.errors.value, null);
+//  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
+//})));
+//
+//test(withTestGpgHome(withEnigmail(function testRefreshKeyOverTorProxy9150() {
+//  var actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
+//  var keyserver = "keyserver0005";
+//  var searchTerms = "0001";
+//  var errorMsgObj = {};
+//  var httpProxy = HttpProxyBuilder.build();
+//  var tor = TorBuilder.build().withConfiguration(9150).get();
+//
+//  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+//  Assert.ok(keyRequestProps.args.indexOf("--recv-keys") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("--keyserver-options") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("http-proxy=socks5-hostname://127.0.0.1:9150") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
+//  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
+//  Assert.equal(keyRequestProps.inputData, null);
+//  Assert.equal(keyRequestProps.errors.value, null);
+//  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
+//})));
 
 test(function testErrorQueryWithNoKeyserver() {
   var actionFlags = nsIEnigmail.UPLOAD_KEY;
