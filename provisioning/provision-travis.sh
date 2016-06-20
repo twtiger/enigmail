@@ -12,7 +12,7 @@ sudo apt-get install nodejs
 sudo apt-get install npm
 npm install -g eslint@2.12
 sudo cp mime.types /etc/mime.types
-echo "deb http://deb.torproject.org/torproject.org sid main" >> /etc/apt/sources.list
+sudo echo "deb http://deb.torproject.org/torproject.org sid main" >> /etc/apt/sources.list
 gpg --keyserver keys.gnupg.net --recv 0xEE8CBC9E886DDD89
 gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | sudo apt-key add -
 sudo apt-get update
