@@ -64,10 +64,6 @@ function parseVersion(systemResponse) {
   };
 }
 
-function executableExists(file){
-  return file !== null;
-}
-
 function versionGreaterThanOrEqual(left, right) {
   if (left.major > right.major) {
     return true;
@@ -88,15 +84,16 @@ const executor = {
   },
   gpgVersionOverOrEqual: function(agentVersion, minimumVersion) {
     return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
-  },
-  exists: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike()) === null;
   }
 };
 
+function exists(executable) {
+  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike()) === null;
+}
+
 function versionOverOrEqual(executable, minimumVersion, executor) {
   if (executable === 'gpg') return executor.gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
-  if (!executor.exists(executable)) return false;
+  if (!exists(executable)) return false;
 
   const file = executor.findExecutable(executable);
   const requestAndResult = createVersionRequest(file);
@@ -114,4 +111,5 @@ function versionOverOrEqual(executable, minimumVersion, executor) {
 const ExecutableEvaluator = {
   executor: executor,
   versionOverOrEqual: versionOverOrEqual,
+  exists: exists
 };
