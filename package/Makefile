@@ -57,6 +57,7 @@ MODFILES = \
            randomNumber.jsm \
            gpgResponseParser.jsm \
            executableEvaluator.jsm \
+           hkpsChecker.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \
