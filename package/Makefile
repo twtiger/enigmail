@@ -27,25 +27,26 @@ MODFILES = \
            configBackup.jsm \
            configure.jsm \
            constants.jsm \
+           core.jsm \
            data.jsm \
            decryption.jsm \
            decryptPermanently.jsm \
            dialog.jsm \
            encryption.jsm \
-           core.jsm \
            errorHandling.jsm \
-           funcs.jsm \
-           gpgAgent.jsm \
-           protocolHandler.jsm \
            events.jsm \
+           executableEvaluator.jsm \
            execution.jsm \
            expiry.jsm \
+           funcs.jsm \
            files.jsm \
            filters.jsm \
            fixExchangeMsg.jsm \
+           gpgAgent.jsm \
            glodaMime.jsm \
            glodaUtils.jsm \
            gpg.jsm \
+           gpgResponseParser.jsm \
            hash.jsm \
            httpProxy.jsm \
            installGnuPG.jsm \
@@ -54,9 +55,6 @@ MODFILES = \
            keyRing.jsm \
            keyRefreshService.jsm \
            keyRefreshAlgorithm.jsm \
-           randomNumber.jsm \
-           gpgResponseParser.jsm \
-           executableEvaluator.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \
@@ -71,6 +69,8 @@ MODFILES = \
            pipeConsole.jsm \
            prefs.jsm \
            promise.jsm \
+           protocolHandler.jsm \
+           randomNumber.jsm \
            refreshWarrior.jsm \
            rules.jsm \
            streams.jsm \
