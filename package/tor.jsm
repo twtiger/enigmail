@@ -55,7 +55,7 @@ const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
 const TOR_SERVICE_PORT_PREF = "extensions.enigmail.torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "extensions.enigmail.torBrowserBundlePort";
 const HTTP_PROXY_GPG_OPTION = "http-proxy=";
-const NEW_CURL_PROTOCOL = "socks5://";
+const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
 const DOWNLOAD_KEY_PREF = "extensions.enigmail.tor.downloadKey";
