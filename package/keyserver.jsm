@@ -28,6 +28,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
+Cu.import("resource://enigmail/hkpsChecker.jsm"); /*global EnigmailHkpsChecker: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
@@ -124,7 +125,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 function callSubprocess(args, inputData, listener, isDownload){
   let exitCode = null;
   subprocess.call(
-      {
+    {
       command: EnigmailGpgAgent.agentPath,
       arguments: args,
       environment: EnigmailCore.getEnvList(),
@@ -194,5 +195,7 @@ const EnigmailKeyServer = {
     let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
     return submit(query.args, query.inputData, listener, query.isDownload, callSubprocess);
   },
-
+  refreshKey: function(key) {
+    EnigmailHkpsChecker.refreshKey(key);
+  }
 };

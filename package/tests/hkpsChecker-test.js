@@ -24,8 +24,8 @@ function importKey() {
 }
 
 function setUpKeyservers(keyservers, autokeyOn){
-    EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
-    EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", autokeyOn);
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
+  EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", autokeyOn);
 }
 
 test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
@@ -33,10 +33,10 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
   const key = EnigmailKeyRing.getAllKeys().keyList[0];
   const keyserver = "pool.sks-keyservers.net";
   setUpKeyservers(keyserver, true);
-  let stateMachine = new StateMachine("hkps-pool.sks-keyservers.net", key, MockKeyServerWithSuccess);
-  let listener = buildListener(key, keyserver, stateMachine, null);
+  let stateMachine = new StateMachine("hkps-pool.sks-keyservers.net", MockKeyServerWithSuccess);
+  let listener = buildListener(key, stateMachine);
 
-  let request = buildKeyRequest(key, keyserver, stateMachine, listener);
+  let request = buildKeyRequest(key, stateMachine, listener);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkps://pool.sks-keyservers.net:443");
@@ -48,9 +48,9 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   setUpKeyservers("pool.sks-keyservers.net", true);
 
-  let stateMachine = new StateMachine("hkp-pool.sks-keyservers.net", key, MockKeyServerWithSuccess);
-  let listener = buildListener(key, "pool.sks-keyservers.net", stateMachine);
-  let request = buildKeyRequest(key, "pool.sks-keyservers.net", stateMachine, listener);
+  let stateMachine = new StateMachine("hkp-pool.sks-keyservers.net", MockKeyServerWithSuccess);
+  let listener = buildListener(key, stateMachine);
+  let request = buildKeyRequest(key, stateMachine, listener);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkp://pool.sks-keyservers.net:11371");
@@ -61,13 +61,13 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   setUpKeyservers("pgp.mit.edu", true);
-  let stateMachine = new StateMachine("hkps-pgp.mit.edu", key, MockKeyServerWithSuccess);
+  let stateMachine = new StateMachine("hkps-pgp.mit.edu", MockKeyServerWithSuccess);
   let errMsg = "gpg: requesting key "+ key.keyId +" from hkps server pgp.mit.edu\n" +
     "gpg: key 2080080C: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:              unchanged: 1\n";
 
-  let listener = buildListener(key, "pgp.mit.edu", stateMachine);
+  let listener = buildListener(key, stateMachine);
   listener.stderr(errMsg);
   listener.done();
 
@@ -84,8 +84,8 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
     "gpg: Total number processed: 1\n" +
     "gpg:               imported: 1  (RSA: 1)\n";
 
-  let stateMachine = new StateMachine("hkps-pgp.mit.edu", key, MockKeyServerWithSuccess);
-  let listener = buildListener(key, "pgp.mit.edu", stateMachine);
+  let stateMachine = new StateMachine("hkps-pgp.mit.edu", MockKeyServerWithSuccess);
+  let listener = buildListener(key, stateMachine);
   listener.stderr(importSuccessMsg1);
   listener.stderr(importSuccessMsg2);
   listener.stderr(importSuccessMsg3);
@@ -100,8 +100,8 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneral
   const keyserver = "pgp.mit.edu";
   setUpKeyservers(keyserver, true);
 
-  let stateMachine = new StateMachine("hkp-pgp.mit.edu", key, MockKeyServerWithError);
-  let listener = buildListener(key, keyserver, stateMachine);
+  let stateMachine = new StateMachine("hkp-pgp.mit.edu", MockKeyServerWithError);
+  let listener = buildListener(key, stateMachine);
 
   let errMsg = "gpg: keyserver receive failed: General error";
   listener.stderr(errMsg);
@@ -113,7 +113,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function StateMachineChange() {
   importKey();
   const key = EnigmailKeyRing.getAllKeys().keyList[0];
   setUpKeyservers("keyserver.1, keyserver.2", true);
-  let stateMachine = new StateMachine("hkps-keyserver.1", key, MockKeyServerWithSuccess);
+  let stateMachine = new StateMachine("hkps-keyserver.1", MockKeyServerWithSuccess);
   Assert.equal(stateMachine.currentState, "hkps-keyserver.1");
 
   stateMachine.next(key);
@@ -125,7 +125,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   setUpKeyservers("keyserver.1", false);
-  let stateMachine = new StateMachine("hkps-keyserver.1", key, MockKeyServerWithError);
+  let stateMachine = new StateMachine("hkps-keyserver.1", MockKeyServerWithError);
 
   stateMachine.start(key);
 
@@ -139,7 +139,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer()
   let keyservers = ["keyserver.1", "keyserver.2"];
   setUpKeyservers(keyservers, false);
 
-  let stateMachine = new StateMachine("hkps-keyserver.1", key, MockKeyServerWithError);
+  let stateMachine = new StateMachine("hkps-keyserver.1", MockKeyServerWithError);
 
   stateMachine.start(key);
 
@@ -153,9 +153,9 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks()
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   let keyservers = ["keyserver.6", "keyserver.7"];
   setUpKeyservers("keyserver.6, keyserver.7", false);
-  let stateMachine = new StateMachine("hkps-keyserver.6", key, MockKeyServerWithSuccess);
+  let stateMachine = new StateMachine("hkps-keyserver.6", MockKeyServerWithSuccess);
 
-  submitRequest(key, keyservers[0], MockKeyServerWithSuccess, stateMachine);
+  submitRequest(key, MockKeyServerWithSuccess, stateMachine);
 
   assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + keyservers[0] + "\n");
 }))));
@@ -173,7 +173,7 @@ test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
 });
 
 test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
-  const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3"; 
+  const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
   setUpKeyservers("keyserver.1, keyserver.2, keyserver.3", true);
 
   let keyservers = getKeyserversFrom(keyserversFromPrefs);
@@ -183,7 +183,7 @@ test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
 });
 
 test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
-  const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3"; 
+  const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
   setUpKeyservers("keyserver.1, keyserver.2, keyserver.3", false);
 
   let keyservers = getKeyserversFrom(keyserversFromPrefs);
