@@ -22,7 +22,7 @@ Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: fals
 Components.utils.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Components.utils.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 
-testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildKeyRequest: false, getKeyserversFrom: false, buildListener: false, StateMachine: false, submitRequest: false */
+testing("keyserver.jsm"); /*global EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildKeyRequest: false, getKeyserversFrom: false, buildListener: false, StateMachine: false, submitRequest: false, submit: false */
 
 const HttpProxyBuilder = {
   build: function() {
@@ -186,8 +186,8 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
   let stateMachine = new StateMachine("hkps", dummyStates);
   EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
-
-  let request = buildKeyRequest(key, 0, stateMachine);
+  let listener = buildListener(key, 0, ["pool.sks-keyservers.net"], stateMachine);
+  let request = buildKeyRequest(key, "pool.sks-keyservers.net", stateMachine, listener);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkps://pool.sks-keyservers.net:443");
@@ -200,7 +200,8 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
 
   let stateMachine = new StateMachine("hkp", dummyStates);
-  let request = buildKeyRequest(key, 0, stateMachine);
+  let listener = buildListener(key, 0, ["pool.sks-keyservers.net"], stateMachine);
+  let request = buildKeyRequest(key, "pool.sks-keyservers.net", stateMachine, listener);
 
   Assert.equal(request.actionFlags, nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(request.keyserver, "hkp://pool.sks-keyservers.net:11371");
@@ -215,7 +216,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey
     "gpg: key 2080080C: KEYOWNER <KEYOWNER@EMAIL> not changed\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:              unchanged: 1\n";
-  let listener = buildListener(key, stateMachine, 0, ["pgp.mit.edu"]);
+  let listener = buildListener(key, 0, ["pgp.mit.edu"], stateMachine);
   listener.stderr(errMsg);
   listener.done();
   assertLogContains("keyserver.jsm: Key ID "+ key.keyId +" is the most up to date\n");
@@ -230,13 +231,13 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
   let importSuccessMsg4 = "gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
     "gpg: Total number processed: 1\n" +
     "gpg:               imported: 1  (RSA: 1)\n";
-  let listener = buildListener(key, dummyStates, 0, ["pgp.mit.edu"]);
+  let listener = buildListener(key, 0, ["pgp.mit.edu"], dummyStates);
   listener.stderr(importSuccessMsg1);
   listener.stderr(importSuccessMsg2);
   listener.stderr(importSuccessMsg3);
   listener.stderr(importSuccessMsg4);
   listener.done();
-  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver pgp.mit.edu\n");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneralError() {
@@ -245,7 +246,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneral
   const keyservers = ["pgp.mit.edu"];
 
   let stateMachine = new StateMachine("hkp", dummyStates);
-  let listener = buildListener(key, stateMachine, 0, keyservers);
+  let listener = buildListener(key, 0, keyservers, stateMachine);
 
   let errMsg = "gpg: keyserver receive failed: General error";
   listener.stderr(errMsg);
@@ -266,7 +267,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails
 
   let stateMachine = new StateMachine("hkps", dummyStates);
   Assert.equal(stateMachine.currentState, "hkps");
-  let listener = buildListener(key, stateMachine, 0, ["pgp.mit.edu"]);
+  let listener = buildListener(key, 0, ["pgp.mit.edu"], stateMachine);
   let errMsg = "gpg: keyserver receive failed: General error";
   listener.stderr(errMsg);
   listener.done();
@@ -274,7 +275,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails
   Assert.equal(stateMachine.currentState, "hkp");
 }))));
 
-test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer(){ //mock out the keyservers to speed up test
+test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer(){
   EnigmailLog.setLogLevel(2000);
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
@@ -284,23 +285,38 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer()
 
   let stateMachine = new StateMachine("hkps", dummyStates);
 
-  submitRequest(key, 0, stateMachine);
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[0] + " fails with:");
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[1] + " fails with:");
+  submitRequest(key, 0, MockKeyServerWithError, stateMachine);
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[0] + " fails with: General Error\n");
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[1] + " fails with: General Error\n");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledIfHkpsFailsOverAllServers(){
   importKey();
   let key = EnigmailKeyRing.getAllKeys().keyList[0];
-  const keyservers = ["keyserver.1", "keyserver.2", "keyserver.3"];
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1, keyserver.2, keyserver.3");
+  const keyservers = ["keyserver.3", "keyserver.4", "keyserver.5"];
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.3, keyserver.4, keyserver.5");
   EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", false);
 
   let stateMachine = new StateMachine("hkps", dummyStates);
 
-  submitRequest(key, 2, stateMachine);
-  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[2] + " fails with:");
+  submitRequest(key, 2, MockKeyServerWithError, stateMachine);
+  assertLogContains("[ERROR] key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[2] + " fails with: General Error\n");
   Assert.equal(stateMachine.currentState, "hkp");
+}))));
+
+test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks(){
+  EnigmailLog.setLogLevel(2000);
+  importKey();
+  let key = EnigmailKeyRing.getAllKeys().keyList[0];
+  let keyservers = ["keyserver.6", "keyserver.7"];
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.6, keyserver.7");
+  EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", false);
+
+  let stateMachine = new StateMachine("hkps", dummyStates);
+
+  submitRequest(key, 0, MockKeyServerWithSuccess, stateMachine);
+  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + keyservers[0] + "\n");
+  
 }))));
 
 test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
@@ -330,3 +346,40 @@ test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
   let keyservers = getKeyserversFrom(keyserversFromPrefs);
   Assert.deepEqual(keyservers, ["keyserver.1", "keyserver.2", "keyserver.3"]);
 });
+
+const MockKeyServerWithError = {
+  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+    const queryArgs = ["--charset","utf-8","--display-charset","utf-8","--use-agent","--batch","--no-tty","--status-fd","2","--keyserver",keyserver,"--recv-keys","8439E17046977C46"];
+    const queryInputData = null;
+    const queryIsDownload = 2;
+    return submit(queryArgs, queryInputData, listener, queryIsDownload, mockSubprocessWithError);
+  }
+};
+
+const MockKeyServerWithSuccess = {
+  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+    const queryArgs = ["--charset","utf-8","--display-charset","utf-8","--use-agent","--batch","--no-tty","--status-fd","2","--keyserver",keyserver,"--recv-keys","8439E17046977C46"];
+    const queryInputData = null;
+    const queryIsDownload = 2;
+    return submit(queryArgs, queryInputData, listener, queryIsDownload, mockSubprocessWithSuccess);
+  }
+};
+
+function mockSubprocessWithError(args, inputData, listener, isDownload){
+  listener.stderr("General error");
+  listener.done(0);
+  return mockProc;
+}
+
+function mockSubprocessWithSuccess(args, inputData, listener, isDownload){
+  listener.done(0);
+  return mockProc;
+}
+
+const mockProc = {
+  wait: function() {
+    return 0;
+  },
+  kill: function() {
+  }
+};

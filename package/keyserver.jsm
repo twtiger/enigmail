@@ -121,14 +121,10 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
   return { prefix: prefix, "args": args, "inputData": inputData, "isDownload": isDownload, errors: errorMsgObj};
 }
 
-function submit(args, inputData, listener, isDownload) {
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
-
-  let proc = null;
+function callSubprocess(args, inputData, listener, isDownload){
   let exitCode = null;
-
-  try {
-    proc = subprocess.call({
+  subprocess.call(
+      {
       command: EnigmailGpgAgent.agentPath,
       arguments: args,
       environment: EnigmailCore.getEnvList(),
@@ -157,6 +153,15 @@ function submit(args, inputData, listener, isDownload) {
       },
       mergeStderr: false
     });
+}
+
+function submit(args, inputData, listener, isDownload, makeSubprocessCall) {
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
+
+  let proc = null;
+
+  try {
+    proc = makeSubprocessCall(args, inputData, listener, isDownload);
   }
   catch (ex) {
     EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
@@ -175,38 +180,39 @@ function getKeyserversFrom(string){
   return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
-function submitRequest(key, keyserverIndex, stateMachine){
-  let request = buildKeyRequest(key, keyserverIndex, stateMachine); 
+function submitRequest(key, keyserverIndex, enigmailKeyServer, stateMachine){
+  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
+  let listener = buildListener(key, keyserverIndex, keyservers, stateMachine, enigmailKeyServer);
+  let request = buildKeyRequest(key, keyservers[keyserverIndex], stateMachine, listener); 
   let errorMsgObj = {};
-  let p = EnigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
+  let p = enigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, errorMsgObj);
   p.wait();
 }
 
-function buildKeyRequest(key, keyserverIndex, stateMachine) {
-  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
+function buildKeyRequest(key, keyserver, stateMachine, listener) {
   if (stateMachine.currentState === "hkps"){
     return {
       actionFlags: actions.downloadKey,
-      keyserver: "hkps://" + keyservers[keyserverIndex] + ":443",
+      keyserver: "hkps://" + keyserver + ":443",
       searchTerms: key.keyId,
-      listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
+      listener: listener
     };
   } else {
     return {
       actionFlags: actions.downloadKey,
-      keyserver: "hkp://" + keyservers[0] + ":11371",
+      keyserver: "hkp://" + keyserver + ":11371",
       searchTerms: key.keyId,
-      listener: buildListener(key, stateMachine, keyserverIndex, keyservers)
+      listener: listener
     };
   }
 }
 
-function buildListener(key, stateMachine, keyserverIndex, keyservers) {
+function buildListener(key, keyserverIndex, keyservers, stateMachine, enigmailKeyServer) {
   let stderr = "";
   let stdout = "";
   return {
     done: function(exitCode) {
-      requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers);
+      requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers, enigmailKeyServer);
     },
     stdout: function(data) {
       stdout += data;
@@ -217,14 +223,14 @@ function buildListener(key, stateMachine, keyserverIndex, keyservers) {
   };
 }
 
-function requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers) {
+function requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex, keyservers, enigmailKeyServer) {
   EnigmailLog.setLogLevel(2000);
   const response = GpgResponseParser.parse(stderr);
-  if (response.status === "General Error" || response.status === "Connection Error" || exitCode === 2) {
+  if (response.status === "General Error" || response.status === "Connection Error") {
     EnigmailLog.ERROR("key request for Key ID: " + key.keyId + " at keyserver: " + keyservers[keyserverIndex] + " fails with: " + response.status + "\n");
     
     if (keyserverIndex != (keyservers.length - 1)){
-      submitRequest(key, keyserverIndex + 1, stateMachine);
+      submitRequest(key, keyserverIndex + 1, enigmailKeyServer, stateMachine);
     } else {
       stateMachine.next(key); 
     }
@@ -233,7 +239,7 @@ function requestExit(key, exitCode, stderr, stdout, stateMachine, keyserverIndex
     EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
   }
   if (response.status === "Success") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported!\n");
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + keyservers[keyserverIndex] + "\n");
   }
 }
 
@@ -244,19 +250,18 @@ const allStates = {
 };
 
 function StateMachine(initialState, states, key) {
-  EnigmailLog.setLogLevel(2000);
   this.currentState = initialState;
   this.states = states;
 
   this.start = function(key) {
-    this.states[this.currentState].exec(key, 0, this.currentState);
+    this.states[this.currentState].exec(key, 0, EnigmailKeyServer);
   };
 
   this.next = function(key) {
     let nextState = this.states[this.currentState].next;
     this.currentState = nextState;
     if (nextState !== null) {
-      this.states[nextState].exec(key, 0, this.currentState);
+      this.states[nextState].exec(key, 0, EnigmailKeyServer);
     } 
   };
 }
@@ -276,7 +281,7 @@ const EnigmailKeyServer = {
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
     let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-    return submit(query.args, query.inputData, listener, query.isDownload);
+    return submit(query.args, query.inputData, listener, query.isDownload, callSubprocess);
   },
 
   refreshKey: function(key) {
