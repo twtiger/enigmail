@@ -8,7 +8,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailHkpsChecker"];
+var EXPORTED_SYMBOLS = ["RefreshWarrior"];
 
 const Ci = Components.interfaces;
 const Cu = Components.utils;
@@ -140,7 +140,7 @@ const machine = {
   },
 };
 
-const EnigmailHkpsChecker = {
+const RefreshWarrior = {
   refreshKey: function(key) {
     const firstKeyserver = "hkps-" + getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver")[0]);
     machine.init(firstKeyserver, EnigmailKeyServer);

@@ -14,9 +14,8 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withE
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
-testing("hkpsChecker.jsm"); /*global machine: false, createAllStates:false, EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildKeyRequest: false, getKeyserversFrom: false, buildListener: false, StateMachine: false, submitRequest: false, submit: false */
+testing("refreshWarrior.jsm"); /*global machine: false, createAllStates:false, nsIEnigmail: false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, */
 
 function importKey() {
   const tigerKey = do_get_file("resources/dev-tiger.asc", false);

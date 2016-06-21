@@ -57,7 +57,6 @@ MODFILES = \
            randomNumber.jsm \
            gpgResponseParser.jsm \
            executableEvaluator.jsm \
-           hkpsChecker.jsm \
            keyserver.jsm \
            lazy.jsm \
            locale.jsm \
@@ -72,6 +71,7 @@ MODFILES = \
            pipeConsole.jsm \
            prefs.jsm \
            promise.jsm \
+           refreshWarrior.jsm \
            rules.jsm \
            streams.jsm \
            system.jsm \
