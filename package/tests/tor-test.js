@@ -32,7 +32,7 @@ test(function testCheckTorBrowserBundlePortForTor() {
   setupGoodPortInBrowserBundlePref();
   const executableChecker = {
     exists: function(executable) { return false; },
-    versionOverOrEqual: function(executable, minimum) { return true; },
+    versionOverOrEqual: function(executable, minimum) { return true; }
   };
 
   const response = torIsAvailable("Linux", executableChecker);
@@ -46,7 +46,7 @@ test(function testCheckForTorInServicePort() {
   setupGoodPortInTorServicePref();
   const executableChecker = {
     exists: function(executable) { return false; },
-    versionOverOrEqual: function(executable, minimum) { return true; },
+    versionOverOrEqual: function(executable, minimum) { return true; }
   };
 
   const response = torIsAvailable("Linux", executableChecker);
@@ -62,7 +62,7 @@ test(function testConnectingToTorFails() {
   EnigmailPrefs.setPref(TOR_SERVICE_PORT_PREF, portWithoutTor);
   const executableChecker = {
     exists: function(executable) { return false; },
-    versionOverOrEqual: function(executable, minimum) { return true; },
+    versionOverOrEqual: function(executable, minimum) { return true; }
   };
 
   const response = torIsAvailable("Linux", executableChecker);
@@ -74,7 +74,7 @@ test(function checkEqualToMinimumGpgVersionInWindows() {
   setupGoodPortInTorServicePref();
   const executableChecker = {
     exists: function(executable) { return false; },
-    versionOverOrEqual: function(executable, minimum) { return true; },
+    versionOverOrEqual: function(executable, minimum) { return true; }
   };
 
   const response = torIsAvailable("WINNT", executableChecker);
@@ -98,7 +98,7 @@ test(function checkLessThanMinimumGpgVersionInWindows() {
 test(function checkForTorsocks() {
   setupGoodPortInTorServicePref();
   const executableChecker = {
-    exists: function(executable) { return true; },
+    exists: function(executable) { return executable === 'torsocks'; }
   };
 
   const response = torIsAvailable("Linux", executableChecker);
@@ -116,7 +116,7 @@ function setupBadPorts() {
 test(function cannotUseTorWhenTorsocksExistsButTorNotSetup() {
   setupBadPorts();
   const executableChecker = {
-    exists: function(executable) { return true; },
+    exists: function(executable) { return true; }
   };
 
   const response = torIsAvailable("Linux", executableChecker);

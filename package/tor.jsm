@@ -180,7 +180,7 @@ function torIsAvailable(os, executableEvaluator) {
         return failure;
       }
     }
-    if (!executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION)) return failure;
+    if (!executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION, ExecutableEvaluator.executor)) return failure;
   }
 
   if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
