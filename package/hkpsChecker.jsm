@@ -32,36 +32,36 @@ function getKeyserversFrom(string){
   return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
-function submitRequest(key, enigmailKeyServer, stateMachine){
-  let request = buildKeyRequest(key, stateMachine, buildListener(key, stateMachine));
-  let process = enigmailKeyServer.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
+function submitRequest(key){
+  let request = buildKeyRequest(key, buildListener(key));
+  let process = ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
   process.wait();
 }
 
-function buildKeyRequest(key, stateMachine, listener) {
-  if (stateMachine.getCurrentProtocol() === "hkps"){
+function buildKeyRequest(key, listener) {
+  if (machine.getCurrentProtocol() === "hkps"){
     return {
       actionFlags: actions.downloadKey,
-      keyserver: "hkps://" + stateMachine.getCurrentKeyserverName() + ":443",
+      keyserver: "hkps://" + machine.getCurrentKeyserverName() + ":443",
       searchTerms: key.keyId,
       listener: listener
     };
   } else {
     return {
       actionFlags: actions.downloadKey,
-      keyserver: "hkp://" + stateMachine.getCurrentKeyserverName() + ":11371",
+      keyserver: "hkp://" + machine.getCurrentKeyserverName() + ":11371",
       searchTerms: key.keyId,
       listener: listener
     };
   }
 }
 
-function buildListener(key, stateMachine) {
+function buildListener(key) {
   let stderr = "";
   let stdout = "";
   return {
     done: function(exitCode) {
-      requestExit(key, exitCode, stderr, stdout, stateMachine);
+      requestExit(key, exitCode, stderr, stdout);
     },
     stdout: function(data) {
       stdout += data;
@@ -72,18 +72,18 @@ function buildListener(key, stateMachine) {
   };
 }
 
-function requestExit(key, exitCode, stderr, stdout, stateMachine) {
+function requestExit(key, exitCode, stderr, stdout) {
   const response = GpgResponseParser.parse(stderr);
-  const protocol = stateMachine.getCurrentProtocol();
+  const protocol = machine.getCurrentProtocol();
   if (response.status === "General Error" || response.status === "Connection Error") {
-    EnigmailLog.ERROR(protocol + " key request for Key ID: " + key.keyId + " at keyserver: " + stateMachine.getCurrentKeyserverName() + " fails with: " + response.status + "\n");
-    stateMachine.next(key);
+    EnigmailLog.ERROR(protocol + " key request for Key ID: " + key.keyId + " at keyserver: " + machine.getCurrentKeyserverName() + " fails with: " + response.status + "\n");
+    machine.next(key);
   }
   if (response.status === "Key not changed") {
     EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
   }
   if (response.status === "Success") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + stateMachine.getCurrentKeyserverName() + "\n");
+    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + machine.getCurrentKeyserverName() + "\n");
   }
 }
 
@@ -107,34 +107,43 @@ function createAllStates(){
   return states;
 }
 
-function StateMachine(initialState, enigmailKeyServer) {
-  this.currentState = initialState;
-  this.states = createAllStates();
+let ourKeyserver = null;
+let currentState = null;
+let allStates = null;
+const machine = {
+  init: function(initialState, enigmailKeyServer) {
+    ourKeyserver = enigmailKeyServer;
+    currentState = initialState;
+    allStates = createAllStates();
+  },
 
-  this.start = function(key) {
-    submitRequest(key, enigmailKeyServer, this);
-  };
+  start: function(key) {
+    submitRequest(key);
+  },
 
-  this.next = function(key) {
-    let nextState = this.states[this.currentState].next;
-    this.currentState = nextState;
-    if (nextState !== null) {
-      submitRequest(key, enigmailKeyServer, this);
-    }
-  };
+  next: function(key) {
+    let nextState = allStates[currentState].next;
+    currentState = nextState;
+    if (nextState !== null) submitRequest(key);
+  },
 
-  this.getCurrentKeyserverName = function() {
-    return this.states[this.currentState].keyserver;
-  };
+  getCurrentState: function() {
+    return currentState;
+  },
 
-  this.getCurrentProtocol = function() {
-    return this.states[this.currentState].protocol;
-  };
-}
+  getCurrentKeyserverName: function() {
+    return allStates[currentState].keyserver;
+  },
+
+  getCurrentProtocol: function() {
+    return allStates[currentState].protocol;
+  },
+};
 
 const EnigmailHkpsChecker = {
   refreshKey: function(key) {
-    const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
-    new StateMachine("hkps-" + keyservers[0], EnigmailKeyServer).start(key);
+    const firstKeyserver = "hkps-" + getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver")[0]);
+    machine.init(firstKeyserver, EnigmailKeyServer);
+    machine.start(key);
   }
 };
