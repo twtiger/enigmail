@@ -194,8 +194,5 @@ const EnigmailKeyServer = {
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
     let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
     return submit(query.args, query.inputData, listener, query.isDownload, callSubprocess);
-  },
-  refreshKey: function(key) {
-    EnigmailHkpsChecker.refreshKey(key);
   }
 };
