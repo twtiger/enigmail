@@ -28,7 +28,6 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
-Cu.import("resource://enigmail/hkpsChecker.jsm"); /*global EnigmailHkpsChecker: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
