@@ -22,9 +22,14 @@ function importKey() {
   return EnigmailKeyRing.getAllKeys().keyList[0];
 }
 
+function setupKeyservers(keyservers, autoOn) {
+  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
+  EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", autoOn);
+}
+
 test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
   const key = importKey();
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
+  setupKeyservers("pool.sks-keyservers.net", true);
   machine.init(MockKeyServerWithSuccess);
 
   const request = buildKeyRequest(key, buildListener(key));
@@ -36,7 +41,7 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
 
 test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   const key = importKey();
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pool.sks-keyservers.net");
+  setupKeyservers("pool.sks-keyservers.net", false);
   machine.init(MockKeyServerWithSuccess);
   machine.next(key);
 
@@ -49,7 +54,7 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey() {
   const key = importKey();
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pgp.mit.edu");
+  setupKeyservers("pgp.mit.edu", false);
   machine.init(MockKeyServerWithSuccess);
 
   const listener = buildListener(key);
@@ -85,7 +90,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneralError() {
   const key = importKey();
   const keyserver = "pgp.mit.edu";
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pgp.mit.edu");
+  setupKeyservers(keyserver, false);
   machine.init(MockKeyServerWithError);
 
   const listener = buildListener(key);
@@ -97,7 +102,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneral
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function StateMachineChange() {
   const key = importKey();
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1, keyserver.2");
+  setupKeyservers("keyserver.1, keyserver.2", false);
 
   machine.init(MockKeyServerWithSuccess);
   Assert.deepEqual(machine.getCurrentState(), { protocol:'hkps', keyserver: 'keyserver.1' });
@@ -111,7 +116,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function StateMachineChange() {
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails(){
   const key = importKey();
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1");
+  setupKeyservers("keyserver.1", false);
   machine.init(MockKeyServerWithError);
 
   machine.start(key);
@@ -123,7 +128,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails
 test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer(){
   const key = importKey();
   const keyservers = "keyserver.1, keyserver.2";
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
+  setupKeyservers(keyservers, false);
   machine.init(MockKeyServerWithError);
 
   machine.start(key);
@@ -136,7 +141,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer()
 test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks(){
   const key =  importKey();
   const keyservers = "keyserver.6, keyserver.7";
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
+  setupKeyservers(keyservers, false);
   machine.init(MockKeyServerWithSuccess);
 
   submitRequest(key);
@@ -145,7 +150,6 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks()
 }))));
 
 test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
-  EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", true);
   const stringComma = "hello, world";
   const stringColon = "hello; world";
   const stringSpaces = "hello ; world";
@@ -158,7 +162,6 @@ test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
 
 test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyserversFromPrefs);
 
   const keyservers = getKeyserversFrom(keyserversFromPrefs);
 
@@ -167,15 +170,26 @@ test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
 
 test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyserversFromPrefs);
 
   const keyservers = getKeyserversFrom(keyserversFromPrefs);
 
   Assert.deepEqual(keyservers, ["keyserver.1", "keyserver.2", "keyserver.3"]);
 });
 
+test(function createStatesForOneKeyserver(){
+  setupKeyservers("keyserver.1, keyserver.2, keyserver.3", true);
+
+  const actualStates = createAllStates();
+
+  const expectedStates = [
+    { protocol: 'hkps', keyserver: 'keyserver.1' },
+    { protocol: 'hkp', keyserver: 'keyserver.1' }
+  ];
+  Assert.deepEqual(actualStates, expectedStates);
+});
+
 test(function createStatesForMultipleKeyservers(){
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", "keyserver.1, keyserver.2, keyserver.3");
+  setupKeyservers("keyserver.1, keyserver.2, keyserver.3", false);
 
   const actualStates = createAllStates();
 

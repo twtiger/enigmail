@@ -19,7 +19,8 @@ Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponsePars
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 function getKeyserversFrom(string){
-  return string.split(/\s*[,;]\s*/g);
+  const keyservers = string.split(/\s*[,;]\s*/g);
+  return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
 function submitRequest(key){
