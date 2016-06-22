@@ -17,7 +17,7 @@ function setupNextKeyRefresh(refreshWarrior, timer) {
   // Get the total amount of public keys in case the amount has changed
   const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
   const timeUntilNextRefresh = KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys);
-  EnigmailLog.WRITE("Time until next refresh in milliseconds: "+ timeUntilNextRefresh + "\n");
+  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ timeUntilNextRefresh + "\n");
 
   timer.setTimeout(refreshKey(refreshWarrior, timer), timeUntilNextRefresh);
 }

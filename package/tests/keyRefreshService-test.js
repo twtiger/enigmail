@@ -61,7 +61,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function logsMillisecondsToNextKe
 
   setupNextKeyRefresh(MockRefreshWarrior, MockTimer);
 
-  assertLogContains("Time until next refresh in milliseconds:");
+  assertLogContains("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(withMockTimer(function testRefreshKey(){
