@@ -28,13 +28,12 @@ const actions = {
 };
 
 function getKeyserversFrom(string){
-  let keyservers = string.split(/\s*[,;]\s*/g);
-  return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
+  return string.split(/\s*[,;]\s*/g);
 }
 
 function submitRequest(key){
-  let request = buildKeyRequest(key, buildListener(key));
-  let process = ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
+  const request = buildKeyRequest(key, buildListener(key));
+  const process = ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
   process.wait();
 }
 
@@ -87,7 +86,7 @@ function requestExit(key, exitCode, stderr, stdout) {
   }
 }
 
-function createAllStates(){
+function createAllStates() {
   const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
   const lastStateName = "hkp-" + keyservers[0];
 
@@ -122,9 +121,8 @@ const machine = {
   },
 
   next: function(key) {
-    let nextState = allStates[currentState].next;
-    currentState = nextState;
-    if (nextState !== null) submitRequest(key);
+    currentState = allStates[currentState].next;
+    if (currentState !== null) submitRequest(key);
   },
 
   getCurrentState: function() {
