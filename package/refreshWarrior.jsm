@@ -72,17 +72,8 @@ function buildListener(key) {
 }
 
 function requestExit(key, exitCode, stderr, stdout) {
-  const response = GpgResponseParser.parse(stderr);
-  const protocol = machine.getCurrentProtocol();
-  if (response.status === "General Error" || response.status === "Connection Error") {
-    EnigmailLog.ERROR(protocol + " key request for Key ID: " + key.keyId + " at keyserver: " + machine.getCurrentKeyserverName() + " fails with: " + response.status + "\n");
+  if (GpgResponseParser.isErrorResponse(stderr, key.keyId, machine.getCurrentProtocol(), machine.getCurrentKeyserverName())) {
     machine.next(key);
-  }
-  if (response.status === "Key not changed") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " is the most up to date\n");
-  }
-  if (response.status === "Success") {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + machine.getCurrentKeyserverName() + "\n");
   }
 }
 

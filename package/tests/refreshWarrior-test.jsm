@@ -89,12 +89,11 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneral
   const keyserver = "pgp.mit.edu";
   EnigmailPrefs.setPref("extensions.enigmail.keyserver", "pgp.mit.edu");
   machine.init("hkp-pgp.mit.edu", MockKeyServerWithError);
-
   const listener = buildListener(key);
 
-  const errMsg = "gpg: keyserver receive failed: General error";
-  listener.stderr(errMsg);
+  listener.stderr("gpg: keyserver receive failed: General error");
   listener.done();
+
   assertLogContains("[ERROR] hkp key request for Key ID: " + key.keyId +  " at keyserver: " + keyserver + " fails with: General Error\n");
 }))));
 
