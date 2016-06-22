@@ -58,14 +58,14 @@ const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
-const DOWNLOAD_KEY_PREF = "extensions.enigmail.tor.downloadKey";
-const DOWNLOAD_KEY_REQUIRED_PREF = "extensions.enigmail.tor.downloadKeyRequireTor";
-const REFRESH_KEY_PREF = "extensions.enigmail.tor.refreshKeys";
-const REFRESH_KEY_REQUIRED_PREF = "extensions.enigmail.tor.refreshKeysRequireTor";
-const SEARCH_KEY_PREF = "extensions.enigmail.tor.searchKey";
-const SEARCH_KEY_REQUIRED_PREF = "extensions.enigmail.tor.searchKeyRequireTor";
-const UPLOAD_KEY_PREF = "extensions.enigmail.tor.uploadKey";
-const UPLOAD_KEY_REQUIRED_PREF = "extensions.enigmail.tor.uploadKeyRequireTor";
+const DOWNLOAD_KEY_PREF = "downloadKeyWithTor";
+const DOWNLOAD_KEY_REQUIRED_PREF = "downloadKeyRequireTor";
+const REFRESH_KEY_PREF = "refreshKeysWithTor";
+const REFRESH_KEY_REQUIRED_PREF = "refreshKeysRequireTor";
+const SEARCH_KEY_PREF = "searchKeyWithTor";
+const SEARCH_KEY_REQUIRED_PREF = "searchKeyRequireTor";
+const UPLOAD_KEY_PREF = "uploadKeyWithTor";
+const UPLOAD_KEY_REQUIRED_PREF = "uploadKeyRequireTor";
 
 let ioservice= null;
 function createCheckTorURIChannel() {

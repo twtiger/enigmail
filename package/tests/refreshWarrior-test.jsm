@@ -23,8 +23,8 @@ function importKey() {
 }
 
 function setupKeyservers(keyservers, autoOn) {
-  EnigmailPrefs.setPref("extensions.enigmail.keyserver", keyservers);
-  EnigmailPrefs.setPref("extensions.enigmail.autoKeyServerSelection", autoOn);
+  EnigmailPrefs.setPref("keyserver", keyservers);
+  EnigmailPrefs.setPref("autoKeyServerSelection", autoOn);
 }
 
 test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {

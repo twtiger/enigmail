@@ -18,15 +18,16 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
+const KEYSERVER_PREF = "keyserver";
+
 function getKeyserversFrom(string){
   const keyservers = string.split(/\s*[,;]\s*/g);
-  return EnigmailPrefs.getPref("extensions.enigmail.autoKeyServerSelection") ? [keyservers[0]] : keyservers;
+  return EnigmailPrefs.getPref("autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
 function submitRequest(key){
   const request = buildKeyRequest(key, buildListener(key));
-  const process = ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
-  process.wait();
+  ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
 }
 
 function buildKeyRequest(key, listener) {
@@ -66,7 +67,7 @@ function buildListener(key) {
 }
 
 function createAllStates() {
-  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref("extensions.enigmail.keyserver"));
+  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref(KEYSERVER_PREF));
   const states = [];
   for (let i=0; i < keyservers.length; i++) {
     states.push( { protocol: 'hkps', keyserver: keyservers[i] } );

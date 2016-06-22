@@ -10,7 +10,7 @@ Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global Random
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false*/
 
 const HOUR_IN_MILLISEC = 60 * 60 * 1000;
-const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "extensions.enigmail.hoursAWeekOnThunderbird";
+const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "hoursAWeekOnThunderbird";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
   let millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME) * HOUR_IN_MILLISEC;
@@ -19,6 +19,6 @@ function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
 
 const KeyRefreshAlgorithm = {
   calculateWaitTimeInMilliseconds: function(totalPublicKeys) {
-    return RandomNumberGenerator.getUint32() % calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
+    return Math.floor(RandomNumberGenerator.getUint32() % calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys));
   }
 };

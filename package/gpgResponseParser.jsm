@@ -17,11 +17,11 @@ function isErrorResponse(message, keyId, protocol, keyserverName) {
     EnigmailLog.ERROR(protocol + " key request for Key ID: " + keyId + " at keyserver: " + keyserverName + " fails with: General Error\n");
     return true;
   } else if (contains(message, "not changed")) {
-    EnigmailLog.WRITE("keyserver.jsm: Key ID " + keyId + " is the most up to date\n");
+    EnigmailLog.WRITE("gpgResponseParser.jsm: Key ID " + keyId + " is the most up to date\n");
     return false;
   }
 
-  EnigmailLog.WRITE("keyserver.jsm: Key ID " + keyId + " successfully imported from keyserver " + keyserverName + "\n");
+  EnigmailLog.WRITE("gpgResponseParser.jsm: Key ID " + keyId + " successfully imported from keyserver " + keyserverName + "\n");
   return false;
 }
 

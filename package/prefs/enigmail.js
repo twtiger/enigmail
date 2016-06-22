@@ -199,14 +199,14 @@ pref("extensions.enigmail.torServicePort", "9050");
 pref("extensions.enigmail.torBrowserBundlePort", "9150");
 
 // gpg tor actions
-pref("extensions.enigmail.tor.downloadKey", false);
-pref("extensions.enigmail.tor.downloadKeyRequireTor", false);
-pref("extensions.enigmail.tor.refreshKeys", false);
-pref("extensions.enigmail.tor.refreshKeysRequireTor", false);
-pref("extensions.enigmail.tor.searchKey", false);
-pref("extensions.enigmail.tor.searchKeyRequireTor", false);
-pref("extensions.enigmail.tor.uploadKey", false);
-pref("extensions.enigmail.tor.uploadKeyRequireTor", false);
+pref("extensions.enigmail.downloadKeyWithTor", false);
+pref("extensions.enigmail.downloadKeyRequireTor", false);
+pref("extensions.enigmail.refreshKeysWithTor", false);
+pref("extensions.enigmail.refreshKeysRequireTor", false);
+pref("extensions.enigmail.searchKeyWithTor", false);
+pref("extensions.enigmail.searchKeyRequireTor", false);
+pref("extensions.enigmail.uploadKeyWithTor", false);
+pref("extensions.enigmail.uploadKeyRequireTor", false);
 
 // Hours per week that Enigmail is available for refreshing keys
 // The smaller the hours available, the more often the refresh

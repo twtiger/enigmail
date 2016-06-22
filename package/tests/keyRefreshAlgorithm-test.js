@@ -76,3 +76,12 @@ test(function calculateNewTimeEachCall(){
 
   Assert.ok(firstTime != secondTime);
 });
+
+test(function calculateWaitTimeReturnsWholeNumber(){
+  const totalKeys = 11;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  const number = KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalKeys);
+
+  Assert.equal(number % 1, 0);
+});
