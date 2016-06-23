@@ -15,7 +15,7 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
-testing("refreshWarrior.jsm"); /*global machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false */
+testing("refreshWarrior.jsm"); /*global machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyservers: false */
 
 function importKey() {
   EnigmailKeyRing.importKeyFromFile(do_get_file("resources/dev-tiger.asc", false), {}, {});
@@ -26,6 +26,29 @@ function setupKeyservers(keyservers, autoOn) {
   EnigmailPrefs.setPref("keyserver", keyservers);
   EnigmailPrefs.setPref("autoKeyServerSelection", autoOn);
 }
+
+const MockKeyServerWithError = {
+  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+    listener.stderr("General error");
+    listener.done(0);
+    return mockProc;
+  }
+};
+
+const MockKeyServerWithSuccess = {
+  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+    listener.done(0);
+    return mockProc;
+  }
+};
+
+const mockProc = {
+  wait: function() {
+    return 0;
+  },
+  kill: function() {
+  }
+};
 
 test(withTestGpgHome(withEnigmail(function testBuildingHkpsKeyRequest() {
   const key = importKey();
@@ -51,6 +74,29 @@ test(withTestGpgHome(withEnigmail(function testBuildingHkpKeyRequest() {
   Assert.equal(request.keyserver, "hkp://pool.sks-keyservers.net:11371");
   Assert.equal(request.searchTerms, key.keyId);
 })));
+
+test(withTestGpgHome(withEnigmail(function testBuildingLdapKeyRequest() {
+  const key = importKey();
+  setupKeyservers("ldap://pool.sks-keyservers.net", true);
+  machine.init(MockKeyServerWithSuccess);
+
+  const request = buildKeyRequest(key, buildListener(key));
+
+  Assert.equal(request.actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY);
+  Assert.equal(request.keyserver, "ldap://pool.sks-keyservers.net:389");
+  Assert.equal(request.searchTerms, key.keyId);
+})));
+
+test(withTestGpgHome(withEnigmail(function testHandlingUnsupportedProtocol() {
+  const key = importKey();
+  setupKeyservers("notaprotocol://pool.sks-keyservers.net", true);
+  machine.init(MockKeyServerWithSuccess);
+
+  submitRequest(key);
+
+  assertLogContains("Keyserver ignored due to invalid protocol: notaprotocol");
+})));
+
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey() {
   const key = importKey();
@@ -161,14 +207,16 @@ test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
 });
 
 test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
+  setupKeyservers("keyserver.1, keyserver.2, keyserver.3", true);
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
 
   const keyservers = getKeyserversFrom(keyserversFromPrefs);
 
-  Assert.deepEqual(keyservers, ["keyserver.1", "keyserver.2", "keyserver.3"]);
+  Assert.deepEqual(keyservers, ["keyserver.1"]);
 });
 
 test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
+  setupKeyservers("keyserver.1, keyserver.2, keyserver.3", false);
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
 
   const keyservers = getKeyserversFrom(keyserversFromPrefs);
@@ -197,30 +245,65 @@ test(function createStatesForMultipleKeyservers(){
     { protocol: 'hkps', keyserver: 'keyserver.1' },
     { protocol: 'hkps', keyserver: 'keyserver.2' },
     { protocol: 'hkps', keyserver: 'keyserver.3' },
-    { protocol: 'hkp', keyserver: 'keyserver.1' }
+    { protocol: 'hkp', keyserver: 'keyserver.1' },
+    { protocol: 'hkp', keyserver: 'keyserver.2' },
+    { protocol: 'hkp', keyserver: 'keyserver.3' }
+  ];
+  Assert.deepEqual(actualStates[0], expectedStates[0]);
+  Assert.deepEqual(actualStates[1], expectedStates[1]);
+  Assert.deepEqual(actualStates[2], expectedStates[2]);
+  Assert.deepEqual(actualStates[3], expectedStates[3]);
+  Assert.deepEqual(actualStates[4], expectedStates[4]);
+  Assert.deepEqual(actualStates[5], expectedStates[5]);
+});
+
+test(function checksForSpecifiedProtocol(){
+  const keyservers = setupKeyservers("hkp://keyserver.1", true);
+  const actualStates = createAllStates();
+  const expectedStates = [
+    { protocol: 'hkp', keyserver: 'keyserver.1'}
   ];
   Assert.deepEqual(actualStates, expectedStates);
 });
 
-const MockKeyServerWithError = {
-  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    listener.stderr("General error");
-    listener.done(0);
-    return mockProc;
-  }
-};
+test(function setsUpStatesWithMixOfSpecifiedProtocolsAndFirstKeyserverWithNoProtocol(){
+  const keyservers = setupKeyservers("keyserver.1, hkp://keyserver.2, ldap://keyserver.3, hkps://keyserver.4", false);
+  const actualStates = createAllStates();
+  const expectedStates = [
+    { protocol: 'hkps', keyserver: 'keyserver.1'},
+    { protocol: 'hkps', keyserver: 'keyserver.4'},
+    { protocol: 'hkp', keyserver: 'keyserver.2'},
+    { protocol: 'ldap', keyserver: 'keyserver.3'},
+    { protocol: 'hkp', keyserver: 'keyserver.1'},
+  ];
+  Assert.deepEqual(actualStates, expectedStates);
+});
 
-const MockKeyServerWithSuccess = {
-  access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    listener.done(0);
-    return mockProc;
-  }
-};
+test(function setsUpStatesWithMixOfSpecifiedProtocols(){
+  const keyservers = setupKeyservers("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
+  const actualStates = createAllStates();
+  const expectedStates = [
+    { protocol: 'hkps', keyserver: 'keyserver.2'},
+    { protocol: 'hkps', keyserver: 'keyserver.3'},
+    { protocol: 'hkps', keyserver: 'keyserver.4'},
+    { protocol: 'hkp', keyserver: 'keyserver.1'},
+    { protocol: 'ldap', keyserver: 'keyserver.5'},
+    { protocol: 'hkp', keyserver: 'keyserver.3'},
+  ];
+  Assert.deepEqual(actualStates[0], expectedStates[0]);
+  Assert.deepEqual(actualStates[1], expectedStates[1]);
+  Assert.deepEqual(actualStates[2], expectedStates[2]);
+  Assert.deepEqual(actualStates[3], expectedStates[3]);
+  Assert.deepEqual(actualStates[4], expectedStates[4]);
+  Assert.deepEqual(actualStates[5], expectedStates[5]);
+});
 
-const mockProc = {
-  wait: function() {
-    return 0;
-  },
-  kill: function() {
-  }
-};
+test(function orderHkpsKeyserversToBeginningOfKeyserverArray(){
+  const keyservers = ["hkp://keyserver.1", "hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "ldap://keyserver.5"];
+  const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
+  Assert.deepEqual(sortKeyserversWithHkpsFirst(keyservers), orderedKeyservers);
+});
+
+
+
+

@@ -26,8 +26,13 @@ function getKeyserversFrom(string){
 }
 
 function submitRequest(key){
-  const request = buildKeyRequest(key, buildListener(key));
-  ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
+  const protocol = machine.getCurrentProtocol();
+  if(["hkps", "hkp", "ldap"].indexOf(protocol) !== -1){
+    const request = buildKeyRequest(key, buildListener(key));
+    ourKeyserver.access(request.actionFlags, request.keyserver, request.searchTerms, request.listener, {});
+  } else {
+    EnigmailLog.WRITE("Keyserver ignored due to invalid protocol: " + protocol);
+  }
 }
 
 function buildKeyRequest(key, listener) {
@@ -38,10 +43,17 @@ function buildKeyRequest(key, listener) {
       searchTerms: key.keyId,
       listener: listener
     };
-  } else {
+  } else if (machine.getCurrentProtocol() === "hkp"){
     return {
       actionFlags: Ci.nsIEnigmail.DOWNLOAD_KEY,
       keyserver: "hkp://" + machine.getCurrentKeyserverName() + ":11371",
+      searchTerms: key.keyId,
+      listener: listener
+    };
+  } else {
+    return {
+      actionFlags: Ci.nsIEnigmail.DOWNLOAD_KEY,
+      keyserver: "ldap://" + machine.getCurrentKeyserverName() + ":389",
       searchTerms: key.keyId,
       listener: listener
     };
@@ -66,14 +78,48 @@ function buildListener(key) {
   };
 }
 
+function getProtocolAndKeyserver(protocolAndKeyserver){
+  return protocolAndKeyserver.split("://");
+}
+
+function protocolIncluded(protocolAndKeyserver){
+  return (getProtocolAndKeyserver(protocolAndKeyserver).length === 2) ? true : false;
+}
+
 function createAllStates() {
-  const keyservers = getKeyserversFrom(EnigmailPrefs.getPref(KEYSERVER_PREF));
+  const keyserversFromPrefs = getKeyserversFrom(EnigmailPrefs.getPref(KEYSERVER_PREF));
+  const keyservers = sortKeyserversWithHkpsFirst(keyserversFromPrefs);
   const states = [];
   for (let i=0; i < keyservers.length; i++) {
-    states.push( { protocol: 'hkps', keyserver: keyservers[i] } );
+    if (protocolIncluded(keyservers[i]) === true){
+      states.push( { protocol: getProtocolAndKeyserver(keyservers[i])[0], keyserver: getProtocolAndKeyserver(keyservers[i])[1]});
+    } else {
+      states.push( { protocol: 'hkps', keyserver: keyservers[i] } );
+    }
   }
-  states.push( { protocol: 'hkp', keyserver: keyservers[0] } );
+  for (let i=0; i < keyservers.length; i++) {
+    if (protocolIncluded(keyservers[i]) === false){
+      states.push( { protocol: 'hkp', keyserver: keyservers[i] } );
+    }
+  }
+
   return states;
+}
+
+function isHkpsOrEmpty(protocolAndKeyserver){
+  return (protocolIncluded(protocolAndKeyserver) === false || getProtocolAndKeyserver(protocolAndKeyserver)[0] === "hkps") ? true : false;
+}
+
+function sortKeyserversWithHkpsFirst(keyservers){
+  return keyservers.sort(function(a, b){
+    if (isHkpsOrEmpty(b) && !isHkpsOrEmpty(a)){
+      return 1;
+    }
+    if (isHkpsOrEmpty(a) && !isHkpsOrEmpty(b)){
+      return -1;
+    }
+    return 0;
+  });
 }
 
 let ourKeyserver = null;
