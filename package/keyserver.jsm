@@ -37,14 +37,19 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-function useTorsocks(keyserver) {
+function useTorsocks(moreArgs) {
   const environment = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
   const torsocksPath = EnigmailFiles.resolvePath('torsocks', environment.get("PATH"), EnigmailOS.isDosLike());
   const gpgPath = EnigmailFiles.resolvePath('gpg2', environment.get("PATH"), EnigmailOS.isDosLike());
 
+  let args = [gpgPath.path];
+  for (let i=0; i < moreArgs.length; i++) {
+    args.push(moreArgs[i]);
+  }
+
   subprocess.call({
     command: torsocksPath,
-    arguments: [gpgPath.path, '--keyserver', keyserver],
+    arguments: args,
     environment: EnigmailCore.getEnvList(),
     charset: null,
     stdin: null,
@@ -161,13 +166,17 @@ function callSubprocess(args, inputData, listener, isDownload){
     });
 }
 
-function submit(args, inputData, listener, isDownload, makeSubprocessCall) {
+function submit(prefix, args, inputData, listener, isDownload, makeSubprocessCall) {
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
 
   let proc = null;
 
   try {
-    proc = makeSubprocessCall(args, inputData, listener, isDownload);
+    if (prefix.length === 5 && prefix[0] === 'torsocks') {
+      proc = useTorsocks(args);
+    } else {
+      proc = makeSubprocessCall(args, inputData, listener, isDownload);
+    }
   } catch (ex) {
     EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
     throw ex;
@@ -179,8 +188,6 @@ function submit(args, inputData, listener, isDownload, makeSubprocessCall) {
   }
   return proc;
 }
-
-
 
 const EnigmailKeyServer = {
   /**
@@ -197,6 +204,6 @@ const EnigmailKeyServer = {
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
     let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
-    return submit(query.args, query.inputData, listener, query.isDownload, callSubprocess);
+    return submit(query.prefix, query.args, query.inputData, listener, query.isDownload, callSubprocess);
   }
 };
