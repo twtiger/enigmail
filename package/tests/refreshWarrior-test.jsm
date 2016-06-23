@@ -15,7 +15,7 @@ Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: fa
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
-testing("refreshWarrior.jsm"); /*global machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyservers: false */
+testing("refreshWarrior.jsm"); /*global machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyserversWithHkpsFirst: false */
 
 function importKey() {
   EnigmailKeyRing.importKeyFromFile(do_get_file("resources/dev-tiger.asc", false), {}, {});
