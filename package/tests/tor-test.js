@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, connect: true, torIsAvailable: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false, userWantsActionOverTor:false, userRequiresTor:false, nsIEnigmail:false */
+testing("tor.jsm"); /*global EnigmailTor: false, connect: true, torIsAvailable: false, checkTorExists: false, TOR_IP_ADDR_PREF: false, TOR_SERVICE_PORT_PREF: false, TOR_BROWSER_BUNDLE_PORT_PREF:false, currentThread:false, HTTP_PROXY_GPG_OPTION: false, OLD_CURL_PROTOCOL:false, NEW_CURL_PROTOCOL:false, MINIMUM_WINDOWS_GPG_VERSION:false, userWantsActionOverTor:false, userRequiresTor:false, nsIEnigmail:false */
 component("enigmail/log.jsm"); /* global EnigmailLog: false */
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 

@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// TODO check for torsocks binary
-
 "use strict";
 
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
@@ -140,16 +138,19 @@ function buildGpgProxyArguments(type, os) {
   EnigmailLog.DEBUG("TYPE AGAIN: ", type.type);
   if (type.type === 'torsocks') {
     return ['torsocks', '--user', username, '--pass', password];
-  }
-
-  const args = ["--keyserver-options", HTTP_PROXY_GPG_OPTION];
-  if (os === "OS2" || os === "WINNT") {
-    args[1] += OLD_CURL_PROTOCOL;
   } else {
-    args[1] += NEW_CURL_PROTOCOL;
+    const args = ["--keyserver-options", HTTP_PROXY_GPG_OPTION];
+    if (os === "OS2" || os === "WINNT") {
+      args[1] += OLD_CURL_PROTOCOL;
+    } else {
+      args[1] += NEW_CURL_PROTOCOL;
+    }
+
+    const address = EnigmailPrefs.getPref(TOR_IP_ADDR_PREF);
+    const port = EnigmailPrefs.getPref(type.port_pref);
+    args[1] += username + ":" + password + "@" + address + ":" + port;
+    return args;
   }
-  args[1] += username + ":" + password + "@" + EnigmailPrefs.getPref(TOR_IP_ADDR_PREF) + ":" + EnigmailPrefs.getPref(type.port_pref);
-  return args;
 }
 
 let threadManager = null;

@@ -45,7 +45,7 @@ function useTorsocks(keyserver) {
 
   subprocess.call({
     command: torsocksPath,
-    arguments: [ gpgPath.path, '--keyserver', keyserver ],
+    arguments: [gpgPath.path, '--keyserver', keyserver],
     environment: EnigmailCore.getEnvList(),
     charset: null,
     stdin: null,
@@ -63,19 +63,26 @@ function useTorsocks(keyserver) {
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
   const prefix = [];
+  let args = EnigmailGpg.getStandardArgs(true);
+
   if (tor.userWantsActionOverTor(actionFlags)) {
     const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
     if (torProperties.status) {
       const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
-      for (let i=0; i<torArgs.length; i++)
-        if (torProperties.type === 'torsocks') prefix.push(torArgs[i]);
+      EnigmailLog.DEBUG("torArgs " + torArgs);
+      for (let i = 0; i < torArgs.length; i++) {
+        if (torProperties.type === 'torsocks') {
+          prefix.push(torArgs[i]);
+        }
+        if (torProperties.type === 'gpg-proxy') {
+          args.push(torArgs[i]);
+        }
+      }
     }
-    //TODO: Tor test gpg-proxy TB bundle port (9150)
-    //TODO: Tor test gpg-proxy service port (9050)
+
     //TODO: Give user the option to have an action fail if tor is not available
     //TODO: Make sure that the commands that we call with tor work without tor
   }
-
 
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
@@ -87,11 +94,9 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
     return null;
   }
 
-  let args = EnigmailGpg.getStandardArgs(true);
-
   if (actionFlags & nsIEnigmail.SEARCH_KEY) {
     args = EnigmailGpg.getStandardArgs(false).
-      concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
+    concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
   }
 
   args = args.concat(["--keyserver", keyserver.trim()]);
@@ -162,8 +167,7 @@ function submit(args, inputData, listener, isDownload, makeSubprocessCall) {
 
   try {
     proc = makeSubprocessCall(args, inputData, listener, isDownload);
-  }
-  catch (ex) {
+  } catch (ex) {
     EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
     throw ex;
   }
