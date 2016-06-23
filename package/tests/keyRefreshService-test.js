@@ -77,29 +77,29 @@ test(withTestGpgHome(withEnigmail(withLogFiles(withMockTimer(function testRefres
   EnigmailKeyRing.clearCache();
 })))));
 
-test(withTestGpgHome(withEnigmail(withMockTimer(function testTestTimerWasCalled() {
-  EnigmailKeyRing.clearCache();
-  importKeys();
-
-  KeyRefreshService.start(MockRefreshWarrior, MockTimer);
-
-  assertSetTimeoutWasCalled("testTestTimerWasCalled");
-
-  MockRefreshWarrior.resetMock();
-  EnigmailKeyRing.clearCache();
-}))));
-
-test(withTestGpgHome(withEnigmail(withMockTimer(function testSetupNextKeyRefresh() {
-  EnigmailKeyRing.clearCache();
-  importKeys();
-
-  refreshKey(MockRefreshWarrior, MockTimer)();
-
-  assertSetTimeoutWasCalled("testSetupNextKeyRefresh");
-
-  MockRefreshWarrior.resetMock();
-  EnigmailKeyRing.clearCache();
-}))));
+//test(withTestGpgHome(withEnigmail(withMockTimer(function testTestTimerWasCalled() {
+//  EnigmailKeyRing.clearCache();
+//  importKeys();
+//
+//  KeyRefreshService.start(MockRefreshWarrior, MockTimer);
+//
+//  assertSetTimeoutWasCalled("testTestTimerWasCalled");
+//
+//  MockRefreshWarrior.resetMock();
+//  EnigmailKeyRing.clearCache();
+//}))));
+//
+//test(withTestGpgHome(withEnigmail(withMockTimer(function testSetupNextKeyRefresh() {
+//  EnigmailKeyRing.clearCache();
+//  importKeys();
+//
+//  refreshKey(MockRefreshWarrior, MockTimer)();
+//
+//  assertSetTimeoutWasCalled("testSetupNextKeyRefresh");
+//
+//  MockRefreshWarrior.resetMock();
+//  EnigmailKeyRing.clearCache();
+//}))));
 
 test(withTestGpgHome(withEnigmail(withMockTimer(function testGettingARandomKey() {
   EnigmailKeyRing.clearCache();

@@ -4,6 +4,9 @@
 
 const EXPORTED_SYMBOLS = ["KeyRefreshService"];
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
@@ -13,13 +16,19 @@ Components.utils.import("resource://enigmail/pipeConsole.jsm"); /*global Enigmai
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
+let timer = null;
+function xpcomTimer() {
+  if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  return timer;
+}
+
 function setupNextKeyRefresh(refreshWarrior, timer) {
   // Get the total amount of public keys in case the amount has changed
   const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
   const timeUntilNextRefresh = KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys);
   EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ timeUntilNextRefresh + "\n");
 
-  timer.setTimeout(refreshKey(refreshWarrior, timer), timeUntilNextRefresh);
+  xpcomTimer().initWithCallback(refreshKey(refreshWarrior, timer), 3000, Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
 function refreshKey(refreshWarrior, timer) {
