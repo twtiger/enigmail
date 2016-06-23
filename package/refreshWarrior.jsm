@@ -15,7 +15,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const KEYSERVER_PREF = "keyserver";

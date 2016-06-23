@@ -25,7 +25,6 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Cu.import("resource://enigmail/gpgResponseParser.jsm"); /*global GpgResponseParser: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
 

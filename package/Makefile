@@ -46,7 +46,6 @@ MODFILES = \
            glodaMime.jsm \
            glodaUtils.jsm \
            gpg.jsm \
-           gpgResponseParser.jsm \
            hash.jsm \
            httpProxy.jsm \
            installGnuPG.jsm \
