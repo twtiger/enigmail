@@ -110,7 +110,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingUnchangedKey
     "gpg:              unchanged: 1\n");
   listener.done();
 
-  assertLogContains("keyserver.jsm: Key ID "+ key.keyId +" is the most up to date\n");
+  assertLogContains("[KEY REFRESH SERVICE]: Key ID "+ key.keyId +" is the most up to date\n");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulImportOfMultipleMessages() {
@@ -130,7 +130,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function testHandlingSuccessfulIm
   listener.stderr(importSuccessMsg4);
   listener.done();
 
-  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver pgp.mit.edu\n");
+  assertLogContains("[KEY REFRESH SERVICE]: Key ID " + key.keyId + " successfully imported from keyserver pgp.mit.edu\n");
 }))));
 
 test(withTestGpgHome(withEnigmail(withLogFiles(function testHkpResponseToGeneralError() {
@@ -192,7 +192,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks()
 
   submitRequest(key);
 
-  assertLogContains("keyserver.jsm: Key ID " + key.keyId + " successfully imported from keyserver " + getKeyserversFrom(keyservers)[0] + "\n");
+  assertLogContains("[KEY REFRESH SERVICE]: Key ID " + key.keyId + " successfully imported from keyserver " + getKeyserversFrom(keyservers)[0] + "\n");
 }))));
 
 test(function splittingOverCommasSemicolonsAndRemovingSpaces(){

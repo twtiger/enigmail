@@ -60,12 +60,32 @@ function buildKeyRequest(key, listener) {
   }
 }
 
+function contains(superSet, subSet) {
+  return superSet.indexOf(subSet) > -1;
+}
+
+function isErrorResponse(message, keyId, protocol, keyserverName) {
+  if (contains(message, "fetch error") || contains(message, "Network is unreachable") || contains(message, "Connection refused")) {
+    EnigmailLog.ERROR(protocol + " key request for Key ID: " + keyId + " at keyserver: " + keyserverName + " fails with: Connection Error\n");
+    return true;
+  } else if (contains(message, "General error")) {
+    EnigmailLog.ERROR(protocol + " key request for Key ID: " + keyId + " at keyserver: " + keyserverName + " fails with: General Error\n");
+    return true;
+  } else if (contains(message, "not changed")) {
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Key ID " + keyId + " is the most up to date\n");
+    return false;
+  }
+
+  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Key ID " + keyId + " successfully imported from keyserver " + keyserverName + "\n");
+  return false;
+}
+
 function buildListener(key) {
   let stderr = "";
   let stdout = "";
   return {
     done: function(exitCode) {
-      if (GpgResponseParser.isErrorResponse(stderr, key.keyId, machine.getCurrentProtocol(), machine.getCurrentKeyserverName())) {
+      if (isErrorResponse(stderr, key.keyId, machine.getCurrentProtocol(), machine.getCurrentKeyserverName())) {
         machine.next(key);
       }
     },
