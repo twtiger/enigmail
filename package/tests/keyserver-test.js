@@ -137,6 +137,7 @@ test(withTestGpgHome(withEnigmail(function testTorsocksUsage() {
   const tor = {
     userWantsActionOverTor: function() { return true; },
     torIsAvailable: function(os, evaluator) { return { status:true, type: 'torsocks'}; },
+    userRequiresTor: function() { return true; },
     buildGpgProxyArguments: function(type, os) {EnigmailTor.buildGpgProxyArguments(type, os);}
   };
 
@@ -157,7 +158,7 @@ test(withTestGpgHome(withEnigmail(function testBuildingAKeyRequestUsingTorServic
   EnigmailPrefs.setPref("extensions.enigmail.torIpAddr", "127.0.0.1");
   EnigmailPrefs.setPref("extensions.enigmail.torServicePort", 9050);
 
-  const actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
   const keyserver = "keyserver0005";
   const searchTerms = "0001";
   const errorMsgObj = {};
@@ -173,6 +174,7 @@ test(withTestGpgHome(withEnigmail(function testBuildingAKeyRequestUsingTorServic
         port_pref: "extensions.enigmail.torServicePort"
       };
     },
+    userRequiresTor: function() { return true; },
     buildGpgProxyArguments: function(type, os) {
       EnigmailTor.buildGpgProxyArguments(type, os);
     }
@@ -194,13 +196,16 @@ test(withTestGpgHome(withEnigmail(function testBuildingAKeyRequestOverTBBPort() 
   EnigmailPrefs.setPref("extensions.enigmail.torIpAddr", "127.0.0.1");
   EnigmailPrefs.setPref("extensions.enigmail.torBrowserBundlePort", 9150);
 
-  const actionFlags = (nsIEnigmail.DOWNLOAD_KEY);
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
   const keyserver = "keyserver0005";
   const searchTerms = "0001";
   const errorMsgObj = {};
   const httpProxy = HttpProxyBuilder.build();
   const tor = {
     userWantsActionOverTor: function() {
+      return true;
+    },
+    userRequiresTor: function() {
       return true;
     },
     torIsAvailable: function(os, evaluator) {
@@ -223,7 +228,104 @@ test(withTestGpgHome(withEnigmail(function testBuildingAKeyRequestOverTBBPort() 
   Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
   Assert.assertArrayContains(keyRequestProps.args, "--recv-keys");
   Assert.assertArrayContains(keyRequestProps.args, "--keyserver-options");
-  Assert.equal(true, requestContains(proxyArgument, keyRequestProps.args));
+  Assert.equal(true, requestContains(proxyArgument, keyRequestProps.args), "Request does not contain " + proxyArgument);
+})));
+
+test(withTestGpgHome(withEnigmail(function testFailedRequestWhenTorIsRequiredButNotAvailable() {
+  EnigmailLog.setLogLevel(9000);
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
+  const keyserver = "keyserver0005";
+  const searchTerms = "0001";
+  const errorMsgObj = {};
+  const httpProxy = HttpProxyBuilder.build();
+  const tor = {
+    requiresTorWasCalled: false,
+    userWantsActionOverTor: function() {
+      return true;
+    },
+    userRequiresTor: function() {
+      tor.requiresTorWasCalled = true;
+      return true;
+    },
+    torIsAvailable: function(os, evaluator) {
+      return {
+        status: false
+      };
+    },
+    buildGpgProxyArguments: function(type, os) {
+      EnigmailTor.buildGpgProxyArguments(type, os);
+    }
+  };
+
+  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+  
+  Assert.equal(tor.requiresTorWasCalled, true, "Method 'userRequiresTor' was not called.");
+  Assert.deepEqual(keyRequestProps.errors, { value: "Tor is required but not available. Performing this action has failed."});
+})));
+
+test(withTestGpgHome(withEnigmail(function testSuccessfulRequestWhenTorWantedAvailableAndNOTRequired() {
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
+  const keyserver = "keyserver0005";
+  const searchTerms = "0001";
+  const errorMsgObj = {};
+  const httpProxy = HttpProxyBuilder.build();
+  const tor = {
+    requiresTorWasCalled: false,
+    userWantsActionOverTor: function() {
+      return true;
+    },
+    userRequiresTor: function() {
+      return false;
+    },
+    torIsAvailable: function(os, evaluator) {
+      return {
+        status: true,
+        type: 'torsocks'        
+      };
+    },
+    buildGpgProxyArguments: function(type, os) {
+      EnigmailTor.buildGpgProxyArguments(type, os);
+    }
+  };
+
+  const keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+
+  Assert.assertArrayContains(keyRequestProps.prefix, 'torsocks');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--user');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--pass');
+  Assert.equal(keyRequestProps.prefix.length, 5);
+})));
+
+test(withTestGpgHome(withEnigmail(function testSuccessfulRequestWhenTorWantedAvailableAndRequired() {
+  const actionFlags = nsIEnigmail.DOWNLOAD_KEY;
+  const keyserver = "keyserver0005";
+  const searchTerms = "0001";
+  const errorMsgObj = {};
+  const httpProxy = HttpProxyBuilder.build();
+  const tor = {
+    userWantsActionOverTor: function() {
+      return true;
+    },
+    userRequiresTor: function() {
+      return true;
+    },
+    torIsAvailable: function(os, evaluator) {
+      return {
+        status: true,
+        type: 'torsocks'
+      };
+    },
+    buildGpgProxyArguments: function(type, os) {
+      EnigmailTor.buildGpgProxyArguments(type, os);
+    }
+  };
+
+  const keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor);
+
+  Assert.assertArrayContains(keyRequestProps.prefix, 'torsocks');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--user');
+  Assert.assertArrayContains(keyRequestProps.prefix, '--pass');
+  Assert.equal(keyRequestProps.prefix.length, 5);
 })));
 
 test(function testErrorQueryWithNoKeyserver() {

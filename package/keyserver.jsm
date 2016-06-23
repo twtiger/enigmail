@@ -66,9 +66,8 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 
   if (tor.userWantsActionOverTor(actionFlags)) {
     const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
-    if (torProperties.status) {
+    if (torProperties.status === true) {
       const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
-      EnigmailLog.DEBUG("torArgs " + torArgs);
       for (let i = 0; i < torArgs.length; i++) {
         if (torProperties.type === 'torsocks') {
           prefix.push(torArgs[i]);
@@ -77,10 +76,9 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
           args.push(torArgs[i]);
         }
       }
+    } else if (tor.userRequiresTor()) {
+      errorMsgObj.value = "Tor is required but not available. Performing this action has failed.";
     }
-
-    //TODO: Give user the option to have an action fail if tor is not available
-    //TODO: Make sure that the commands that we call with tor work without tor
   }
 
   if (!keyserver) {
