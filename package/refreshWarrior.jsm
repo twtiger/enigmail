@@ -63,7 +63,7 @@ function contains(superSet, subSet) {
   return superSet.indexOf(subSet) > -1;
 }
 
-function isErrorResponse(message, keyId, protocol, keyserverName) {
+function isErrorResponse(message, keyId, protocol, keyserverName) { // TODO change default from success to unknown
   if (contains(message, "fetch error") || contains(message, "Network is unreachable") || contains(message, "Connection refused")) {
     EnigmailLog.ERROR(protocol + " key request for Key ID: " + keyId + " at keyserver: " + keyserverName + " fails with: Connection Error\n");
     return true;
@@ -97,12 +97,28 @@ function buildListener(key) {
   };
 }
 
-function getProtocolAndKeyserver(protocolAndKeyserver){
-  return protocolAndKeyserver.split("://");
+function isHkpsOrEmpty(keyserverInput){
+  return (protocolIncluded(keyserverInput) === false || getProtocolAndKeyserver(keyserverInput)[0] === "hkps") ? true : false;
 }
 
-function protocolIncluded(protocolAndKeyserver){
-  return (getProtocolAndKeyserver(protocolAndKeyserver).length === 2) ? true : false;
+function sortKeyserversWithHkpsFirst(keyservers){
+  return keyservers.sort(function(a, b){
+    if (isHkpsOrEmpty(b) && !isHkpsOrEmpty(a)){
+      return 1;
+    }
+    if (isHkpsOrEmpty(a) && !isHkpsOrEmpty(b)){
+      return -1;
+    }
+    return 0;
+  });
+}
+
+function getProtocolAndKeyserver(keyserverInput){
+  return keyserverInput.split("://");
+}
+
+function protocolIncluded(keyserverInput){
+  return (getProtocolAndKeyserver(keyserverInput).length === 2) ? true : false;
 }
 
 function createAllStates() {
@@ -123,22 +139,6 @@ function createAllStates() {
   }
 
   return states;
-}
-
-function isHkpsOrEmpty(protocolAndKeyserver){
-  return (protocolIncluded(protocolAndKeyserver) === false || getProtocolAndKeyserver(protocolAndKeyserver)[0] === "hkps") ? true : false;
-}
-
-function sortKeyserversWithHkpsFirst(keyservers){
-  return keyservers.sort(function(a, b){
-    if (isHkpsOrEmpty(b) && !isHkpsOrEmpty(a)){
-      return 1;
-    }
-    if (isHkpsOrEmpty(a) && !isHkpsOrEmpty(b)){
-      return -1;
-    }
-    return 0;
-  });
 }
 
 let ourKeyserver = null;
@@ -175,7 +175,11 @@ const machine = {
 
 const RefreshWarrior = {
   refreshKey: function(key) {
-    machine.init(EnigmailKeyServer);
-    machine.start(key);
+    if (EnigmailPrefs.getPref(KEYSERVER_PREF).trim() === ""){
+      EnigmailLog.WRITE("Refresh Key Service not started as no keyservers available");
+    } else {
+      machine.init(EnigmailKeyServer);
+      machine.start(key);
+    }
   }
 };

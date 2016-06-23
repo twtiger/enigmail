@@ -274,7 +274,7 @@ test(function setsUpStatesWithMixOfSpecifiedProtocolsAndFirstKeyserverWithNoProt
     { protocol: 'hkps', keyserver: 'keyserver.4'},
     { protocol: 'hkp', keyserver: 'keyserver.2'},
     { protocol: 'ldap', keyserver: 'keyserver.3'},
-    { protocol: 'hkp', keyserver: 'keyserver.1'},
+    { protocol: 'hkp', keyserver: 'keyserver.1'}
   ];
   Assert.deepEqual(actualStates, expectedStates);
 });
@@ -288,7 +288,7 @@ test(function setsUpStatesWithMixOfSpecifiedProtocols(){
     { protocol: 'hkps', keyserver: 'keyserver.4'},
     { protocol: 'hkp', keyserver: 'keyserver.1'},
     { protocol: 'ldap', keyserver: 'keyserver.5'},
-    { protocol: 'hkp', keyserver: 'keyserver.3'},
+    { protocol: 'hkp', keyserver: 'keyserver.3'}
   ];
   Assert.deepEqual(actualStates[0], expectedStates[0]);
   Assert.deepEqual(actualStates[1], expectedStates[1]);
@@ -303,6 +303,16 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray(){
   const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
   Assert.deepEqual(sortKeyserversWithHkpsFirst(keyservers), orderedKeyservers);
 });
+
+test(function doNotStartIfNoKeyserversProvided(){
+  const keyservers = setupKeyservers(" ", false);
+  const key = importKey();
+  machine.getCurrentState()
+
+  RefreshWarrior.refreshKey(key);
+
+  assertLogContains("Refresh Key Service not started as no keyservers available");
+})
 
 
 
