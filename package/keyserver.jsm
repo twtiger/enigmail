@@ -60,25 +60,29 @@ function useTorsocks(keyserver) {
   }).wait();
 }
 
+function createTorArguments(tor, prefix, args, errorMsgObj) {
+  const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
+  if (torProperties.status === true) {
+    const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
+    for (let i = 0; i < torArgs.length; i++) {
+      if (torProperties.type === 'torsocks') {
+        prefix.push(torArgs[i]);
+      }
+      if (torProperties.type === 'gpg-proxy') {
+        args.push(torArgs[i]);
+      }
+    }
+  } else if (tor.userRequiresTor()) {
+    errorMsgObj.value = "Tor is required but not available. Performing this action has failed.";
+  }
+}
+
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
   const prefix = [];
   let args = EnigmailGpg.getStandardArgs(true);
 
   if (tor.userWantsActionOverTor(actionFlags)) {
-    const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
-    if (torProperties.status === true) {
-      const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
-      for (let i = 0; i < torArgs.length; i++) {
-        if (torProperties.type === 'torsocks') {
-          prefix.push(torArgs[i]);
-        }
-        if (torProperties.type === 'gpg-proxy') {
-          args.push(torArgs[i]);
-        }
-      }
-    } else if (tor.userRequiresTor()) {
-      errorMsgObj.value = "Tor is required but not available. Performing this action has failed.";
-    }
+    createTorArguments(tor, prefix, args, errorMsgObj);
   }
 
   if (!keyserver) {
