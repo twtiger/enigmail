@@ -183,10 +183,10 @@ function submit(prefix, args, inputData, listener, isDownload, makeSubprocessCal
     throw ex;
   }
 
-  if (!proc) {
+  if (proc === null) {
     EnigmailLog.ERROR("keyserver.jsm: access: subprocess failed due to unknown reasons\n");
-    return null;
   }
+  
   return proc;
 }
 

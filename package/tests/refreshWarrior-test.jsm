@@ -304,17 +304,3 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray(){
   const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
   Assert.deepEqual(sortKeyserversWithHkpsFirst(keyservers), orderedKeyservers);
 });
-
-test(function doNotStartIfNoKeyserversProvided(){
-  const keyservers = setupKeyservers(" ", false);
-  const key = importKey();
-  machine.getCurrentState();
-
-  RefreshWarrior.refreshKey(key);
-
-  assertLogContains("[KEY REFRESH SERVICE]: Not started as no keyservers available");
-});
-
-
-
-

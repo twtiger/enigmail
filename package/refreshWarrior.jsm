@@ -182,11 +182,7 @@ const machine = {
 
 const RefreshWarrior = {
   refreshKey: function(key) {
-    if (EnigmailPrefs.getPref(KEYSERVER_PREF).trim() === ""){
-      EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Not started as no keyservers available");
-    } else {
-      machine.init(EnigmailKeyServer);
-      machine.start(key);
-    }
+    machine.init(EnigmailKeyServer);
+    machine.start(key);
   }
 };

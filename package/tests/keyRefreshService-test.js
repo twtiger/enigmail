@@ -8,7 +8,7 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, withMockTimer: false, MockTimer: false, setTimeoutWasCalled: false, assertSetTimeoutWasCalled: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, withMockTimer: false, MockTimer: false, setTimeoutWasCalled: false, assertSetTimeoutWasCalled: false, assertSetTimeoutWasNotCalled: false */
 
 testing("keyRefreshService.jsm"); /*global setupNextKeyRefresh:false, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKey: false */
 
@@ -139,3 +139,13 @@ test(withTestGpgHome(withEnigmail(withLogFiles(withMockTimer(function ifKeysDont
 
   MockRefreshWarrior.resetMock();
 })))));
+
+test(function doNotStartIfNoKeyserversProvided(){
+  EnigmailPrefs.setPref("keyserver", " ");
+  KeyRefreshService.start(MockRefreshWarrior, MockTimer);
+
+  assertLogContains("[KEY REFRESH SERVICE]: Not started as no keyservers available");
+  assertSetTimeoutWasNotCalled();
+
+  MockRefreshWarrior.resetMock();
+});

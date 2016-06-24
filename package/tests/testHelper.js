@@ -274,9 +274,15 @@ const MockTimer = {
     setTimeoutWasCalled = false;
   }
 };
+
 function assertSetTimeoutWasCalled(testName, expectedCallbackFunction) {
   Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called. in test: " + testName);
 }
+
+function assertSetTimeoutWasNotCalled(testName) {
+  Assert.equal(setTimeoutWasCalled, false);
+}
+
 function withMockTimer(f) {
   return function() {
     try {
