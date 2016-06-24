@@ -88,7 +88,7 @@ const executor = {
 };
 
 function exists(executable) {
-  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike() !== null);
+  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike()) !== null;
 }
 
 function versionOverOrEqual(executable, minimumVersion, executor) {

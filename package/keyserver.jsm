@@ -37,7 +37,7 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-function useTorsocks(moreArgs) {
+function useTorsocks(moreArgs, listener) {
   const environment = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
   const torsocksPath = EnigmailFiles.resolvePath('torsocks', environment.get("PATH"), EnigmailOS.isDosLike());
   const gpgPath = EnigmailFiles.resolvePath('gpg2', environment.get("PATH"), EnigmailOS.isDosLike());
@@ -47,6 +47,8 @@ function useTorsocks(moreArgs) {
     args.push(moreArgs[i]);
   }
 
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(torsocksPath, args) + "\n");
+
   subprocess.call({
     command: torsocksPath,
     arguments: args,
@@ -54,13 +56,13 @@ function useTorsocks(moreArgs) {
     charset: null,
     stdin: null,
     stdout: function(data) {
-      EnigmailLog.DEBUG("stdout data: " + data + "\n");
+      listener.stdout(data);
     },
     stderr: function(data) {
-      EnigmailLog.DEBUG("stderr data: " + data + "\n");
+      listener.stderr(data);
     },
     done: function(exitCode) {
-      EnigmailLog.DEBUG("exitCode " + exitCode);
+      listener.done(exitCode);
     }
   }).wait();
 }
@@ -102,7 +104,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor)
 
   if (actionFlags & nsIEnigmail.SEARCH_KEY) {
     args = EnigmailGpg.getStandardArgs(false).
-    concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
+      concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
   }
 
   args = args.concat(["--keyserver", keyserver.trim()]);
@@ -167,14 +169,13 @@ function callSubprocess(args, inputData, listener, isDownload){
 }
 
 function submit(prefix, args, inputData, listener, isDownload, makeSubprocessCall) {
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
-
   let proc = null;
 
   try {
     if (prefix.length === 5 && prefix[0] === 'torsocks') {
-      proc = useTorsocks(args);
+      proc = useTorsocks(args, listener);
     } else {
+      EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
       proc = makeSubprocessCall(args, inputData, listener, isDownload);
     }
   } catch (ex) {
