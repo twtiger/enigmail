@@ -16,7 +16,7 @@ Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKey
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/refreshWarrior.jsm"); /*global RefreshWarrior: false */
 
-testing("refreshWarrior.jsm"); /*global RefreshWarrior: false, machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyserversWithHkpsFirst: false */
+testing("refreshWarrior.jsm"); /*global isErrorResponse: false, RefreshWarrior: false, machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyserversWithHkpsFirst: false */
 
 function importKey() {
   EnigmailKeyRing.importKeyFromFile(do_get_file("resources/dev-tiger.asc", false), {}, {});
@@ -161,7 +161,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function StateMachineChange() {
   Assert.deepEqual(machine.getCurrentState(), { protocol:'hkp', keyserver: 'keyserver.1' });
 }))));
 
-test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails(){
+test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails() {
   const key = importKey();
   setupKeyservers("keyserver.1", false);
   machine.init(MockKeyServerWithError);
@@ -172,7 +172,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpIsCalledWhenHkpsFails
   assertLogContains("[ERROR] hkp key request for Key ID: " + key.keyId + " at keyserver: keyserver.1 fails with: General Error\n");
 }))));
 
-test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer(){
+test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer() {
   const key = importKey();
   const keyservers = "keyserver.1, keyserver.2";
   setupKeyservers(keyservers, false);
@@ -185,7 +185,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function hkpsTriesEachKeyServer()
   Assert.equal(machine.getCurrentState(), null);
 }))));
 
-test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks(){
+test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks() {
   const key =  importKey();
   const keyservers = "keyserver.6, keyserver.7";
   setupKeyservers(keyservers, false);
@@ -196,7 +196,7 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function processEndsIfHkpsWorks()
   assertLogContains("[KEY REFRESH SERVICE]: Key ID " + key.keyId + " successfully imported from keyserver " + getKeyserversFrom(keyservers)[0] + "\n");
 }))));
 
-test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
+test(function splittingOverCommasSemicolonsAndRemovingSpaces() {
   const stringComma = "hello, world";
   const stringColon = "hello; world";
   const stringSpaces = "hello ; world";
@@ -207,7 +207,7 @@ test(function splittingOverCommasSemicolonsAndRemovingSpaces(){
   Assert.deepEqual(getKeyserversFrom(stringSpaces), expected);
 });
 
-test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
+test(function filterFirstKeyserversIfAutoSelectPreferenceTrue() {
   setupKeyservers("keyserver.1, keyserver.2, keyserver.3", true);
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
 
@@ -216,7 +216,7 @@ test(function filterFirstKeyserversIfAutoSelectPreferenceTrue(){
   Assert.deepEqual(keyservers, ["keyserver.1"]);
 });
 
-test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
+test(function returnAllKeyserversIfAutoSelectPreferenceFalse() {
   setupKeyservers("keyserver.1, keyserver.2, keyserver.3", false);
   const keyserversFromPrefs = "keyserver.1, keyserver.2, keyserver.3";
 
@@ -225,7 +225,7 @@ test(function returnAllKeyserversIfAutoSelectPreferenceFalse(){
   Assert.deepEqual(keyservers, ["keyserver.1", "keyserver.2", "keyserver.3"]);
 });
 
-test(function createStatesForOneKeyserver(){
+test(function createStatesForOneKeyserver() {
   setupKeyservers("keyserver.1, keyserver.2, keyserver.3", true);
 
   const actualStates = createAllStates();
@@ -237,7 +237,7 @@ test(function createStatesForOneKeyserver(){
   Assert.deepEqual(actualStates, expectedStates);
 });
 
-test(function createStatesForMultipleKeyservers(){
+test(function createStatesForMultipleKeyservers() {
   setupKeyservers("keyserver.1, keyserver.2, keyserver.3", false);
 
   const actualStates = createAllStates();
@@ -258,7 +258,7 @@ test(function createStatesForMultipleKeyservers(){
   Assert.deepEqual(actualStates[5], expectedStates[5]);
 });
 
-test(function checksForSpecifiedProtocol(){
+test(function checksForSpecifiedProtocol() {
   const keyservers = setupKeyservers("hkp://keyserver.1", true);
   const actualStates = createAllStates();
   const expectedStates = [
@@ -267,7 +267,7 @@ test(function checksForSpecifiedProtocol(){
   Assert.deepEqual(actualStates, expectedStates);
 });
 
-test(function setsUpStatesWithMixOfSpecifiedProtocolsAndFirstKeyserverWithNoProtocol(){
+test(function setsUpStatesWithMixOfSpecifiedProtocolsAndFirstKeyserverWithNoProtocol() {
   const keyservers = setupKeyservers("keyserver.1, hkp://keyserver.2, ldap://keyserver.3, hkps://keyserver.4", false);
   const actualStates = createAllStates();
   const expectedStates = [
@@ -280,7 +280,7 @@ test(function setsUpStatesWithMixOfSpecifiedProtocolsAndFirstKeyserverWithNoProt
   Assert.deepEqual(actualStates, expectedStates);
 });
 
-test(function setsUpStatesWithMixOfSpecifiedProtocols(){
+test(function setsUpStatesWithMixOfSpecifiedProtocols() {
   const keyservers = setupKeyservers("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
   const actualStates = createAllStates();
   const expectedStates = [
@@ -299,13 +299,13 @@ test(function setsUpStatesWithMixOfSpecifiedProtocols(){
   Assert.deepEqual(actualStates[5], expectedStates[5]);
 });
 
-test(function orderHkpsKeyserversToBeginningOfKeyserverArray(){
+test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
   const keyservers = ["hkp://keyserver.1", "hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "ldap://keyserver.5"];
   const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
   Assert.deepEqual(sortKeyserversWithHkpsFirst(keyservers), orderedKeyservers);
 });
 
-test(function doNotStartIfNoKeyserversProvided(){
+test(function doNotStartIfNoKeyserversProvided() {
   const keyservers = setupKeyservers(" ", false);
   const key = importKey();
   machine.getCurrentState();
@@ -314,3 +314,8 @@ test(function doNotStartIfNoKeyserversProvided(){
 
   assertLogContains("[KEY REFRESH SERVICE]: Not started as no keyservers available");
 });
+
+test(withLogFiles(function reportErrorOnConfigurationError() {
+  Assert.equal(true, isErrorResponse("gpg: keyserver receive failed: Configuration error\n", "123", "hkps", "keyserverName"));
+  assertLogContains("[ERROR] hkps key request for Key ID: 123 at keyserver: keyserverName fails with: Configuration Error", 'reportErrorOnConfigurationError');
+}));

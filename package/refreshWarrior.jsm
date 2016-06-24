@@ -74,6 +74,9 @@ function isErrorResponse(message, keyId, protocol, keyserverName) { // TODO chan
   } else if (contains(message, "not changed")) {
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Key ID " + keyId + " is the most up to date\n");
     return false;
+  } else if (contains(message, "Configuration error")) {
+    EnigmailLog.ERROR(protocol + " key request for Key ID: " + keyId + " at keyserver: " + keyserverName + " fails with: Configuration Error\n");
+    return true;
   }
 
   EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Key ID " + keyId + " successfully imported from keyserver " + keyserverName + "\n");

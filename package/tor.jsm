@@ -136,7 +136,6 @@ function buildGpgProxyArguments(type, os) {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
 
-  EnigmailLog.DEBUG("TYPE AGAIN: ", type.type);
   if (type.type === 'torsocks') {
     return ['torsocks', '--user', username, '--pass', password];
   } else {
