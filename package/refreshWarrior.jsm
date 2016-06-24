@@ -124,11 +124,12 @@ function sortKeyserversWithHkpsFirst(keyservers){
 function setUpStateForProtocolAndKeyserver(protocolInput, keyserverInput){
   let protocol = protocolInput;
   let keyserver = keyserverInput;
-  if (protocolIncluded){
+  if (protocolIncluded(keyserverInput) === true){
       const protocolAndKeyserver = getProtocolAndKeyserver(keyserverInput);
       protocol = protocolAndKeyserver[0];
       keyserver = protocolAndKeyserver[1];
   }
+  EnigmailLog.setLogLevel(2000);
   return { protocol: protocol, keyserver: keyserver};  
 }
 
@@ -140,7 +141,9 @@ function createAllStates() {
     states.push(setUpStateForProtocolAndKeyserver("hkps", keyservers[i]));
   }
   for (let i=0; i < keyservers.length; i++) {
-    states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
+    if (protocolIncluded(keyservers[i]) === false){
+      states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
+    }
   }
   return states;
 }
