@@ -16,6 +16,7 @@ const Cu = Components.utils;
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
+Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 
 const KEYSERVER_PREF = "keyserver";
 
@@ -86,6 +87,8 @@ function buildListener(key) {
     done: function(exitCode) {
       if (isErrorResponse(stderr, key.keyId, machine.getCurrentProtocol(), machine.getCurrentKeyserverName())) {
         machine.next(key);
+      } else if (exitCode === 0) {
+        EnigmailKeyRing.clearCache();
       }
     },
     stdout: function(data) {
@@ -125,12 +128,11 @@ function setUpStateForProtocolAndKeyserver(protocolInput, keyserverInput){
   let protocol = protocolInput;
   let keyserver = keyserverInput;
   if (protocolIncluded(keyserverInput) === true){
-      const protocolAndKeyserver = getProtocolAndKeyserver(keyserverInput);
-      protocol = protocolAndKeyserver[0];
-      keyserver = protocolAndKeyserver[1];
+    const protocolAndKeyserver = getProtocolAndKeyserver(keyserverInput);
+    protocol = protocolAndKeyserver[0];
+    keyserver = protocolAndKeyserver[1];
   }
-  EnigmailLog.setLogLevel(2000);
-  return { protocol: protocol, keyserver: keyserver};  
+  return { protocol: protocol, keyserver: keyserver};
 }
 
 function createAllStates() {
