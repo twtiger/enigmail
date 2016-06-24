@@ -49,9 +49,9 @@ const CONTENT_POLICY = null;
 const BASE_URI = null;
 
 const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";
-const TOR_IP_ADDR_PREF = "extensions.enigmail.torIpAddr";
-const TOR_SERVICE_PORT_PREF = "extensions.enigmail.torServicePort";
-const TOR_BROWSER_BUNDLE_PORT_PREF = "extensions.enigmail.torBrowserBundlePort";
+const TOR_IP_ADDR_PREF = "torIpAddr";
+const TOR_SERVICE_PORT_PREF = "torServicePort";
+const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
 const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
@@ -110,7 +110,8 @@ const listener = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
 };
 
-function filterWith(port) {
+function filterWith(portPref) {
+  const port = EnigmailPrefs.getPref(portPref);
   return {
     applyFilter: function(proxyService, uri, proxyInfo) {
       return proxyService.newProxyInfo("socks", EnigmailPrefs.getPref(TOR_IP_ADDR_PREF), port, CONNECTION_FLAGS, SECONDS_TO_WAIT, FAILOVER_PROXY);
@@ -162,8 +163,8 @@ function currentThread() {
 }
 
 function torOnEither(browserBundlePortPref, servicePortPref) {
-  return checkTorExists(filterWith(EnigmailPrefs.getPref(browserBundlePortPref))) ||
-    checkTorExists(filterWith(EnigmailPrefs.getPref(servicePortPref)));
+  return checkTorExists(filterWith(browserBundlePortPref)) ||
+    checkTorExists(filterWith(servicePortPref));
 }
 
 function torIsAvailable(os, executableEvaluator) {
@@ -184,7 +185,7 @@ function torIsAvailable(os, executableEvaluator) {
     if (!executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION, ExecutableEvaluator.executor)) return failure;
   }
 
-  if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_BROWSER_BUNDLE_PORT_PREF)))) {
+  if (checkTorExists(filterWith(TOR_BROWSER_BUNDLE_PORT_PREF))) {
     return {
       status: true,
       type: 'gpg-proxy',
@@ -192,7 +193,7 @@ function torIsAvailable(os, executableEvaluator) {
     };
   }
 
-  if (checkTorExists(filterWith(EnigmailPrefs.getPref(TOR_SERVICE_PORT_PREF)))) {
+  if (checkTorExists(filterWith(TOR_SERVICE_PORT_PREF))) {
     return {
       status: true,
       type: 'gpg-proxy',
