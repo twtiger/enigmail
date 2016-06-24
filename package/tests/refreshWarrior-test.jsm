@@ -14,6 +14,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withE
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/refreshWarrior.jsm"); /*global RefreshWarrior: false */
 
 testing("refreshWarrior.jsm"); /*global RefreshWarrior: false, machine: false, createAllStates:false, buildKeyRequest: false, getKeyserversFrom:false, buildListener: false, submitRequest: false, sortKeyserversWithHkpsFirst: false */
 
@@ -311,7 +312,7 @@ test(function doNotStartIfNoKeyserversProvided(){
 
   RefreshWarrior.refreshKey(key);
 
-  assertLogContains("Refresh Key Service not started as no keyservers available");
+  assertLogContains("[KEY REFRESH SERVICE]: Not started as no keyservers available");
 });
 
 

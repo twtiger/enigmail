@@ -97,6 +97,14 @@ function buildListener(key) {
   };
 }
 
+function getProtocolAndKeyserver(keyserverInput){
+  return keyserverInput.split("://");
+}
+
+function protocolIncluded(keyserverInput){
+  return (getProtocolAndKeyserver(keyserverInput).length === 2) ? true : false;
+}
+
 function isHkpsOrEmpty(keyserverInput){
   return (protocolIncluded(keyserverInput) === false || getProtocolAndKeyserver(keyserverInput)[0] === "hkps") ? true : false;
 }
@@ -113,12 +121,15 @@ function sortKeyserversWithHkpsFirst(keyservers){
   });
 }
 
-function getProtocolAndKeyserver(keyserverInput){
-  return keyserverInput.split("://");
-}
-
-function protocolIncluded(keyserverInput){
-  return (getProtocolAndKeyserver(keyserverInput).length === 2) ? true : false;
+function setUpStateForProtocolAndKeyserver(protocolInput, keyserverInput){
+  let protocol = protocolInput;
+  let keyserver = keyserverInput;
+  if (protocolIncluded){
+      const protocolAndKeyserver = getProtocolAndKeyserver(keyserverInput);
+      protocol = protocolAndKeyserver[0];
+      keyserver = protocolAndKeyserver[1];
+  }
+  return { protocol: protocol, keyserver: keyserver};  
 }
 
 function createAllStates() {
@@ -126,18 +137,11 @@ function createAllStates() {
   const keyservers = sortKeyserversWithHkpsFirst(keyserversFromPrefs);
   const states = [];
   for (let i=0; i < keyservers.length; i++) {
-    if (protocolIncluded(keyservers[i]) === true){
-      states.push( { protocol: getProtocolAndKeyserver(keyservers[i])[0], keyserver: getProtocolAndKeyserver(keyservers[i])[1]});
-    } else {
-      states.push( { protocol: 'hkps', keyserver: keyservers[i] } );
-    }
+    states.push(setUpStateForProtocolAndKeyserver("hkps", keyservers[i]));
   }
   for (let i=0; i < keyservers.length; i++) {
-    if (protocolIncluded(keyservers[i]) === false){
-      states.push( { protocol: 'hkp', keyserver: keyservers[i] } );
-    }
+    states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
   }
-
   return states;
 }
 
@@ -176,7 +180,7 @@ const machine = {
 const RefreshWarrior = {
   refreshKey: function(key) {
     if (EnigmailPrefs.getPref(KEYSERVER_PREF).trim() === ""){
-      EnigmailLog.WRITE("Refresh Key Service not started as no keyservers available");
+      EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Not started as no keyservers available");
     } else {
       machine.init(EnigmailKeyServer);
       machine.start(key);
