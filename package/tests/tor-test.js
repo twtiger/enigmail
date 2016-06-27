@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("newTor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
