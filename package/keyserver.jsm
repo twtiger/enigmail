@@ -23,10 +23,8 @@ Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
-Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
@@ -37,60 +35,9 @@ const actions = {
   uploadKey: nsIEnigmail.UPLOAD_KEY
 };
 
-function useTorsocks(moreArgs, listener) {
-  const environment = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
-  const torsocksPath = EnigmailFiles.resolvePath('torsocks', environment.get("PATH"), EnigmailOS.isDosLike());
-  const gpgPath = EnigmailFiles.resolvePath('gpg2', environment.get("PATH"), EnigmailOS.isDosLike());
-
-  let args = [gpgPath.path];
-  for (let i=0; i < moreArgs.length; i++) {
-    args.push(moreArgs[i]);
-  }
-
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(torsocksPath, args) + "\n");
-
-  subprocess.call({
-    command: torsocksPath,
-    arguments: args,
-    environment: EnigmailCore.getEnvList(),
-    charset: null,
-    stdin: null,
-    stdout: function(data) {
-      listener.stdout(data);
-    },
-    stderr: function(data) {
-      listener.stderr(data);
-    },
-    done: function(exitCode) {
-      listener.done(exitCode);
-    }
-  }).wait();
-}
-
-function createTorArguments(tor, prefix, args, errorMsgObj) {
-  const torProperties = tor.torIsAvailable(EnigmailOS.getOS(), ExecutableEvaluator);
-  if (torProperties.status === true) {
-    const torArgs = EnigmailTor.buildGpgProxyArguments(torProperties, EnigmailOS.getOS());
-    for (let i = 0; i < torArgs.length; i++) {
-      if (torProperties.type === 'torsocks') {
-        prefix.push(torArgs[i]);
-      }
-      if (torProperties.type === 'gpg-proxy') {
-        args.push(torArgs[i]);
-      }
-    }
-  } else if (tor.userRequiresTor()) {
-    errorMsgObj.value = "Tor is required but not available. Performing this action has failed.";
-  }
-}
-
-function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy, tor) {
+function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   const prefix = [];
   let args = EnigmailGpg.getStandardArgs(true);
-
-  if (tor.userWantsActionOverTor(actionFlags)) {
-    createTorArguments(tor, prefix, args, errorMsgObj);
-  }
 
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
@@ -171,13 +118,10 @@ function callSubprocess(args, inputData, listener, isDownload){
 function submit(prefix, args, inputData, listener, isDownload, makeSubprocessCall) {
   let proc = null;
 
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
+
   try {
-    if (prefix.length === 5 && prefix[0] === 'torsocks') {
-      proc = useTorsocks(args, listener);
-    } else {
-      EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
-      proc = makeSubprocessCall(args, inputData, listener, isDownload);
-    }
+    proc = makeSubprocessCall(args, inputData, listener, isDownload);
   } catch (ex) {
     EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
     throw ex;
@@ -204,7 +148,7 @@ const EnigmailKeyServer = {
    * @return:      Subprocess object, or null in case process could not be started
    */
   access: function(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-    let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy, EnigmailTor);
+    let query = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
     return submit(query.prefix, query.args, query.inputData, listener, query.isDownload, callSubprocess);
   }
 };
