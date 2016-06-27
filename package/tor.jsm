@@ -15,7 +15,7 @@ Components.utils.import("resource://enigmail/executableEvaluator.jsm"); /* globa
 Components.utils.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
 Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /* global Socks5Proxy: false */
 
-var EXPORTED_SYMBOLS = ["NewTor"];
+var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 const CC = Components.Constructor;
 const Cc = Components.classes;
@@ -177,7 +177,7 @@ function torProperties(actionFlags, system) {
   };
 }
 
-const NewTor = {
+const EnigmailTor = {
   torProperties: function(actionFlags) {
     return torProperties(actionFlags, systemCaller);
   },

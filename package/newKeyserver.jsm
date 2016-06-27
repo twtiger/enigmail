@@ -15,7 +15,7 @@ Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false 
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
-Cu.import("resource://enigmail/newTor.jsm"); /*global NewTor: false */
+Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 
 const KEYSERVER_PREF = "keyserver";
 
@@ -178,7 +178,7 @@ function executesSuccessfully(request, subproc) {
 
 const NewKeyserver = {
   refresh: function(keyId) {
-    const orderedRequests = setupKeyserverRequests(keyId, NewTor);
+    const orderedRequests = setupKeyserverRequests(keyId, EnigmailTor);
     for (let i=0; i<orderedRequests.length; i++) {
       if (executesSuccessfully(orderedRequests[i], subprocess) === true) break;
     }
