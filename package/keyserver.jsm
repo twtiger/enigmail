@@ -227,7 +227,7 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
   let proc = null;
   try {
     let exitCode = null;
-    subprocess.call(
+    proc = subprocess.call(
       {
         command: EnigmailGpgAgent.agentPath,
         arguments: args,
