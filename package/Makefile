@@ -62,7 +62,6 @@ MODFILES = \
            mimeDecrypt.jsm \
            mimeVerify.jsm \
            newKeyserver.jsm \
-           newTor.jsm \
            os.jsm \
            passwordCheck.jsm \
            passwords.jsm \
