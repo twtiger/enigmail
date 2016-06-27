@@ -1,129 +1,243 @@
-/*global do_load_module: false, do_get_file: false, do_get_cwd: false, testing: false, test: false, Assert: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false */
-/*global Components: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false, component: false, Cc: false, Ci: false */
-/*jshint -W097 */
-/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
-
+/* global test:false, component: false, testing: false, Assert: false, do_load_module: false, do_get_cwd: false */
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true, assertLogContains: false, withLogFiles: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-Components.utils.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
-Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
-Components.utils.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
-Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Components.utils.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
-Components.utils.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, setupKeyserverRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortKeyserversWithHkpsFirst: false, requestWithTor: false */
+component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
+component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
-testing("keyserver.jsm"); /*global createAllStates:false, EnigmailKeyServer: false, nsIEnigmail: false, build: false, buildKeyRequest: false, getKeyserversFrom: false, buildListener: false, StateMachine: false, submitRequest: false, submit: false */
+function setupKeyserverPrefs(keyservers, autoOn) {
+  EnigmailPrefs.setPref("keyserver", keyservers);
+  EnigmailPrefs.setPref("autoKeyServerSelection", autoOn);
+}
 
-const HttpProxyBuilder = {
-  build: function() {
-    this.httpProxy = {
-      getHttpProxy: function(keyserver) {
-        return null;
-      }
-    };
-    return this.httpProxy;
-  }
-};
+test(function organizeProtocols_withOneHkpsServer() {
+  setupKeyserverPrefs("keyserver.1", true);
 
-function requestContains(expression, args) { return expression.test(args); }
-
-test(function testBasicQuery() {
-  var actionFlags = nsIEnigmail.REFRESH_KEY;
-  var keyserver = "keyserver0005";
-  var searchTerms = "1";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
-
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
-
-  Assert.ok(keyRequestProps.args.indexOf("--refresh-keys") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, null);
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.REFRESH_KEY);
+  Assert.deepEqual(organizeProtocols(),
+    [ {protocol: 'hkps', keyserverName: 'keyserver.1'},
+      {protocol: 'hkp', keyserverName: 'keyserver.1'} ]);
 });
 
-test(withTestGpgHome(withEnigmail(function testBasicQueryWithInputData() {
-  let actionFlags = nsIEnigmail.SEARCH_KEY;
-  let keyserver = "keyserver0005";
-  let searchTerms = "1";
-  let errorMsgObj = {};
-  let httpProxy = HttpProxyBuilder.build();
+test(function createStatesForMultipleKeyservers() {
+  setupKeyserverPrefs("keyserver.1, keyserver.2, keyserver.3", false);
 
-  let keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
+  Assert.deepEqual(organizeProtocols(),
+    [ { protocol: 'hkps', keyserverName: 'keyserver.1' },
+      { protocol: 'hkps', keyserverName: 'keyserver.2' },
+      { protocol: 'hkps', keyserverName: 'keyserver.3' },
+      { protocol: 'hkp', keyserverName: 'keyserver.1' },
+      { protocol: 'hkp', keyserverName: 'keyserver.2' },
+      { protocol: 'hkp', keyserverName: 'keyserver.3' },
+    ]);
+});
 
-  Assert.ok(keyRequestProps.args.indexOf("--search-keys") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, "quit\n");
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, 0);
+test(function setsUpStatesWithMixOfSpecifiedProtocols() {
+  setupKeyserverPrefs("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
+
+  Assert.deepEqual(organizeProtocols(),
+    [ { protocol: 'hkps', keyserverName: 'keyserver.2'},
+      { protocol: 'hkps', keyserverName: 'keyserver.3'},
+      { protocol: 'hkps', keyserverName: 'keyserver.4'},
+      { protocol: 'hkp', keyserverName: 'keyserver.1'},
+      { protocol: 'ldap', keyserverName: 'keyserver.5'},
+      { protocol: 'hkp', keyserverName: 'keyserver.3'},
+    ]);
+});
+
+test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
+  const unorderedKeyservers = ["hkp://keyserver.1", "hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "ldap://keyserver.5"];
+  const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
+
+  Assert.deepEqual(sortKeyserversWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
+});
+
+test(function setupRequestWithTorsocks(){
+  const args = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const torProperties = { torExists: true, command: 'torsocks', args: args };
+  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+
+  const request = requestWithTor(torProperties, refreshKeyArgs);
+
+  Assert.equal(request.command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(request.args, args.concat(refreshKeyArgs));
+});
+
+test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(){
+  const args = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
+  const torProperties = { torExists: true, command: 'gpg', args: args};
+  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+
+  const request = requestWithTor(torProperties, refreshKeyArgs);
+
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(request.args, args.concat(refreshKeyArgs));
 })));
 
-test(function testReceiveKey() {
-  var actionFlags = nsIEnigmail.DOWNLOAD_KEY;
-  var keyserver = "keyserver0005";
-  var searchTerms = "0001";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
+test(function createStandardRefreshKeyArguments(){
+  const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1' };
 
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
-
-  Assert.ok(keyRequestProps.args["--recv-keys"] != -1);
-  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, null);
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, nsIEnigmail.DOWNLOAD_KEY);
+  Assert.deepEqual(createRefreshKeyArgs('1234', protocol), expectedArgs);
 });
 
-test(withTestGpgHome(withEnigmail(function testUploadKey() {
-  var actionFlags = nsIEnigmail.UPLOAD_KEY;
-  var keyserver = "keyserver0005";
-  var searchTerms = "0001";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
+test(function createStandardRefreshKeyArguments(){
+  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
 
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
+  const request = normalRequest(refreshKeyArgs);
 
-  Assert.ok(keyRequestProps.args.indexOf("--send-keys") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("0001") != -1);
-  Assert.ok(keyRequestProps.args.indexOf("keyserver0005") != -1); // eslint-disable-line dot-notation
-  Assert.equal(keyRequestProps.inputData, null);
-  Assert.equal(keyRequestProps.errors.value, null);
-  Assert.equal(keyRequestProps.isDownload, 0);
-})));
-
-test(function testErrorQueryWithNoKeyserver() {
-  var actionFlags = nsIEnigmail.UPLOAD_KEY;
-  var keyserver = null;
-  var searchTerms = "0001";
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
-
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
-
-  Assert.equal(keyRequestProps, null);
-  Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoServer"));
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(request.args, refreshKeyArgs);
 });
 
-test(function testErrorSearchQueryWithNoID() {
-  var actionFlags = nsIEnigmail.SEARCH_KEY;
-  var keyserver = "keyserver0005";
-  var searchTerms = null;
-  var errorMsgObj = {};
-  var httpProxy = HttpProxyBuilder.build();
+test(function createStandardRefreshKeyArguments(){
+  setupKeyserverPrefs("keyserver.1", true);
+  const keyId = '1234';
 
-  var keyRequestProps = build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy);
+  const request = desparateRequest(keyId, {protocol: 'hkp', keyserverName: 'keyserver.1'});
 
-  Assert.equal(keyRequestProps, null);
-  Assert.equal(errorMsgObj.value, EnigmailLocale.getString("failNoID"));
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(request.args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]));
+  Assert.assertArrayNotContains(request.args, '--keyserver-options');
 });
+
+test(function createsRequestsWithTor_whenTorExists(){
+  setupKeyserverPrefs("keyserver.1", true);
+  const keyId = '1234';
+  const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+  const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
+  const tor = {
+    torPropertiesWasCalled: false,
+    torProperties: function() {
+      tor.torPropertiesWasCalled = true;
+      return {
+        torExists: true,
+        command: 'torsocks',
+        args: torArgs
+      };
+    },
+    userRequiresTor: function(actionFlags) {
+      return false;
+    }
+  };
+
+  const requests = setupKeyserverRequests(keyId, tor);
+
+  Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
+  Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
+  Assert.equal(requests[2].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[2].args, hkpArgs);
+});
+
+test(function createsNormalRequests_whenTorDoesntExist(){
+  setupKeyserverPrefs("keyserver.1", true);
+  const keyId = '1234';
+  const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+  const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
+  const tor = {
+    torPropertiesWasCalled: false,
+    torProperties: function() {
+      tor.torPropertiesWasCalled = true;
+      return {
+        torExists: false,
+      };
+    },
+    userRequiresTor: function(actionFlags) {
+      return false;
+    }
+  };
+
+  const requests = setupKeyserverRequests(keyId, tor);
+
+  Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(requests[0].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[0].args, hkpsArgs);
+  Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[1].args, hkpArgs);
+  Assert.equal(requests.length, 2);
+});
+
+function setupAgentPath(enigmail) {
+  withEnvironment({}, function(e) {
+    resetting(EnigmailGpgAgent, 'agentPath', "/usr/bin/gpg-agent", function() {
+      enigmail.environment = e;
+    });
+  });
+}
+
+test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
+  setupKeyserverPrefs("keyserver.1, keyserver.2", true);
+  EnigmailPrefs.setPref("downloadKeyRequireTor", true);
+  const tor = {
+    torPropertiesWasCalled: false,
+    torProperties: function(actionFlags) {
+      Assert.equal(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY);
+      tor.torPropertiesWasCalled = true;
+      return {
+        torExists: false
+      };
+    },
+    userRequiresTorWasCalled: false,
+    userRequiresTor: function(actionFlags) {
+      tor.userRequiresTorWasCalled = true;
+      return true;
+    }
+  };
+
+  const requests = setupKeyserverRequests('1234', tor);
+
+  Assert.equal(requests.length, 0);
+  Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(tor.userRequiresTorWasCalled, true);
+});
+
+test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
+  setupAgentPath(enigmail);
+  const simpleRequest = {
+    command: EnigmailGpgAgent.agentPath,
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+  };
+  const subproc = {
+    callWasCalled: false,
+    call: function(proc) {
+      subproc.callWasCalled = true;
+      proc.stderr("gpg: keyserver receive failed: Configuration error\n");
+      proc.done(2);
+      return { wait: function() {} };
+    }
+  };
+
+  Assert.equal(executesSuccessfully(simpleRequest, subproc), false);
+  Assert.equal(subproc.callWasCalled, true);
+}));
+
+test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(enigmail){
+  setupAgentPath(enigmail);
+  const simpleRequest = {
+    command: EnigmailGpgAgent.agentPath,
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+  };
+  const subproc = {
+    callWasCalled: false,
+    call: function(proc) {
+      subproc.callWasCalled = true;
+      proc.stderr("gpg: requesting key KEYID from hkps server pgp.mit.edu\n");
+      proc.stderr("gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n");
+      proc.stderr("gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n");
+      proc.stderr("gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
+        "gpg: Total number processed: 1\n" +
+        "gpg:               imported: 1  (RSA: 1)\n");
+      proc.done(0);
+      return { wait: function() {} };
+    }
+  };
+
+  Assert.equal(executesSuccessfully(simpleRequest, subproc), true);
+  Assert.equal(subproc.callWasCalled, true);
+}));

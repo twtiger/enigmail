@@ -12,8 +12,8 @@ Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKey
 Components.utils.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
 Components.utils.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/pipeConsole.jsm"); /*global EnigmailConsole: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
@@ -35,7 +35,7 @@ function setupNextKeyRefresh(refreshWarrior, timer) {
 function refreshKey(refreshWarrior, timer) {
   return function() {
     const key = getRandomKey(RandomNumberGenerator.getUint32());
-    refreshWarrior.refreshKey(key);
+    refreshWarrior.refreshKey(key.keyId);
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: refreshKey: Trying to Refresh Key: " + key.keyId + " at time: " + new Date().toUTCString()+ "\n");
     setupNextKeyRefresh(refreshWarrior, timer);
   };
