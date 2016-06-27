@@ -90,7 +90,6 @@ function filterWith(portPref) {
 }
 
 function checkTorExists(portPref) {
-  EnigmailLog.CONSOLE("Checking if tor is there...");
   protocolProxyService().registerFilter(filterWith(portPref), 1);
 
   createCheckTorURIChannel().asyncOpen(listener, SHARED_CONTEXT);

@@ -31,7 +31,7 @@ function getProtocolAndKeyserver(keyserverInput){
 }
 
 function protocolIncluded(keyserverInput){
-  return (getProtocolAndKeyserver(keyserverInput).length === 2) ? true : false;
+  return getProtocolAndKeyserver(keyserverInput).length === 2;
 }
 
 function isHkpsOrEmpty(keyserverInput){
@@ -80,10 +80,17 @@ function resolvePath(executable) {
   return EnigmailFiles.resolvePath(executable, environment.get("PATH"), EnigmailOS.isDosLike());
 }
 
-function requestWithTor(torProperties, refreshKeyArgs) {
+function requestWithTor(torProperties, keyId, protocol) {
+  if (torProperties.command === 'torsocks') {
+    return {
+      command: resolvePath(torProperties.command),
+      args: torProperties.args.concat(EnigmailGpg.getStandardArgs(true)).concat(['--keyserver', getKeyserverAddress(protocol), '--recv-keys', keyId])
+    };
+  }
+
   return {
-    command: torProperties.command === 'gpg' ? EnigmailGpgAgent.agentPath : resolvePath(torProperties.command),
-    args: torProperties.args.concat(refreshKeyArgs)
+    command: EnigmailGpgAgent.agentPath,
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]).concat(torProperties.args).concat(['--recv-keys', keyId])
   };
 }
 
@@ -121,14 +128,13 @@ function setupKeyserverRequests(keyId, tor) {
   const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
   const protocols = organizeProtocols();
 
-  if (torProperties.torExists == false
-    && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) return [];
+  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) return [];
 
   const requests = [];
   for (let i=0; i<protocols.length; i++) {
     const refreshKeyArgs = createRefreshKeyArgs(keyId, protocols[i]);
     if (torProperties.torExists === true)  {
-      requests.push(requestWithTor(torProperties, refreshKeyArgs));
+      requests.push(requestWithTor(torProperties, keyId, protocols[i]));
     } else {
       requests.push(normalRequest(refreshKeyArgs));
     }

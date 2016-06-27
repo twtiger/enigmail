@@ -86,12 +86,15 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
     ip: Socks5Proxy.torIpAddr()
   };
 
-  if (Socks5Proxy.checkTorExists(browserBundlePortPref)) {
-    success.port = EnigmailPrefs.getPref(browserBundlePortPref);
-    return success;
-  } else if (Socks5Proxy.checkTorExists(servicePortPref)) {
-    success.port = EnigmailPrefs.getPref(servicePortPref);
-    return success;
+  const portPrefs = [browserBundlePortPref, servicePortPref];
+  for (let i=0; i < portPrefs.length; i++) {
+    if (Socks5Proxy.checkTorExists(portPrefs[i])) {
+      success.port = EnigmailPrefs.getPref(portPrefs[i]);
+
+      EnigmailLog.CONSOLE("Tor found on IP: " + success.ip + ", port: " + success.port + "\n");
+
+      return success;
+    }
   }
 
   return {
@@ -101,9 +104,9 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
 
 function meetsOSConstraints(os, executableEvaluator) {
   if (['WINNT', 'OS2'].indexOf(os) > -1) {
-    return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION);
+    return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor);
   } else {
-    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION);
+    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION, ExecutableEvaluator.executor);
   }
 }
 
@@ -119,7 +122,6 @@ function createHelperArgs(helperName) {
 const systemCaller = {
   findTor: function() {
     const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
-    EnigmailLog.CONSOLE("Tor on either browser bundle port or service port: " + tor.found + "\n");
     if (tor.found === false || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator))
       return { exists: false };
     else
@@ -131,10 +133,17 @@ const systemCaller = {
         password: RandomNumberGenerator.getUint32()
       };
   },
-
+  findTorExecutableHelper: function(executableEvaluator) {
+    return {
+      exists:false
+    };
+  },
   getOS: function() {
     return EnigmailOS.getOS();
   },
+  isDosLike: function() {
+    return EnigmailOS.isDosLike();
+  }
 };
 
 function findTorExecutableHelper(executableEvaluator) {

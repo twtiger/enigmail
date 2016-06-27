@@ -55,25 +55,32 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
 });
 
 test(function setupRequestWithTorsocks(){
-  const args = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
-  const torProperties = { torExists: true, command: 'torsocks', args: args };
-  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+  const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const torProperties = { torExists: true, command: 'torsocks', args: torArgs };
 
-  const request = requestWithTor(torProperties, refreshKeyArgs);
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
-  Assert.deepEqual(request.args, args.concat(refreshKeyArgs));
+  const expectedArgs = torArgs
+    .concat(EnigmailGpg.getStandardArgs(true))
+    .concat(['--keyserver', 'hkps://keyserver.1:443'])
+    .concat(['--recv-keys', '1234']);
+  Assert.deepEqual(request.args, expectedArgs);
 });
 
 test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(){
-  const args = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
-  const torProperties = { torExists: true, command: 'gpg', args: args};
-  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+  const gpgProxyArgs = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
+  const torProperties = { torExists: true, command: 'gpg', args: gpgProxyArgs};
 
-  const request = requestWithTor(torProperties, refreshKeyArgs);
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
-  Assert.deepEqual(request.args, args.concat(refreshKeyArgs));
+
+  const expectedArgs = EnigmailGpg.getStandardArgs(true)
+    .concat(['--keyserver', 'hkps://keyserver.1:443'])
+    .concat(gpgProxyArgs)
+    .concat(['--recv-keys', '1234']);
+  Assert.deepEqual(request.args, expectedArgs);
 })));
 
 test(function createStandardRefreshKeyArguments(){
