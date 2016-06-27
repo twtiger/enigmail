@@ -154,7 +154,6 @@ const systemCaller = {
 };
 
 function torProperties(actionFlags, system) {
-  EnigmailLog.CONSOLE("HI\n");
   const failure = { torExists: false };
 
   if (userWantsActionOverTor(actionFlags) === false) return failure;

@@ -61,6 +61,8 @@ MODFILES = \
            mime.jsm \
            mimeDecrypt.jsm \
            mimeVerify.jsm \
+           newKeyserver.jsm \
+           newTor.jsm \
            os.jsm \
            passwordCheck.jsm \
            passwords.jsm \
@@ -72,6 +74,7 @@ MODFILES = \
            randomNumber.jsm \
            refreshWarrior.jsm \
            rules.jsm \
+           socks5Proxy.jsm \
            streams.jsm \
            system.jsm \
            time.jsm \
