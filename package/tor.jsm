@@ -109,6 +109,7 @@ function meetsOSConstraints(os, executableEvaluator) {
 
 function createHelperArgs(helperName) {
   // TODO: support all these torhelpers...
+  // TODO investiate how these are different for each helper
   //const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
@@ -131,27 +132,25 @@ const systemCaller = {
       };
   },
 
-  findTorExecutableHelper: function() {
-    // TODO: support all these torhelpers...
-    //const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
-    const torHelpers = ['torsocks'];
-    for (let i=0; i<torHelpers.length; i++) {
-      if (ExecutableEvaluator.exists(torHelpers[i]))
-        return {
-          exists: true,
-          command: torHelpers[i],
-          args: createHelperArgs(torHelpers[i])
-        };
-    }
-    return {
-      exists:false
-    };
-  },
-
   getOS: function() {
     return EnigmailOS.getOS();
   },
 };
+
+function findTorExecutableHelper(executableEvaluator) {
+  const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
+  for (let i=0; i<torHelpers.length; i++) {
+    if (executableEvaluator.exists(torHelpers[i]))
+      return {
+        exists: true,
+        command: torHelpers[i],
+        args: createHelperArgs(torHelpers[i])
+      };
+  }
+  return {
+    exists:false
+  };
+}
 
 function torProperties(actionFlags, system) {
   const failure = { torExists: false };
@@ -161,7 +160,7 @@ function torProperties(actionFlags, system) {
   const tor = system.findTor();
   if (tor.exists === false) return failure;
 
-  const torHelper = system.findTorExecutableHelper();
+  const torHelper = system.findTorExecutableHelper(ExecutableEvaluator);
   if (torHelper.exists === true) {
     return {
       torExists: tor.exists,

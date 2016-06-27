@@ -8,7 +8,8 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("newTor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs*/
+testing("newTor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
 
@@ -215,4 +216,42 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(system.findTorWasCalled, true);
   Assert.equal(system.findTorExecutableHelperWasCalled, true);
   Assert.equal(system.isDosLikeWasCalled, true);
+});
+
+function buildMockExecutableEvaluator(x) {
+  return {
+    exists: function(val) {
+      if (val == x) {
+        return true;
+      }
+      return false;
+    }
+  };
+}
+
+test(function testUseTorSocksWhenAvailable() {
+  const executableEvaluator = buildMockExecutableEvaluator('torsocks');
+  const result = findTorExecutableHelper(executableEvaluator);
+  Assert.equal(result.exists, true);
+  Assert.equal(result.command, 'torsocks');
+});
+
+test(function testUseTorSocks2WhenAvailable() {
+  const executableEvaluator = buildMockExecutableEvaluator('torsocks2');
+  const result = findTorExecutableHelper(executableEvaluator);
+  Assert.equal(result.exists, true);
+  Assert.equal(result.command, 'torsocks2');
+});
+
+test(function testUseTorifyWhenAvailable() {
+  const executableEvaluator = buildMockExecutableEvaluator('torify');
+  const result = findTorExecutableHelper(executableEvaluator);
+  Assert.equal(result.exists, true);
+  Assert.equal(result.command, 'torify');
+});
+
+test(function testUseNothingIfNoTorHelpersAreAvailable() {
+  const executableEvaluator = { exists: function() {return false;}};
+  const result = findTorExecutableHelper(executableEvaluator);
+  Assert.equal(result.exists, false);
 });
