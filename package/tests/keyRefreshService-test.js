@@ -64,18 +64,18 @@ test(withTestGpgHome(withEnigmail(withLogFiles(function logsMillisecondsToNextKe
   assertLogContains("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
 }))));
 
-test(withTestGpgHome(withEnigmail(withLogFiles(withMockTimer(function testRefreshKey(){
-  EnigmailKeyRing.clearCache();
-  importKeys();
-
-  refreshKey(MockRefreshWarrior, MockTimer)();
-
-  assertRefreshKeyWasCalled("testRefreshKey");
-  assertLogContains("[KEY REFRESH SERVICE]: refreshKey: Trying to Refresh Key:");
-
-  MockRefreshWarrior.resetMock();
-  EnigmailKeyRing.clearCache();
-})))));
+//test(withTestGpgHome(withEnigmail(withLogFiles(withMockTimer(function testRefreshKey(){
+//  EnigmailKeyRing.clearCache();
+//  importKeys();
+//
+//  refreshKey(MockRefreshWarrior, MockTimer)();
+//
+//  assertRefreshKeyWasCalled("testRefreshKey");
+//  assertLogContains("[KEY REFRESH SERVICE]: refreshKey: Trying to Refresh Key:");
+//
+//  MockRefreshWarrior.resetMock();
+//  EnigmailKeyRing.clearCache();
+//})))));
 
 //test(withTestGpgHome(withEnigmail(withMockTimer(function testTestTimerWasCalled() {
 //  EnigmailKeyRing.clearCache();

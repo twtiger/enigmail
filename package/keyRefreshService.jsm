@@ -35,7 +35,7 @@ function setupNextKeyRefresh(refreshWarrior, timer) {
 function refreshKey(refreshWarrior, timer) {
   return function() {
     const key = getRandomKey(RandomNumberGenerator.getUint32());
-    refreshWarrior.refreshKey(key.keyId);
+    EnigmailKeyServer.refresh(key.keyId);
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: refreshKey: Trying to Refresh Key: " + key.keyId + " at time: " + new Date().toUTCString()+ "\n");
     setupNextKeyRefresh(refreshWarrior, timer);
   };
