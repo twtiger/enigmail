@@ -221,10 +221,7 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
 function buildMockExecutableEvaluator(x) {
   return {
     exists: function(val) {
-      if (val == x) {
-        return true;
-      }
-      return false;
+      return val === x;
     }
   };
 }
