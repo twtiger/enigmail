@@ -157,14 +157,20 @@ test(function createsNormalRequests_whenTorDoesntExist(){
   Assert.equal(requests.length, 2);
 });
 
-test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
-  const simpleRequest = { command: EnigmailGpgAgent.agentPath, args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']) };
+function setupAgentPath(enigmail) {
   withEnvironment({}, function(e) {
     resetting(EnigmailGpgAgent, 'agentPath', "/usr/bin/gpg-agent", function() {
       enigmail.environment = e;
     });
   });
+}
 
+test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
+  setupAgentPath(enigmail);
+  const simpleRequest = {
+    command: EnigmailGpgAgent.agentPath,
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+  };
   const subproc = {
     callWasCalled: false,
     call: function(proc) {
@@ -180,13 +186,11 @@ test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError
 }));
 
 test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(enigmail){
-  const simpleRequest = { command: EnigmailGpgAgent.agentPath, args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']) };
-  withEnvironment({}, function(e) {
-    resetting(EnigmailGpgAgent, 'agentPath', "/usr/bin/gpg-agent", function() {
-      enigmail.environment = e;
-    });
-  });
-
+  setupAgentPath(enigmail);
+  const simpleRequest = {
+    command: EnigmailGpgAgent.agentPath,
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+  };
   const subproc = {
     callWasCalled: false,
     call: function(proc) {
