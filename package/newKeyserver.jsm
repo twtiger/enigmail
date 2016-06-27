@@ -117,10 +117,12 @@ function desparateRequest(keyId, protocol) {
 
 function setupKeyserverRequests(keyId, tor) {
   const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
-  EnigmailLog.CONSOLE("I GOT OUT\n");
   const protocols = organizeProtocols();
-  const requests = [];
 
+  if (torProperties.torExists == false
+    && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) return [];
+
+  const requests = [];
   for (let i=0; i<protocols.length; i++) {
     const refreshKeyArgs = createRefreshKeyArgs(keyId, protocols[i]);
     if (torProperties.torExists === true)  {

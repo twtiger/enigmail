@@ -118,6 +118,9 @@ test(function createsRequestsWithTor_whenTorExists(){
         command: 'torsocks',
         args: torArgs
       };
+    },
+    userRequiresTor: function(actionFlags) {
+      return false;
     }
   };
 
@@ -144,6 +147,9 @@ test(function createsNormalRequests_whenTorDoesntExist(){
       return {
         torExists: false,
       };
+    },
+    userRequiresTor: function(actionFlags) {
+      return false;
     }
   };
 
@@ -164,6 +170,32 @@ function setupAgentPath(enigmail) {
     });
   });
 }
+
+test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
+  setupKeyserverPrefs("keyserver.1, keyserver.2", true);
+  EnigmailPrefs.setPref("downloadKeyRequireTor", true);
+  const tor = {
+    torPropertiesWasCalled: false,
+    torProperties: function(actionFlags) {
+      Assert.equal(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY);
+      tor.torPropertiesWasCalled = true;
+      return {
+        torExists: false
+      };
+    },
+    userRequiresTorWasCalled: false,
+    userRequiresTor: function(actionFlags) {
+      tor.userRequiresTorWasCalled = true;
+      return true;
+    }
+  };
+
+  const requests = setupKeyserverRequests('1234', tor);
+
+  Assert.equal(requests.length, 0);
+  Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(tor.userRequiresTorWasCalled, true);
+});
 
 test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
   setupAgentPath(enigmail);
