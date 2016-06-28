@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortKeyserversWithHkpsFirst: false, requestWithTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -15,43 +15,55 @@ function setupKeyserverPrefs(keyservers, autoOn) {
 
 test(function organizeProtocols_withOneHkpsServer() {
   setupKeyserverPrefs("keyserver.1", true);
+  const expected = [ {protocol: 'hkps', keyserverName: 'keyserver.1'},
+    {protocol: 'hkp', keyserverName: 'keyserver.1'} ];
 
-  Assert.deepEqual(organizeProtocols(),
-    [ {protocol: 'hkps', keyserverName: 'keyserver.1'},
-      {protocol: 'hkp', keyserverName: 'keyserver.1'} ]);
+  const sortedRequests = organizeProtocols();
+  for(var i = 0; i < sortedRequests; i++) {
+    Assert.equal(sortedRequests.protocol = expected.protocol);
+    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
+  }
 });
 
 test(function createStatesForMultipleKeyservers() {
   setupKeyserverPrefs("keyserver.1, keyserver.2, keyserver.3", false);
+  const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.1' },
+    { protocol: 'hkps', keyserverName: 'keyserver.2' },
+  { protocol: 'hkps', keyserverName: 'keyserver.3' },
+  { protocol: 'hkp', keyserverName: 'keyserver.1' },
+  { protocol: 'hkp', keyserverName: 'keyserver.2' },
+  { protocol: 'hkp', keyserverName: 'keyserver.3' },
+  ];
 
-  Assert.deepEqual(organizeProtocols(),
-    [ { protocol: 'hkps', keyserverName: 'keyserver.1' },
-      { protocol: 'hkps', keyserverName: 'keyserver.2' },
-      { protocol: 'hkps', keyserverName: 'keyserver.3' },
-      { protocol: 'hkp', keyserverName: 'keyserver.1' },
-      { protocol: 'hkp', keyserverName: 'keyserver.2' },
-      { protocol: 'hkp', keyserverName: 'keyserver.3' },
-    ]);
+  const sortedRequests = organizeProtocols();
+  for(var i = 0; i < sortedRequests; i++) {
+    Assert.equal(sortedRequests.protocol = expected.protocol);
+    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
+  }
 });
 
 test(function setsUpStatesWithMixOfSpecifiedProtocols() {
   setupKeyserverPrefs("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
+  const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.2'},
+    { protocol: 'hkps', keyserverName: 'keyserver.3'},
+  { protocol: 'hkps', keyserverName: 'keyserver.4'},
+  { protocol: 'hkp', keyserverName: 'keyserver.1'},
+  { protocol: 'ldap', keyserverName: 'keyserver.5'},
+  { protocol: 'hkp', keyserverName: 'keyserver.3'},
+  ];
 
-  Assert.deepEqual(organizeProtocols(),
-    [ { protocol: 'hkps', keyserverName: 'keyserver.2'},
-      { protocol: 'hkps', keyserverName: 'keyserver.3'},
-      { protocol: 'hkps', keyserverName: 'keyserver.4'},
-      { protocol: 'hkp', keyserverName: 'keyserver.1'},
-      { protocol: 'ldap', keyserverName: 'keyserver.5'},
-      { protocol: 'hkp', keyserverName: 'keyserver.3'},
-    ]);
+  const sortedRequests = organizeProtocols();
+  for(var i = 0; i < sortedRequests; i++) {
+    Assert.equal(sortedRequests.protocol = expected.protocol);
+    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
+  }
 });
 
 test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
-  const unorderedKeyservers = ["hkp://keyserver.1", "hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "ldap://keyserver.5"];
-  const orderedKeyservers = ["hkps://keyserver.2", "keyserver.3", "hkps://keyserver.4", "hkp://keyserver.1", "ldap://keyserver.5"];
+  const unorderedKeyservers = [{protocol: "hkp"}, {protocol: "hkps"}, {protocol: "hkps"}];
+  const orderedKeyservers = [{protocol: "hkps"}, {protocol: "hkps"}, {protocol: "hkp"}];
 
-  Assert.deepEqual(sortKeyserversWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
+  Assert.deepEqual(sortWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
 });
 
 test(function setupRequestWithTorHelper(){
@@ -61,7 +73,7 @@ test(function setupRequestWithTorHelper(){
     args: torArgs,
     envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"] };
 
-  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'});
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   const expectedArgs = torArgs
@@ -84,7 +96,7 @@ test(function setupRequestWithTorHelperWithEnvVariables(){
     .concat(['--keyserver', 'hkps://keyserver.1:443'])
     .concat(['--recv-keys', '1234']);
 
-  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'});
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   Assert.deepEqual(request.args, expectedArgs);
@@ -95,7 +107,7 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
   const gpgProxyArgs = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
   const torProperties = { torExists: true, command: 'gpg', args: gpgProxyArgs, envVars: []};
 
-  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'});
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
 
@@ -108,7 +120,7 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
 
 test(function createStandardRefreshKeyArguments(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
-  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1' };
+  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
 
   Assert.deepEqual(createRefreshKeyArgs('1234', protocol), expectedArgs);
 });

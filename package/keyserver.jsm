@@ -26,52 +26,50 @@ function getKeyservers(){
   return EnigmailPrefs.getPref("autoKeyServerSelection") ? [keyservers[0]] : keyservers;
 }
 
-function getProtocolAndKeyserver(keyserverInput){
-  return keyserverInput.split("://");
+function isHkps(keyserver){
+  return keyserver.protocol === "hkps";
 }
 
-function protocolIncluded(keyserverInput){
-  return getProtocolAndKeyserver(keyserverInput).length === 2;
-}
-
-function isHkpsOrEmpty(keyserverInput){
-  return (protocolIncluded(keyserverInput) === false || getProtocolAndKeyserver(keyserverInput)[0] === "hkps") ? true : false;
-}
-
-function sortKeyserversWithHkpsFirst(keyservers){
+function sortWithHkpsFirst(keyservers){
   return keyservers.sort(function(a, b){
-    if (isHkpsOrEmpty(b) && !isHkpsOrEmpty(a)){
+    if (isHkps(b) && !isHkps(a)){
       return 1;
     }
-    if (isHkpsOrEmpty(a) && !isHkpsOrEmpty(b)){
+    if (isHkps(a) && !isHkps(b)){
       return -1;
     }
     return 0;
   });
 }
 
-// TODO we can probably set the known port here
+// TODO: TEST FOR UNKNOWN KEYSERVER CASE
 function setUpStateForProtocolAndKeyserver(protocol, keyserver){
-  if (protocolIncluded(keyserver) === true){
-    const protocolAndKeyserver = getProtocolAndKeyserver(keyserver);
+  const supportedProtocols = {
+    "hkps": "443",
+    "hkp": "11371",
+    "ldap": "389"
+  };
+
+  const protocolAndKeyserver = keyserver.split("://");
+  const protocolIncluded = protocolAndKeyserver.length === 2;
+
+  if (protocolIncluded) {
     protocol = protocolAndKeyserver[0];
     keyserver = protocolAndKeyserver[1];
+    const port = supportedProtocols[protocol];
+    return { protocol: protocol, keyserverName: keyserver, port: port};
   }
-  return { protocol: protocol, keyserverName: keyserver };
+  return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
 }
 
-
 function organizeProtocols() {
-  const keyservers = sortKeyserversWithHkpsFirst(getKeyservers());
-  const states = [];
+  const keyservers = getKeyservers();
+  let states = [];
   for (let i=0; i < keyservers.length; i++) {
     states.push(setUpStateForProtocolAndKeyserver("hkps", keyservers[i]));
+    states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
   }
-  for (let i=0; i < keyservers.length; i++) {
-    if (protocolIncluded(keyservers[i]) === false){
-      states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
-    }
-  }
+  states = sortWithHkpsFirst(states);
   return states;
 }
 
@@ -96,17 +94,8 @@ function requestWithTor(torProperties, keyId, protocol) {
   return result;
 }
 
-// TODO: TEST FOR UNKNOWN KEYSERVER CASE
 function getKeyserverAddress(protocol) {
-  const supportedProtocols = {
-    "hkps": "443",
-    "hkp": "11371",
-    "ldap": "389"
-  };
-  if (protocol.protocol in supportedProtocols) {
-  return protocol.protocol + "://" + protocol.keyserverName + ":" + supportedProtocols[protocol.protocol];
-  }
-  return '';
+  return protocol.protocol + "://" + protocol.keyserverName + ":" + protocol.port;
 }
 
 function createRefreshKeyArgs(keyId, protocol) {
