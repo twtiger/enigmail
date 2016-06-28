@@ -56,7 +56,10 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
 
 test(function setupRequestWithTorHelper(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
-  const torProperties = { torExists: true, command: 'torsocks', args: torArgs };
+  const torProperties = { torExists: true,
+                          command: 'torsocks',
+                          args: torArgs,
+                          envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"] };
 
   const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
 
@@ -66,6 +69,7 @@ test(function setupRequestWithTorHelper(){
     .concat(['--keyserver', 'hkps://keyserver.1:443'])
     .concat(['--recv-keys', '1234']);
   Assert.deepEqual(request.args, expectedArgs);
+  Assert.deepEqual(request.envVars, torProperties.envVars);
 });
 
 test(function setupRequestWithTorHelperWithEnvVariables(){
@@ -89,7 +93,7 @@ test(function setupRequestWithTorHelperWithEnvVariables(){
 
 test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(){
   const gpgProxyArgs = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
-  const torProperties = { torExists: true, command: 'gpg', args: gpgProxyArgs};
+  const torProperties = { torExists: true, command: 'gpg', args: gpgProxyArgs, envVars: []};
 
   const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
 
@@ -142,7 +146,8 @@ test(function createsRequestsWithTor_whenTorExists(){
       return {
         torExists: true,
         command: 'torsocks',
-        args: torArgs
+        args: torArgs,
+        envVars: []
       };
     },
     userRequiresTor: function(actionFlags) {
@@ -227,7 +232,8 @@ test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError
   setupAgentPath(enigmail);
   const simpleRequest = {
     command: EnigmailGpgAgent.agentPath,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']),
+    envVars: []
   };
   const subproc = {
     callWasCalled: false,
@@ -247,7 +253,8 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
   setupAgentPath(enigmail);
   const simpleRequest = {
     command: EnigmailGpgAgent.agentPath,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']),
+    envVars: []
   };
   const subproc = {
     callWasCalled: false,

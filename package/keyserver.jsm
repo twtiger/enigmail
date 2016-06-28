@@ -120,14 +120,16 @@ function createRefreshKeyArgs(keyId, protocol) {
 function normalRequest(refreshKeyArgs) {
   return {
     command: EnigmailGpgAgent.agentPath,
-    args: refreshKeyArgs
+    args: refreshKeyArgs,
+    envVars: []
   };
 }
 
 function desparateRequest(keyId, protocol) {
   return {
     command: EnigmailGpgAgent.agentPath,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://'+protocol.keyserverName+':11371']).concat(['--recv-keys', keyId])
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://'+protocol.keyserverName+':11371']).concat(['--recv-keys', keyId]),
+    envVars: []
   };
 }
 
@@ -163,10 +165,12 @@ function executesSuccessfully(request, subproc) {
   let stdout = '';
   let stderr = '';
   let successful = false;
+  let envVars = request.envVars.concat(EnigmailCore.getEnvList());
   subproc.call({
     command: request.command,
     arguments: request.args,
-    environment: EnigmailCore.getEnvList(),
+    // TODO add env vars here
+    environment: envVars,
     charset: null,
     stdin: null,
     done: function(result) {
