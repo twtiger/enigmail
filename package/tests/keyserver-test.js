@@ -54,7 +54,7 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
   Assert.deepEqual(sortKeyserversWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
 });
 
-test(function setupRequestWithTorsocks(){
+test(function setupRequestWithTorHelper(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = { torExists: true, command: 'torsocks', args: torArgs };
 
@@ -66,6 +66,25 @@ test(function setupRequestWithTorsocks(){
     .concat(['--keyserver', 'hkps://keyserver.1:443'])
     .concat(['--recv-keys', '1234']);
   Assert.deepEqual(request.args, expectedArgs);
+});
+
+test(function setupRequestWithTorHelperWithEnvVariables(){
+  const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const torProperties = { torExists: true,
+                          command: 'torsocks',
+                          args: torArgs,
+                          envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_USERNAME=def"] };
+
+  const expectedArgs = torArgs
+    .concat(EnigmailGpg.getStandardArgs(true))
+    .concat(['--keyserver', 'hkps://keyserver.1:443'])
+    .concat(['--recv-keys', '1234']);
+
+  const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
+
+  Assert.equal(request.command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(request.args, expectedArgs);
+  Assert.deepEqual(request.envVars, torProperties.envVars);
 });
 
 test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(){

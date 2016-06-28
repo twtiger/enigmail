@@ -87,7 +87,8 @@ function requestWithTor(torProperties, keyId, protocol) {
     let args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
     return {
       command: EnigmailGpgAgent.agentPath,
-      args: args
+      args: args,
+      envVars: torProperties.envVars
     };
   }
 
@@ -95,7 +96,8 @@ function requestWithTor(torProperties, keyId, protocol) {
   args = torProperties.args.concat(args);
   return {
     command: resolvePath(torProperties.command),
-    args: args
+    args: args,
+    envVars: torProperties.envVars
   };
 }
 
