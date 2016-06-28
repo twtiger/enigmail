@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, setupKeyserverRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortKeyserversWithHkpsFirst: false, requestWithTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortKeyserversWithHkpsFirst: false, requestWithTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -155,7 +155,7 @@ test(function createsRequestsWithTor_whenTorExists(){
     }
   };
 
-  const requests = setupKeyserverRequests(keyId, tor);
+  const requests = buildRefreshRequests(keyId, tor);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
@@ -184,7 +184,7 @@ test(function createsNormalRequests_whenTorDoesntExist(){
     }
   };
 
-  const requests = setupKeyserverRequests(keyId, tor);
+  const requests = buildRefreshRequests(keyId, tor);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(requests[0].command.path, '/usr/bin/gpg2');
@@ -213,7 +213,7 @@ test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
     }
   };
 
-  const requests = setupKeyserverRequests('1234', tor);
+  const requests = buildRefreshRequests('1234', tor);
 
   Assert.equal(requests.length, 0);
   Assert.equal(tor.torPropertiesWasCalled, true);
