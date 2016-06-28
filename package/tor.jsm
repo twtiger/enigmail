@@ -110,13 +110,16 @@ function meetsOSConstraints(os, executableEvaluator) {
   }
 }
 
-function createHelperArgs(helperName) {
-  // TODO: support all these torhelpers...
-  // TODO investiate how these are different for each helper
-  //const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
-  const username = RandomNumberGenerator.getUint32();
-  const password = RandomNumberGenerator.getUint32();
-  return ['--user', username, '--pass', password, '/usr/bin/gpg2'];
+function createHelperArgs(helper) {
+  const authWithArgs = ['torsocks2', 'usewithtor', 'torify'];
+  let args = [];
+  if (authWithArgs.indexOf(helper) > -1) {
+    const username = RandomNumberGenerator.getUint32();
+    const password = RandomNumberGenerator.getUint32();
+    args.push('--user', username, '--pass', password);
+  }
+  args.push('/usr/bin/gpg2');
+  return args;
 }
 
 const systemCaller = {
@@ -146,13 +149,26 @@ const systemCaller = {
   }
 };
 
+function buildCommand(helper) {
+  const authWithEnvVars = ['torsocks'];
+  let command = "";
+  if (authWithEnvVars.indexOf(helper) > -1) {
+    const username = RandomNumberGenerator.getUint32();
+    const password = RandomNumberGenerator.getUint32();
+    command += "TORSOCKS_USERNAME=" + username;
+    command += "TORSOCKS_PASSWORD=" + password;
+  }
+  command += helper;
+  return command;
+}
+
 function findTorExecutableHelper(executableEvaluator) {
   const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
   for (let i=0; i<torHelpers.length; i++) {
     if (executableEvaluator.exists(torHelpers[i]))
       return {
         exists: true,
-        command: torHelpers[i],
+        command: buildCommand(torHelpers[i]),
         type: torHelpers[i],
         args: createHelperArgs(torHelpers[i])
       };

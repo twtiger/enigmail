@@ -61,9 +61,17 @@ test(function evaluateCurlVersionWhenOsIsNotWindows() {
   Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
 });
 
-test(function createHelperArgsForTorsocks() {
+test(function createHelperArgsForTorsocks1() {
   const firstSet = createHelperArgs('torsocks');
   const secondSet = createHelperArgs('torsocks');
+
+  Assert.deepEqual(firstSet[0], '/usr/bin/gpg2');
+  Assert.deepEqual(secondSet[0], '/usr/bin/gpg2');
+});
+
+test(function createHelperArgsForTorsocks2() {
+  const firstSet = createHelperArgs('torsocks2');
+  const secondSet = createHelperArgs('torsocks2');
 
   Assert.deepEqual(firstSet[0], '--user');
   Assert.deepEqual(secondSet[0], '--user');
@@ -226,12 +234,20 @@ function buildMockExecutableEvaluator(x) {
   };
 }
 
+function contains(string, substring) {
+  return string.indexOf(substring) > -1;
+}
+
 test(function testUseTorSocks1WhenAvailable() {
   const executableEvaluator = buildMockExecutableEvaluator('torsocks');
+
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
-  Assert.equal(result.command, 'torsocks');
+  Assert.ok(contains(result.command, 'torsocks'));
+  Assert.ok(contains(result.command, 'TORSOCKS_USERNAME'));
+  Assert.ok(contains(result.command, 'TORSOCKS_PASSWORD'));
   Assert.equal(result.type, 'torsocks');
+  Assert.equal(result.args.length, 1);
 });
 
 test(function testUseTorSocks2WhenAvailable() {
@@ -242,11 +258,6 @@ test(function testUseTorSocks2WhenAvailable() {
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks2');
   Assert.equal(result.type, 'torsocks2');
-
-  for(var i = 0; i < expectedArgs.length; i++) {
-    const expectedArg = expectedArgs[i];
-    Assert.ok(result.args[expectedArg] !== -1);
-  }
 });
 
 test(function testUseTorifyWhenAvailable() {
