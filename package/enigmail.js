@@ -35,8 +35,6 @@ Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/configure.jsm"); /*global EnigmailConfigure: false */
 Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
 Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global KeyRefreshService: false */
-Cu.import("resource://enigmail/refreshWarrior.jsm"); /*global RefreshWarrior: false */
-Cu.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 
 
 /* Implementations supplied by this module */
@@ -272,7 +270,7 @@ Enigmail.prototype = {
 
     initializeObserver(this);
 
-    KeyRefreshService.start(RefreshWarrior, EnigmailTimer);
+    KeyRefreshService.start();
 
     this.initialized = true;
 

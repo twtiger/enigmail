@@ -19,6 +19,11 @@ function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
 
 const KeyRefreshAlgorithm = {
   calculateWaitTimeInMilliseconds: function(totalPublicKeys) {
-    return Math.floor(RandomNumberGenerator.getUint32() % calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys));
+    const millisec = Math.floor(RandomNumberGenerator.getUint32() %
+      calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys));
+
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ millisec + "\n");
+
+    return millisec;
   }
 };

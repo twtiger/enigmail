@@ -10,67 +10,76 @@ const Ci = Components.interfaces;
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Components.utils.import("resource://enigmail/keyRefreshAlgorithm.jsm"); /*global KeyRefreshAlgorithm: false */
-Components.utils.import("resource://enigmail/timer.jsm"); /*global EnigmailTimer: false */
 Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
-let timer = null;
-function xpcomTimer() {
-  if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-  return timer;
+let t = null;
+function timer() {
+  if (t === null) t = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  return t;
 }
 
-function setupNextKeyRefresh(refreshWarrior, timer) {
-  // Get the total amount of public keys in case the amount has changed
-  const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-  const timeUntilNextRefresh = KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys);
-  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ timeUntilNextRefresh + "\n");
-
-  xpcomTimer().initWithCallback(refreshKey(refreshWarrior, timer), 5000, Ci.nsITimer.TYPE_ONE_SHOT);
+function setupWith(timer, algorithm, refreshFunction) {
+  timer.initWithCallback(refreshFunction(),
+    algorithm.calculateWaitTimeInMilliseconds(EnigmailKeyRing.getAllKeys().keyList.length),
+    Ci.nsITimer.TYPE_ONE_SHOT);
 }
 
-function refreshKey(refreshWarrior, timer) {
+function setupNextKeyRefresh() {
+  setupWith(timer(), KeyRefreshAlgorithm, refreshKey);
+}
+
+function refreshWith(keyserver, setupNextKeyRefreshFunction) {
+  keyserver.refresh(getRandomKeyId(RandomNumberGenerator.getUint32()));
+  setupNextKeyRefreshFunction();
+}
+
+function refreshKey() {
   return function() {
-    const key = getRandomKey(RandomNumberGenerator.getUint32());
-    EnigmailKeyServer.refresh(key.keyId);
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: refreshKey: Trying to Refresh Key: " + key.keyId + " at time: " + new Date().toUTCString()+ "\n");
-    setupNextKeyRefresh(refreshWarrior, timer);
+    refreshWith(EnigmailKeyServer, setupNextKeyRefresh);
   };
 }
 
-function checkKeysAndRestart(refreshWarrior, timer) {
-  return function() {
-    const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
-    if (totalPublicKeys) {
-      timer.setTimeout(refreshKey(refreshWarrior, timer), KeyRefreshAlgorithm.calculateWaitTimeInMilliseconds(totalPublicKeys));
-    } else {
-      timer.setTimeout(checkKeysAndRestart(refreshWarrior, timer), ONE_HOUR_IN_MILLISEC);
-      EnigmailLog.WRITE("[KEY REFRESH SERVICE]: checkKeysAndRestart: Still no keys at: " + new Date().toUTCString() + ". Will retry to restart key refresh service in one hour.\n");
-    }
-  };
+function getRandomKeyId(randomNumber) {
+  let maxIndex = EnigmailKeyRing.getAllKeys().keyList.length - 1;
+
+  if (maxIndex === 0) return EnigmailKeyRing.getAllKeys().keyList[0].keyId;
+  return EnigmailKeyRing.getAllKeys().keyList[randomNumber % maxIndex].keyId;
 }
 
-function getRandomKey(randomNumber) {
-  let maxIndex= EnigmailKeyRing.getAllKeys().keyList.length - 1;
-  return EnigmailKeyRing.getAllKeys().keyList[randomNumber % maxIndex];
+function checkKeysWith(timer, setupKeyRefreshFunction, checkKeysLaterFunction) {
+  if (EnigmailKeyRing.getAllKeys().keyList.length > 0) {
+    setupKeyRefreshFunction();
+  } else {
+    timer.initWithCallback(checkKeysLaterFunction(),
+      ONE_HOUR_IN_MILLISEC,
+      Ci.nsITimer.TYPE_ONE_SHOT);
+  }
+}
+
+function checkKeysLater() {
+  return function() {
+    checkKeysWith(timer(), KeyRefreshAlgorithm, checkKeysLater);
+  };
 }
 
 // If this operation is interrupted, it will not keep track of
 // what key it was trying to refresh or what time the key was
 // going to be refreshed at. It will choose a new key and a new
 // refresh time each run.
-function start(refreshWarrior, timer) {
-  const totalPublicKeys = EnigmailKeyRing.getAllKeys().keyList.length;
+function start() {
   if (EnigmailPrefs.getPref("keyserver").trim() === ""){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Not started as no keyservers available\n");
-  } else if (totalPublicKeys === 0) {
-    timer.setTimeout(checkKeysAndRestart(refreshWarrior, timer), ONE_HOUR_IN_MILLISEC);
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: KeyRefreshService.start: No keys available to refresh\n");
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keyservers are available. Did not start refresh service.\n");
+  }
+
+  if (EnigmailKeyRing.getAllKeys().keyList.length === 0) {
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.\n");
+    checkKeysLater();
   } else {
-    setupNextKeyRefresh(refreshWarrior, timer);
+    setupNextKeyRefresh();
   }
 }
 

@@ -228,6 +228,7 @@ function setupAgentPathAndRequest(enigmail) {
   });
   return {
     command: EnigmailGpgAgent.agentPath,
+    envVars: [],
     args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
   };
 }

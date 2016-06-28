@@ -91,7 +91,7 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
     if (Socks5Proxy.checkTorExists(portPrefs[i])) {
       success.port = EnigmailPrefs.getPref(portPrefs[i]);
 
-      EnigmailLog.CONSOLE("Tor found on IP: " + success.ip + ", port: " + success.port + "\n");
+      EnigmailLog.CONSOLE("Tor found on IP: " + success.ip + ", port: " + success.port + "\n\n");
 
       return success;
     }

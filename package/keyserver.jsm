@@ -302,6 +302,8 @@ const EnigmailKeyServer= {
    */
   access: access,
   refresh: function(keyId) {
+    EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
+
     const orderedRequests = setupKeyserverRequests(keyId, EnigmailTor);
     for (let i=0; i<orderedRequests.length; i++) {
       if (executesSuccessfully(orderedRequests[i], subprocess) === true) break;
