@@ -27,6 +27,12 @@ const MINIMUM_CURL_VERSION = {
   patch: 7
 };
 
+const TORSOCKS_VERSION_2 = {
+  major: 2,
+  minor: 0,
+  patch: 0
+};
+
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = {
   major: 2,
@@ -110,10 +116,9 @@ function meetsOSConstraints(os, executableEvaluator) {
   }
 }
 
-function createHelperArgs(helper) {
-  const authWithArgs = ['torsocks2', 'usewithtor', 'torify'];
+function createHelperArgs(helper, addAuth) {
   let args = [];
-  if (authWithArgs.indexOf(helper) > -1) {
+  if (addAuth) {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
     args.push('--user', username, '--pass', password);
@@ -147,26 +152,32 @@ const systemCaller = {
 
 function buildEnvVars(helper) {
   let envVars = [];
-  const authWithEnvVars = ['torsocks'];
-  if (authWithEnvVars.indexOf(helper) > -1) {
-    const username = RandomNumberGenerator.getUint32();
-    const password = RandomNumberGenerator.getUint32();
-    envVars.push("TORSOCKS_USERNAME=" + username);
-    envVars.push("TORSOCKS_PASSWORD=" + password);
-  }
+  const username = RandomNumberGenerator.getUint32();
+  const password = RandomNumberGenerator.getUint32();
+  envVars.push("TORSOCKS_USERNAME=" + username);
+  envVars.push("TORSOCKS_PASSWORD=" + password);
   return envVars;
+}
+
+function useAuthOverArgs(helper, executableEvaluator) {
+  if (helper == 'torsocks') {
+    return executableEvaluator.versionOverOrEqual('torsocks', TORSOCKS_VERSION_2, ExecutableEvaluator.executor);
+  }
+  return true;
 }
 
 function findTorExecutableHelper(executableEvaluator) {
   const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
   for (let i=0; i<torHelpers.length; i++) {
-    if (executableEvaluator.exists(torHelpers[i]))
+    if (executableEvaluator.exists(torHelpers[i])) {
+      const authOverArgs = useAuthOverArgs(torHelpers[i], executableEvaluator);
       return {
         exists: true,
-        envVars: buildEnvVars(torHelpers[i]),
+        envVars: (authOverArgs ? [] : buildEnvVars(torHelpers[i])),
         command: torHelpers[i],
-        args: createHelperArgs(torHelpers[i])
+        args: createHelperArgs(torHelpers[i], authOverArgs)
       };
+    }
   }
   return {
     exists:false

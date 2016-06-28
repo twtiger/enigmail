@@ -169,7 +169,6 @@ function executesSuccessfully(request, subproc) {
   subproc.call({
     command: request.command,
     arguments: request.args,
-    // TODO add env vars here
     environment: envVars,
     charset: null,
     stdin: null,

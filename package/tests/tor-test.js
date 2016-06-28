@@ -62,12 +62,12 @@ test(function evaluateCurlVersionWhenOsIsNotWindows() {
 });
 
 test(function createHelperArgsForTorsocks1() {
-  const firstSet = createHelperArgs('torsocks');
+  const firstSet = createHelperArgs('torsocks', false);
   Assert.deepEqual(firstSet[0], '/usr/bin/gpg2');
 });
 
 test(function createHelperArgsForTorsocks2() {
-  const args = createHelperArgs('torsocks2');
+  const args = createHelperArgs('torsocks2', true);
 
   Assert.deepEqual(args[0], '--user');
   Assert.deepEqual(args[2], '--pass');
@@ -75,8 +75,8 @@ test(function createHelperArgsForTorsocks2() {
 });
 
 test(function createHelperArgsAlwaysReturnsRandomUserAndPass() {
-  const firstSet = createHelperArgs('torsocks2');
-  const secondSet = createHelperArgs('torsocks2');
+  const firstSet = createHelperArgs('torsocks2', true);
+  const secondSet = createHelperArgs('torsocks2', true);
 
   Assert.notEqual(firstSet[1], secondSet[1]);
   Assert.notEqual(firstSet[3], secondSet[3]);
@@ -225,27 +225,44 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(system.isDosLikeWasCalled, true);
 });
 
-function buildMockExecutableEvaluator(x) {
-  return {
-    exists: function(val) {
-      return val === x;
-    }
-  };
-}
+const MockExecutableEvaluatorBuilder = {
+  build: function(x) {
+    this.e = {
+      exists: function(val) {
+        return val === x;
+      }
+    };
+    return this;
+  },
+  withVersion: function(isHigherVersion) {
+    this.e.versionOverOrEqual = function() { return isHigherVersion;};
+    return this;
+  },
+  get: function() {return this.e;}
+};
 
 function contains(string, substring) {
   return string.indexOf(substring) > -1;
 }
 
 test(function testUseTorSocks1WhenAvailable() {
-  const executableEvaluator = buildMockExecutableEvaluator('torsocks');
+  const e = MockExecutableEvaluatorBuilder.build('torsocks').withVersion(false).get();
 
-  const result = findTorExecutableHelper(executableEvaluator);
+  const result = findTorExecutableHelper(e);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks');
   Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
   Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
   Assert.equal(result.args.length, 1);
+});
+
+test(function testUseTorSocks2WhenAvailable() {
+  const e = MockExecutableEvaluatorBuilder.build('torsocks').withVersion(true).get();
+  const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
+
+  const result = findTorExecutableHelper(e);
+  Assert.equal(result.exists, true);
+  Assert.equal(result.command, 'torsocks');
 });
 
 test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
@@ -257,7 +274,7 @@ test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
 });
 
 test(function testUseTorSocks2WhenAvailable() {
-  const executableEvaluator = buildMockExecutableEvaluator('torsocks2');
+  const executableEvaluator = MockExecutableEvaluatorBuilder.build('torsocks2').get();
   const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
 
   const result = findTorExecutableHelper(executableEvaluator);
@@ -266,7 +283,7 @@ test(function testUseTorSocks2WhenAvailable() {
 });
 
 test(function testUseTorifyWhenAvailable() {
-  const executableEvaluator = buildMockExecutableEvaluator('torify');
+  const executableEvaluator = MockExecutableEvaluatorBuilder.build('torify').get();
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torify');
