@@ -57,9 +57,9 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
 test(function setupRequestWithTorHelper(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = { torExists: true,
-                          command: 'torsocks',
-                          args: torArgs,
-                          envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"] };
+    command: 'torsocks',
+    args: torArgs,
+    envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"] };
 
   const request = requestWithTor(torProperties, '1234', {protocol:'hkps', keyserverName:'keyserver.1'});
 
@@ -75,9 +75,9 @@ test(function setupRequestWithTorHelper(){
 test(function setupRequestWithTorHelperWithEnvVariables(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = { torExists: true,
-                          command: 'torsocks',
-                          args: torArgs,
-                          envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_USERNAME=def"] };
+    command: 'torsocks',
+    args: torArgs,
+    envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_USERNAME=def"] };
 
   const expectedArgs = torArgs
     .concat(EnigmailGpg.getStandardArgs(true))
@@ -194,14 +194,6 @@ test(function createsNormalRequests_whenTorDoesntExist(){
   Assert.equal(requests.length, 2);
 });
 
-function setupAgentPath(enigmail) {
-  withEnvironment({}, function(e) {
-    resetting(EnigmailGpgAgent, 'agentPath', "/usr/bin/gpg-agent", function() {
-      enigmail.environment = e;
-    });
-  });
-}
-
 test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   setupKeyserverPrefs("keyserver.1, keyserver.2", true);
   EnigmailPrefs.setPref("downloadKeyRequireTor", true);
@@ -228,13 +220,20 @@ test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   Assert.equal(tor.userRequiresTorWasCalled, true);
 });
 
-test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
-  setupAgentPath(enigmail);
-  const simpleRequest = {
+function setupAgentPathAndRequest(enigmail) {
+  withEnvironment({}, function(e) {
+    resetting(EnigmailGpgAgent, 'agentPath', "/usr/bin/gpg-agent", function() {
+      enigmail.environment = e;
+    });
+  });
+  return {
     command: EnigmailGpgAgent.agentPath,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']),
-    envVars: []
+    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234'])
   };
+}
+
+test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError(enigmail){
+  const simpleRequest = setupAgentPathAndRequest(enigmail);
   const subproc = {
     callWasCalled: false,
     call: function(proc) {
@@ -250,17 +249,12 @@ test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError
 }));
 
 test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(enigmail){
-  setupAgentPath(enigmail);
-  const simpleRequest = {
-    command: EnigmailGpgAgent.agentPath,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', '1234']),
-    envVars: []
-  };
+  const simpleRequest = setupAgentPathAndRequest(enigmail);
   const subproc = {
     callWasCalled: false,
     call: function(proc) {
       subproc.callWasCalled = true;
-      proc.stderr("gpg: requesting key KEYID from hkps server pgp.mit.edu\n");
+      proc.stderr("gpg: requesting key KEYID from hkps server keyserver.1\n");
       proc.stderr("gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n");
       proc.stderr("gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n");
       proc.stderr("gpg: depth: 0  valid:   2  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 2u\n" +
