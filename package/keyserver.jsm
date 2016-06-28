@@ -196,6 +196,18 @@ function executesSuccessfully(request, subproc) {
   return successful;
 }
 
+/**
+ * search, download or upload key on, from or to a keyserver
+ *
+ * @actionFlags: Integer - flags (bitmap) to determine the required action
+ *                         (see nsIEnigmail - Keyserver action flags for details)
+ * @keyserver:   String  - keyserver URL (optionally incl. protocol)
+ * @searchTerms: String  - space-separated list of search terms or key IDs
+ * @listener:    Object  - execStart Listener Object. See execStart for details.
+ * @errorMsgObj: Object  - object to hold error message in .value
+ *
+ * @return:      Subprocess object, or null in case process could not be started
+ */
 function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
   let args = EnigmailGpg.getStandardArgs(true);
 
@@ -287,18 +299,6 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
 
 
 const EnigmailKeyServer= {
-  /**
-   * search, download or upload key on, from or to a keyserver
-   *
-   * @actionFlags: Integer - flags (bitmap) to determine the required action
-   *                         (see nsIEnigmail - Keyserver action flags for details)
-   * @keyserver:   String  - keyserver URL (optionally incl. protocol)
-   * @searchTerms: String  - space-separated list of search terms or key IDs
-   * @listener:    Object  - execStart Listener Object. See execStart for details.
-   * @errorMsgObj: Object  - object to hold error message in .value
-   *
-   * @return:      Subprocess object, or null in case process could not be started
-   */
   access: access,
   refresh: function(keyId) {
     EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
