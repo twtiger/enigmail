@@ -8,9 +8,9 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
+testing("tor.jsm"); /*global EnigmailTor, USER_PREFS, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
 
-component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
+component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
 
 const DOWNLOAD_KEY_ACTION_FLAG = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -127,12 +127,12 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(function returnFailure_whenUserDoesNotWantToUseTor() {
-  EnigmailPrefs.setPref(DOWNLOAD_KEY_PREF, false);
+  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, false);
   Assert.deepEqual(torProperties(DOWNLOAD_KEY_ACTION_FLAG), { torExists: false });
 });
 
 test(function returnsFailure_whenSystemCannotFindTor() {
-  EnigmailPrefs.setPref(DOWNLOAD_KEY_PREF, true);
+  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const system = {
     findTorWasCalled : false,
     findTor: function() {
@@ -148,7 +148,7 @@ test(function returnsFailure_whenSystemCannotFindTor() {
 });
 
 test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
-  EnigmailPrefs.setPref(DOWNLOAD_KEY_PREF, true);
+  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
@@ -185,7 +185,7 @@ test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
 });
 
 test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
-  EnigmailPrefs.setPref(DOWNLOAD_KEY_PREF, true);
+  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const gpgArgs = ['--keyserver-options', 'http-proxy=socks5h://'+username+':'+password+'@127.0.0.1:9150'];

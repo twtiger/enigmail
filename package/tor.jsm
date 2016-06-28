@@ -46,27 +46,29 @@ const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
-const DOWNLOAD_KEY_PREF = "downloadKeyWithTor";
-const REFRESH_KEY_PREF = "refreshKeysWithTor";
-const SEARCH_KEY_PREF = "searchKeyWithTor";
-const UPLOAD_KEY_PREF = "uploadKeyWithTor";
+const USER_PREFS =  {
+  DOWNLOAD_KEY: "downloadKeyWithTor",
+  REFRESH_KEY: "refreshKeysWithTor",
+  SEARCH_KEY:  "searchKeyWithTor",
+  UPLOAD_KEY:  "uploadKeyWithTor",
+  DOWNLOAD_KEY_REQUIRED:  "downloadKeyRequireTor",
+  REFRESH_KEY_REQUIRED:  "refreshKeysRequireTor",
+  SEARCH_KEY_REQUIRED: "searchKeyRequireTor",
+  UPLOAD_KEY_REQUIRED:  "uploadKeyRequireTor"
+};
 
-const DOWNLOAD_KEY_REQUIRED_PREF = "downloadKeyRequireTor";
-const REFRESH_KEY_REQUIRED_PREF = "refreshKeysRequireTor";
-const SEARCH_KEY_REQUIRED_PREF = "searchKeyRequireTor";
-const UPLOAD_KEY_REQUIRED_PREF = "uploadKeyRequireTor";
 
 const nsIEnigmail = Ci.nsIEnigmail;
 function userWantsActionOverTor(actionFlags) {
   switch(actionFlags) {
     case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
-      return EnigmailPrefs.getPref(DOWNLOAD_KEY_PREF) === true;
+      return EnigmailPrefs.getPref(USER_PREFS.DOWNLOAD_KEY) === true;
     case actionFlags & nsIEnigmail.REFRESH_KEY:
-      return EnigmailPrefs.getPref(REFRESH_KEY_PREF) === true;
+      return EnigmailPrefs.getPref(USER_PREFS.REFRESH_KEY) === true;
     case actionFlags & nsIEnigmail.SEARCH_KEY:
-      return EnigmailPrefs.getPref(SEARCH_KEY_PREF) === true;
+      return EnigmailPrefs.getPref(USER_PREFS.SEARCH_KEY) === true;
     case actionFlags & nsIEnigmail.UPLOAD_KEY:
-      return EnigmailPrefs.getPref(UPLOAD_KEY_PREF) === true;
+      return EnigmailPrefs.getPref(USER_PREFS.UPLOAD_KEY) === true;
     default:
       return false;
   }
@@ -218,13 +220,13 @@ const EnigmailTor = {
   userRequiresTor: function(actionFlags) {
     switch(actionFlags) {
       case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
-        return EnigmailPrefs.getPref(DOWNLOAD_KEY_REQUIRED_PREF) === true;
+        return EnigmailPrefs.getPref(USER_PREFS.DOWNLOAD_KEY_REQUIRED) === true;
       case actionFlags & nsIEnigmail.REFRESH_KEY:
-        return EnigmailPrefs.getPref(REFRESH_KEY_REQUIRED_PREF) === true;
+        return EnigmailPrefs.getPref(USER_PREFS.REFRESH_KEY_REQUIRED) === true;
       case actionFlags & nsIEnigmail.SEARCH_KEY:
-        return EnigmailPrefs.getPref(SEARCH_KEY_REQUIRED_PREF) === true;
+        return EnigmailPrefs.getPref(USER_PREFS.SEARCH_KEY_REQUIRED) === true;
       case actionFlags & nsIEnigmail.UPLOAD_KEY:
-        return EnigmailPrefs.getPref(UPLOAD_KEY_REQUIRED_PREF) === true;
+        return EnigmailPrefs.getPref(USER_PREFS.UPLOAD_KEY_REQUIRED) === true;
       default:
         return false;
     }
