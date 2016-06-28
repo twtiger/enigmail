@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildCommand: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
@@ -63,24 +63,23 @@ test(function evaluateCurlVersionWhenOsIsNotWindows() {
 
 test(function createHelperArgsForTorsocks1() {
   const firstSet = createHelperArgs('torsocks');
-  const secondSet = createHelperArgs('torsocks');
-
   Assert.deepEqual(firstSet[0], '/usr/bin/gpg2');
-  Assert.deepEqual(secondSet[0], '/usr/bin/gpg2');
 });
 
 test(function createHelperArgsForTorsocks2() {
+  const args = createHelperArgs('torsocks2');
+
+  Assert.deepEqual(args[0], '--user');
+  Assert.deepEqual(args[2], '--pass');
+  Assert.deepEqual(args[4], '/usr/bin/gpg2');
+});
+
+test(function createHelperArgsAlwaysReturnsRandomUserAndPass() {
   const firstSet = createHelperArgs('torsocks2');
   const secondSet = createHelperArgs('torsocks2');
 
-  Assert.deepEqual(firstSet[0], '--user');
-  Assert.deepEqual(secondSet[0], '--user');
   Assert.notEqual(firstSet[1], secondSet[1]);
-  Assert.deepEqual(firstSet[2], '--pass');
-  Assert.deepEqual(secondSet[2], '--pass');
   Assert.notEqual(firstSet[3], secondSet[3]);
-  Assert.deepEqual(firstSet[4], '/usr/bin/gpg2');
-  Assert.deepEqual(secondSet[4], '/usr/bin/gpg2');
 });
 
 test(function createGpgProxyArgs_forWindows() {
@@ -248,6 +247,13 @@ test(function testUseTorSocks1WhenAvailable() {
   Assert.ok(contains(result.command, 'TORSOCKS_PASSWORD'));
   Assert.equal(result.type, 'torsocks');
   Assert.equal(result.args.length, 1);
+});
+
+test(function buildCommandReturnsRandomUserAndPassForTorsocks1() {
+  const commandOne = buildCommand('torsocks');
+  const commandTwo = buildCommand('torsocks');
+
+  Assert.notEqual(commandOne, commandTwo);
 });
 
 test(function testUseTorSocks2WhenAvailable() {
