@@ -136,11 +136,7 @@ const systemCaller = {
         password: RandomNumberGenerator.getUint32()
       };
   },
-  findTorExecutableHelper: function(executableEvaluator) {
-    return {
-      exists:false
-    };
-  },
+  findTorExecutableHelper: findTorExecutableHelper,
   getOS: function() {
     return EnigmailOS.getOS();
   },
@@ -190,6 +186,7 @@ function torProperties(actionFlags, system) {
     return {
       torExists: tor.exists,
       command: torHelper.command,
+      envVars: torHelper.envVars,
       args: torHelper.args
     };
   }
