@@ -149,17 +149,16 @@ const systemCaller = {
   }
 };
 
-function buildCommand(helper) {
+function buildEnvVars(helper) {
+  let envVars = [];
   const authWithEnvVars = ['torsocks'];
-  let command = "";
   if (authWithEnvVars.indexOf(helper) > -1) {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
-    command += "TORSOCKS_USERNAME=" + username;
-    command += "TORSOCKS_PASSWORD=" + password;
+    envVars.push("TORSOCKS_USERNAME=" + username);
+    envVars.push("TORSOCKS_PASSWORD=" + password);
   }
-  command += helper;
-  return command;
+  return envVars;
 }
 
 function findTorExecutableHelper(executableEvaluator) {
@@ -168,8 +167,8 @@ function findTorExecutableHelper(executableEvaluator) {
     if (executableEvaluator.exists(torHelpers[i]))
       return {
         exists: true,
-        command: buildCommand(torHelpers[i]),
-        type: torHelpers[i],
+        envVars: buildEnvVars(torHelpers[i]),
+        command: torHelpers[i],
         args: createHelperArgs(torHelpers[i])
       };
   }

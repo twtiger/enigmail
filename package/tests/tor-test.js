@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
 
-testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildCommand: false*/
+testing("tor.jsm"); /*global EnigmailTor, DOWNLOAD_KEY_REQUIRED_PREF, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false, REFRESH_KEY_PREF:false, DOWNLOAD_KEY_PREF:false, SEARCH_KEY_REQUIRED_PREF:false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
@@ -242,18 +242,18 @@ test(function testUseTorSocks1WhenAvailable() {
 
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
-  Assert.ok(contains(result.command, 'torsocks'));
-  Assert.ok(contains(result.command, 'TORSOCKS_USERNAME'));
-  Assert.ok(contains(result.command, 'TORSOCKS_PASSWORD'));
-  Assert.equal(result.type, 'torsocks');
+  Assert.equal(result.command, 'torsocks');
+  Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
+  Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
   Assert.equal(result.args.length, 1);
 });
 
-test(function buildCommandReturnsRandomUserAndPassForTorsocks1() {
-  const commandOne = buildCommand('torsocks');
-  const commandTwo = buildCommand('torsocks');
+test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
+  const commandOne = buildEnvVars('torsocks');
+  const commandTwo = buildEnvVars('torsocks');
 
-  Assert.notEqual(commandOne, commandTwo);
+  Assert.notEqual(commandOne[0], commandTwo[0]);
+  Assert.notEqual(commandOne[1], commandTwo[1]);
 });
 
 test(function testUseTorSocks2WhenAvailable() {
@@ -263,7 +263,6 @@ test(function testUseTorSocks2WhenAvailable() {
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks2');
-  Assert.equal(result.type, 'torsocks2');
 });
 
 test(function testUseTorifyWhenAvailable() {
@@ -271,7 +270,6 @@ test(function testUseTorifyWhenAvailable() {
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torify');
-  Assert.equal(result.type, 'torify');
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
