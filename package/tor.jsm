@@ -153,6 +153,7 @@ function findTorExecutableHelper(executableEvaluator) {
       return {
         exists: true,
         command: torHelpers[i],
+        type: torHelpers[i],
         args: createHelperArgs(torHelpers[i])
       };
   }

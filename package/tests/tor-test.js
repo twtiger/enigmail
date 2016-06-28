@@ -226,18 +226,27 @@ function buildMockExecutableEvaluator(x) {
   };
 }
 
-test(function testUseTorSocksWhenAvailable() {
+test(function testUseTorSocks1WhenAvailable() {
   const executableEvaluator = buildMockExecutableEvaluator('torsocks');
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks');
+  Assert.equal(result.type, 'torsocks');
 });
 
 test(function testUseTorSocks2WhenAvailable() {
   const executableEvaluator = buildMockExecutableEvaluator('torsocks2');
+  const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
+
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks2');
+  Assert.equal(result.type, 'torsocks2');
+
+  for(var i = 0; i < expectedArgs.length; i++) {
+    const expectedArg = expectedArgs[i];
+    Assert.ok(result.args[expectedArg] !== -1);
+  }
 });
 
 test(function testUseTorifyWhenAvailable() {
@@ -245,6 +254,7 @@ test(function testUseTorifyWhenAvailable() {
   const result = findTorExecutableHelper(executableEvaluator);
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torify');
+  Assert.equal(result.type, 'torify');
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
