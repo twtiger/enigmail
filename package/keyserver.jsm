@@ -83,18 +83,18 @@ function resolvePath(executable) {
 function requestWithTor(torProperties, keyId, protocol) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
 
-  if (torProperties.command === 'torsocks') {
-      let args = standardArgs.concat(['--recv-keys', keyId]);
-      args = torProperties.args.concat(args);
+  if (torProperties.command === 'gpg') {
+    let args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
     return {
-      command: resolvePath(torProperties.command),
+      command: EnigmailGpgAgent.agentPath,
       args: args
     };
   }
 
-  let args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
+  let args = standardArgs.concat(['--recv-keys', keyId]);
+  args = torProperties.args.concat(args);
   return {
-    command: EnigmailGpgAgent.agentPath,
+    command: resolvePath(torProperties.command),
     args: args
   };
 }
