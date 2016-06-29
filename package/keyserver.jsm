@@ -81,7 +81,7 @@ function resolvePath(executable) {
 
 function requestWithTor(torProperties, keyId, protocol) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
-   let result = { envVars: torProperties.envVars };
+   let result = { envVars: torProperties.envVars, usingTor: true };
 
    if (torProperties.command === 'gpg') {
      result.command =  EnigmailGpgAgent.agentPath;
@@ -105,6 +105,7 @@ function createRefreshKeyArgs(keyId, protocol) {
 function normalRequest(refreshKeyArgs) {
   return {
     command: EnigmailGpgAgent.agentPath,
+    usingTor: false,
     args: refreshKeyArgs,
     envVars: []
   };
@@ -113,6 +114,7 @@ function normalRequest(refreshKeyArgs) {
 function desparateRequest(keyId, protocol) {
   return {
     command: EnigmailGpgAgent.agentPath,
+    usingTor: false,
     args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://'+protocol.keyserverName+':11371']).concat(['--recv-keys', keyId]),
     envVars: []
   };
@@ -145,6 +147,9 @@ function contains(superSet, subSet) {
 }
 
 function executesSuccessfully(request, subproc) {
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + "\n");
+  EnigmailLog.CONSOLE("Refreshing using executable: " + request.command.path + "\n");
+
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
 
   let stdout = '';
