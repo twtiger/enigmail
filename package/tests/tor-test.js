@@ -220,6 +220,7 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(properties.torExists, true);
   Assert.equal(properties.command, 'gpg');
   Assert.deepEqual(properties.args, gpgArgs);
+  Assert.equal(properties.envVars.length, 0);
   Assert.equal(system.findTorWasCalled, true);
   Assert.equal(system.findTorExecutableHelperWasCalled, true);
   Assert.equal(system.isDosLikeWasCalled, true);

@@ -207,7 +207,8 @@ function torProperties(actionFlags, system) {
   return {
     torExists: tor.exists,
     command: 'gpg',
-    args: gpgProxyArgs(tor, system)
+    args: gpgProxyArgs(tor, system),
+    envVars: []
   };
 }
 
