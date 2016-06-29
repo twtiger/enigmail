@@ -80,6 +80,9 @@ const executor = {
     subprocess.call(request).wait();
   },
   findExecutable: function(executable) {
+    if (EnigmailOS.getOS() === 'Darwin') {
+      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', EnigmailOS.isDosLike());
+    }
     return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
   },
   gpgVersionOverOrEqual: function(agentVersion, minimumVersion) {
@@ -88,7 +91,7 @@ const executor = {
 };
 
 function exists(executable) {
-  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike()) !== null;
+  return executor.findExecutable(executable) !== null;
 }
 
 function versionOverOrEqual(executable, minimumVersion, executor) {

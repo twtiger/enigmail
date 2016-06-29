@@ -19,6 +19,8 @@ Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+Cu.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
+
 
 const KEYSERVER_PREF = "keyserver";
 
@@ -74,10 +76,8 @@ function organizeProtocols() {
   return states;
 }
 
-let environment = null;
 function resolvePath(executable) {
-  if (environment === null) environment = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
-  return EnigmailFiles.resolvePath(executable, environment.get("PATH"), EnigmailOS.isDosLike());
+  return ExecutableEvaluator.executor.findExecutable(executable);
 }
 
 function requestWithTor(torProperties, keyId, protocol) {
@@ -301,7 +301,6 @@ const EnigmailKeyServer= {
   access: access,
   refresh: function(keyId) {
     EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
-
     const orderedRequests = buildRefreshRequests(keyId, EnigmailTor);
     for (let i=0; i<orderedRequests.length; i++) {
       if (executesSuccessfully(orderedRequests[i], subprocess) === true) break;

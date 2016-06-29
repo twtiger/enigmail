@@ -170,7 +170,7 @@ function useAuthOverArgs(helper, executableEvaluator) {
 }
 
 function findTorExecutableHelper(executableEvaluator) {
-  const torHelpers = ['torsocks2', 'torsocks', 'usewithtor', 'torify'];
+  const torHelpers = ['torsocks', 'torsocks2', 'torify', 'usewithtor'];
   for (let i=0; i<torHelpers.length; i++) {
     if (executableEvaluator.exists(torHelpers[i])) {
       const authOverArgs = useAuthOverArgs(torHelpers[i], executableEvaluator);
