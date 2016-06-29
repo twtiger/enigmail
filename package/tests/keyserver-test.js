@@ -267,6 +267,7 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
     callWasCalled: false,
     call: function(proc) {
       subproc.callWasCalled = true;
+      proc.stderr("[GNUPG:] IMPORT_OK ");
       proc.stderr("gpg: requesting key KEYID from hkps server keyserver.1\n");
       proc.stderr("gpg: key KEYID: public key KEYOWNER <KEYOWNER@EMAIL> imported\n");
       proc.stderr("gpg: 3 marginal(s) needed, 1 complete(s) needed, PGP trust model\n");

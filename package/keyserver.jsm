@@ -162,15 +162,8 @@ function executesSuccessfully(request, subproc) {
     charset: null,
     stdin: null,
     done: function(result) {
-      // TODO: NEED TO LOCALIZE THIS
-      successful = contains(stderr, "not changed")
-        || contains(stderr, "imported")
-        && !contains(stderr, "fetch error")
-        && !contains(stderr, "Network is unreachable")
-        && !contains(stderr, "Connection refused")
-        && !contains(stderr, "General error")
-        && !contains(stderr, "Configuration error");
-      EnigmailLog.CONSOLE("done: Exit Code "+ result.exitCode +"\n");
+      successful = contains(stderr, "IMPORT_OK");
+      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n");
     },
     stdout: function(data) {
       stdout += data;
