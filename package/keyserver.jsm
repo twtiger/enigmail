@@ -117,34 +117,27 @@ function buildNormalRequest(refreshKeyArgs) {
   };
 }
 
-function buildNormalHkpRequestForTor(protocol, keyId, httpProxy) {
-  const hkpProtocol = {protocol: "hkp", keyserverName: protocol.keyserverName, port: "11371"};
-  const refreshKeyArgs = createRefreshKeyArgsForNormalRequests(keyId, hkpProtocol, httpProxy);
-  return buildNormalRequest(refreshKeyArgs);
-}
-
 function buildRefreshRequests(keyId, tor, httpProxy) {
   const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
-  const requests = [];
 
   if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
     EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
-    return requests;
+    return [];
   }
 
   const protocols = organizeProtocols();
+  const requests = [];
   for (let i=0; i<protocols.length; i++) {
     if (torProperties.torExists === true)  {
       requests.push(requestWithTor(torProperties, keyId, protocols[i]));
-    } else {
+    }
+  }
+  // TODO we could build everything, and then sort at the end
+  for (let i=0; i<protocols.length; i++) {
+    if (!tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
       const refreshArgs = createRefreshKeyArgsForNormalRequests(keyId, protocols[i], httpProxy);
       requests.push(buildNormalRequest(refreshArgs));
     }
-  }
-
-  if (torProperties.torExists === true) {
-    const normalHkpRequest = buildNormalHkpRequestForTor(protocols[0], keyId, httpProxy);
-    requests.push(normalHkpRequest);
   }
 
   return requests;

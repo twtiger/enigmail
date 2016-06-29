@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, buildNormalHkpRequestForTor: false, buildNormalRequest: false, createRefreshKeyArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, buildNormalRequest: false, createRefreshKeyArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -146,18 +146,6 @@ test(function createStandardRefreshKeyArguments(){
   Assert.deepEqual(request.args, refreshKeyArgs);
 });
 
-test(function createStandardRefreshKeyArguments(){
-  const keyId = '1234';
-
-  const protocol = {protocol: "hkps", keyserverName: "keyserver.1", port: "1234"};
-  const httpProxy = {getHttpProxy: function() {return null;} };
-  const request = buildNormalHkpRequestForTor(protocol, keyId, httpProxy);
-
-  Assert.equal(request.command.path, '/usr/bin/gpg2');
-  Assert.deepEqual(request.args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]));
-  Assert.assertArrayNotContains(request.args, '--keyserver-options');
-});
-
 test(function createsRequestsWithTor_whenTorExists(){
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
@@ -184,12 +172,15 @@ test(function createsRequestsWithTor_whenTorExists(){
   const requests = buildRefreshRequests(keyId, tor, httpProxy);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(requests.length, 4);
   Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
   Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
   Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
   Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
   Assert.equal(requests[2].command.path, '/usr/bin/gpg2');
-  Assert.deepEqual(requests[2].args, hkpArgs);
+  Assert.deepEqual(requests[2].args, hkpsArgs);
+  Assert.equal(requests[3].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[3].args, hkpArgs);
 });
 
 test(function createsNormalRequests_whenTorDoesntExist(){
