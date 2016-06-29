@@ -127,12 +127,14 @@ function buildRefreshRequests(keyId, tor, httpProxy) {
 
   const protocols = organizeProtocols();
   const requests = [];
-  for (let i=0; i<protocols.length; i++) {
-    if (torProperties.torExists === true)  {
+
+  // TODO we could build everything, and then sort at the end
+  if (torProperties.torExists === true)  {
+    for (let i=0; i<protocols.length; i++) {
       requests.push(requestWithTor(torProperties, keyId, protocols[i]));
     }
   }
-  // TODO we could build everything, and then sort at the end
+
   for (let i=0; i<protocols.length; i++) {
     if (!tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
       const refreshArgs = createRefreshKeyArgsForNormalRequests(keyId, protocols[i], httpProxy);
