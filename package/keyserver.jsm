@@ -112,13 +112,10 @@ function normalRequest(refreshKeyArgs) {
   };
 }
 
-function desparateRequest(keyId, protocol) {
-  return {
-    command: EnigmailGpgAgent.agentPath,
-    usingTor: false,
-    args: EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://'+protocol.keyserverName+':11371']).concat(['--recv-keys', keyId]),
-    envVars: []
-  };
+function buildNormalHkpRequestForTor(protocol, keyId) {
+  const p = {protocol: "hkp", keyserverName: protocol.keyserverName, port: "11371"};
+  const refreshKeyArgs = createRefreshKeyArgs(keyId, p);
+  return normalRequest(refreshKeyArgs);
 }
 
 function buildRefreshRequests(keyId, tor) {
@@ -140,8 +137,10 @@ function buildRefreshRequests(keyId, tor) {
     }
   }
 
-  if (torProperties.torExists === true)
-    requests.push(desparateRequest(keyId, protocols[0]));
+  if (torProperties.torExists === true) {
+    const normalHkpRequest = buildNormalHkpRequestForTor(protocols[0], keyId);
+    requests.push(normalHkpRequest);
+  }
 
   return requests;
 }

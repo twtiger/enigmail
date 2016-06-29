@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, desparateRequest: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, buildNormalHkpRequestForTor: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -135,10 +135,10 @@ test(function createStandardRefreshKeyArguments(){
 });
 
 test(function createStandardRefreshKeyArguments(){
-  setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
 
-  const request = desparateRequest(keyId, {protocol: 'hkp', keyserverName: 'keyserver.1'});
+  const protocol = {protocol: "hkps", keyserverName: "keyserver.1", port: "1234"};
+  const request = buildNormalHkpRequestForTor(protocol, keyId);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]));
