@@ -6,12 +6,14 @@
  */
 
 "use strict";
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
 testing("tor.jsm"); /*global EnigmailTor, USER_PREFS, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
+component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+
 
 const DOWNLOAD_KEY_ACTION_FLAG = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
@@ -61,17 +63,19 @@ test(function evaluateCurlVersionWhenOsIsNotWindows() {
   Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
 });
 
-test(function createHelperArgsForTorsocks1() {
+test(withEnigmail(function createHelperArgsForTorsocks1(enigmail) {
+  EnigmailGpg.setAgentPath({path: '/usr/bin/gpg2'});
   const firstSet = createHelperArgs('torsocks', false);
   Assert.deepEqual(firstSet[0], '/usr/bin/gpg2');
-});
+}));
 
 test(function createHelperArgsForTorsocks2() {
+  EnigmailGpg.setAgentPath({path: '/usr/bin/gpg'});
   const args = createHelperArgs('torsocks2', true);
 
   Assert.deepEqual(args[0], '--user');
   Assert.deepEqual(args[2], '--pass');
-  Assert.deepEqual(args[4], '/usr/bin/gpg2');
+  Assert.deepEqual(args[4], '/usr/bin/gpg')  ;
 });
 
 test(function createHelperArgsAlwaysReturnsRandomUserAndPass() {

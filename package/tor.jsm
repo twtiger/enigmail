@@ -14,6 +14,7 @@ Components.utils.import("resource://enigmail/randomNumber.jsm"); /* global Rando
 Components.utils.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
 Components.utils.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
 Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /* global Socks5Proxy: false */
+Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 var EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -125,7 +126,7 @@ function createHelperArgs(helper, addAuth) {
     const password = RandomNumberGenerator.getUint32();
     args.push('--user', username, '--pass', password);
   }
-  args.push('/usr/bin/gpg2');
+  args.push(EnigmailGpg.agentPath.path);
   return args;
 }
 
