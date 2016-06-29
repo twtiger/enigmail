@@ -147,8 +147,7 @@ function contains(superSet, subSet) {
 }
 
 function executesSuccessfully(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + "\n");
-  EnigmailLog.CONSOLE("Refreshing using executable: " + request.command.path + "\n");
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
 
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
 
