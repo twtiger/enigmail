@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, buildNormalHkpRequestForTor: false, normalRequest: false, createRefreshKeyArgs: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, buildNormalHkpRequestForTor: false, buildNormalRequest: false, createRefreshKeyArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, requestWithTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -121,14 +121,26 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
 test(function createStandardRefreshKeyArguments(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
   const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
+  const httpProxy = {getHttpProxy: function() {return null;} };
 
-  Assert.deepEqual(createRefreshKeyArgs('1234', protocol), expectedArgs);
+  const args = createRefreshKeyArgsForNormalRequests('1234', protocol, httpProxy);
+  Assert.deepEqual(args, expectedArgs);
+});
+
+test(function createStandardRefreshKeyArgumentsWhenUserHasHttpProxy(){
+  const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver-options', 'http-proxy=someProxyHost', '--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
+  const httpProxy = {getHttpProxy: function() {return 'someProxyHost';} };
+
+  const args = createRefreshKeyArgsForNormalRequests('1234', protocol, httpProxy);
+  Assert.deepEqual(args, expectedArgs);
 });
 
 test(function createStandardRefreshKeyArguments(){
   const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
 
-  const request = normalRequest(refreshKeyArgs);
+  const httpProxy = {getHttpProxy: function() {return null;} };
+  const request = buildNormalRequest(refreshKeyArgs, httpProxy);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, refreshKeyArgs);
@@ -138,7 +150,8 @@ test(function createStandardRefreshKeyArguments(){
   const keyId = '1234';
 
   const protocol = {protocol: "hkps", keyserverName: "keyserver.1", port: "1234"};
-  const request = buildNormalHkpRequestForTor(protocol, keyId);
+  const httpProxy = {getHttpProxy: function() {return null;} };
+  const request = buildNormalHkpRequestForTor(protocol, keyId, httpProxy);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]));
@@ -166,8 +179,9 @@ test(function createsRequestsWithTor_whenTorExists(){
       return false;
     }
   };
+  const httpProxy = {getHttpProxy: function() {return null;} };
 
-  const requests = buildRefreshRequests(keyId, tor);
+  const requests = buildRefreshRequests(keyId, tor, httpProxy);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
@@ -195,8 +209,9 @@ test(function createsNormalRequests_whenTorDoesntExist(){
       return false;
     }
   };
+  const httpProxy = {getHttpProxy: function() {return null;} };
 
-  const requests = buildRefreshRequests(keyId, tor);
+  const requests = buildRefreshRequests(keyId, tor, httpProxy);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(requests[0].command.path, '/usr/bin/gpg2');
@@ -224,8 +239,9 @@ test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
       return true;
     }
   };
+  const httpProxy = {getHttpProxy: function() {return null;} };
 
-  const requests = buildRefreshRequests('1234', tor);
+  const requests = buildRefreshRequests('1234', tor, httpProxy);
 
   Assert.equal(requests.length, 0);
   Assert.equal(tor.torPropertiesWasCalled, true);
