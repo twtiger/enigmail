@@ -81,16 +81,16 @@ function resolvePath(executable) {
 
 function requestWithTor(torProperties, keyId, protocol) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
-   let result = { envVars: torProperties.envVars, usingTor: true };
+  let result = { envVars: torProperties.envVars, usingTor: true };
 
-   if (torProperties.command === 'gpg') {
-     result.command =  EnigmailGpgAgent.agentPath;
-     result.args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
-   } else {
-     result.command = resolvePath(torProperties.command);
-     let torHelperArgs = standardArgs.concat(['--recv-keys', keyId]);
-     result.args = torProperties.args.concat(torHelperArgs);
-   }
+  if (torProperties.command === 'gpg') {
+    result.command =  EnigmailGpgAgent.agentPath;
+    result.args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
+  } else {
+    result.command = resolvePath(torProperties.command);
+    let torHelperArgs = standardArgs.concat(['--recv-keys', keyId]);
+    result.args = torProperties.args.concat(torHelperArgs);
+  }
   return result;
 }
 
@@ -122,10 +122,13 @@ function desparateRequest(keyId, protocol) {
 
 function buildRefreshRequests(keyId, tor) {
   const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
+
+  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
+    EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
+    return [];
+  }
+
   const protocols = organizeProtocols();
-
-  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) return [];
-
   const requests = [];
   for (let i=0; i<protocols.length; i++) {
     const refreshKeyArgs = createRefreshKeyArgs(keyId, protocols[i]);
@@ -149,29 +152,39 @@ function contains(superSet, subSet) {
 function executesSuccessfully(request, subproc) {
   EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
 
+  function convertRequestArgsToStrings(args) {
+    for (let i=0; i<args.length; i++) {
+      if (typeof args[i] !== 'string') {
+        args[i] = args[i].toString();
+      }
+    }
+    return args;
+  }
+
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
 
   let stdout = '';
   let stderr = '';
   let successful = false;
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
+
   subproc.call({
     command: request.command,
-    arguments: request.args,
+    arguments: convertRequestArgsToStrings(request.args),
     environment: envVars,
     charset: null,
     stdin: null,
     done: function(result) {
       successful = contains(stderr, "IMPORT_OK");
-      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n");
+      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n\n");
     },
     stdout: function(data) {
       stdout += data;
-      EnigmailLog.CONSOLE("stdout: "+ data +"\n");
+      EnigmailLog.CONSOLE("stdout: "+ data);
     },
     stderr: function(data) {
       stderr += data;
-      EnigmailLog.CONSOLE("stderr: "+ data +"\n");
+      EnigmailLog.CONSOLE("stderr: "+ data);
     }
   }).wait();
 
@@ -278,7 +291,6 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
 
   return proc;
 }
-
 
 const EnigmailKeyServer= {
   access: access,

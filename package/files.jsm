@@ -169,6 +169,10 @@ const EnigmailFiles = {
 
   formatCmdLine: function(command, args) {
     function getQuoted(str) {
+      if (typeof str === 'number') {
+        str = str.toString();
+      }
+
       let i = str.indexOf(" ");
       if (i >= 0) {
         return '"' + str + '"';
