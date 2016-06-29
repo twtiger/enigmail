@@ -13,6 +13,7 @@ Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+Cu.import("resource://enigmail/httpProxy.jsm"); /*global EnigmailHttpProxy: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
@@ -219,6 +220,11 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
   if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {
     args = EnigmailGpg.getStandardArgs(false).
       concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
+  }
+
+  const proxyHost = EnigmailHttpProxy.getHttpProxy(keyserver);
+  if (proxyHost) {
+    args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
   }
 
   args = args.concat(["--keyserver", keyserver.trim()]);
