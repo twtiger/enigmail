@@ -1,5 +1,5 @@
 /*global do_load_module: false, do_get_file: false, do_get_cwd: false, testing: false, test: false, Assert: false, resetting: false, JSUnit: false, do_test_pending: false, do_test_finished: false, withTestGpgHome:false */
-/*global withEnigmail: false, EnigmailCore: false, Enigmail: false, component: false, Cc: false, Ci: false, withEnvironment: false, nsIEnigmail: false, nsIEnvironment: false, Ec: false, EnigmailPrefs: false, EnigmailOS: false, EnigmailArmor: false */
+/*global withEnigmail: false, EnigmailCore: false, Enigmail: false, component: false, Cc: false, Ci: false, withEnvironment: false, nsIEnigmail: false, nsIEnvironment: false, Ec: false, EnigmailPrefs: false, EnigmailOS: false, EnigmailArmor: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false */
 /*jshint -W120 */
 /*jshint -W097 */
 /*
@@ -65,4 +65,16 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
   });
 });
 
+test(withLogFiles(function initializeWillStartKeyRefreshIfToggledOn(){
+  var window = JSUnit.createStubWindow();
+  newEnigmail(function(enigmail) {
+    enigmail.initialize(window, "");
+  });
+  assertLogDoesNotContain("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
 
+  EnigmailPrefs.setPref("keyRefreshOn", true);
+  newEnigmail(function(enigmail) {
+    enigmail.initialize(window, "");
+  });
+  assertLogContains("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
+}));

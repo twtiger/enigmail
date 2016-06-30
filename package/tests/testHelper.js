@@ -264,6 +264,10 @@ function assertLogContains(expected) {
   Assert.ok(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected) !== -1, failureMessage);
 }
 
+function assertLogDoesNotContain(expected) {
+  Assert.equal(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected), -1);
+}
+
 
 let setTimeoutWasCalled = false;
 const MockTimer = {

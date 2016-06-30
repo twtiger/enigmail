@@ -213,6 +213,9 @@ pref("extensions.enigmail.uploadKeyRequireTor", false);
 // will happen to accommodate.
 pref("extensions.enigmail.hoursAWeekOnThunderbird", 40);
 
+// Toggle to have user keys continuously refreshed
+pref("extensions.enigmail.keyRefreshOn", false);
+
 // enable experimental features.
 // WARNING: such features may unfinished functions or tests that can break
 // existing functionality in Enigmail and Thunderbird!
