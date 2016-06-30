@@ -130,11 +130,6 @@ test(function createGpgProxyArgs_forLinux() {
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
 
-test(function returnFailure_whenUserDoesNotWantToUseTor() {
-  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, false);
-  Assert.deepEqual(torProperties(DOWNLOAD_KEY_ACTION_FLAG), { torExists: false });
-});
-
 test(function returnsFailure_whenSystemCannotFindTor() {
   EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const system = {
@@ -143,6 +138,22 @@ test(function returnsFailure_whenSystemCannotFindTor() {
       system.findTorWasCalled = true;
       return {
         exists: false
+      };
+    }
+  };
+
+  Assert.deepEqual(torProperties(DOWNLOAD_KEY_ACTION_FLAG, system), { torExists: false });
+  Assert.equal(system.findTorWasCalled, true);
+});
+
+test(function returnsFailure_whenFindTorReturnsBadThing() {
+  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
+  const system = {
+    findTorWasCalled : false,
+    findTor: function() {
+      system.findTorWasCalled = true;
+      return {
+        exists: {}
       };
     }
   };

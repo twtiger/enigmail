@@ -29,34 +29,34 @@ test(function createStatesForMultipleKeyservers() {
   setupKeyserverPrefs("keyserver.1, keyserver.2, keyserver.3", false);
   const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.1' },
     { protocol: 'hkps', keyserverName: 'keyserver.2' },
-  { protocol: 'hkps', keyserverName: 'keyserver.3' },
-  { protocol: 'hkp', keyserverName: 'keyserver.1' },
-  { protocol: 'hkp', keyserverName: 'keyserver.2' },
-  { protocol: 'hkp', keyserverName: 'keyserver.3' },
+    { protocol: 'hkps', keyserverName: 'keyserver.3' },
+    { protocol: 'hkp', keyserverName: 'keyserver.1' },
+    { protocol: 'hkp', keyserverName: 'keyserver.2' },
+    { protocol: 'hkp', keyserverName: 'keyserver.3' },
   ];
 
-  const sortedRequests = organizeProtocols();
-  for(var i = 0; i < sortedRequests; i++) {
-    Assert.equal(sortedRequests.protocol = expected.protocol);
-    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
-  }
+const sortedRequests = organizeProtocols();
+for(var i = 0; i < sortedRequests; i++) {
+  Assert.equal(sortedRequests.protocol = expected.protocol);
+  Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
+}
 });
 
 test(function setsUpStatesWithMixOfSpecifiedProtocols() {
   setupKeyserverPrefs("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
   const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.2'},
     { protocol: 'hkps', keyserverName: 'keyserver.3'},
-  { protocol: 'hkps', keyserverName: 'keyserver.4'},
-  { protocol: 'hkp', keyserverName: 'keyserver.1'},
-  { protocol: 'hkp', keyserverName: 'keyserver.3'},
-  { protocol: 'ldap', keyserverName: 'keyserver.5'},
+    { protocol: 'hkps', keyserverName: 'keyserver.4'},
+    { protocol: 'hkp', keyserverName: 'keyserver.1'},
+    { protocol: 'hkp', keyserverName: 'keyserver.3'},
+    { protocol: 'ldap', keyserverName: 'keyserver.5'},
   ];
 
-  const sortedRequests = organizeProtocols();
-  for(var i = 0; i < sortedRequests.length; i++) {
-    Assert.equal(sortedRequests[i].protocol, expected[i].protocol);
-    Assert.equal(sortedRequests[i].keyserverName, expected[i].keyserverName);
-  }
+const sortedRequests = organizeProtocols();
+for(var i = 0; i < sortedRequests.length; i++) {
+  Assert.equal(sortedRequests[i].protocol, expected[i].protocol);
+  Assert.equal(sortedRequests[i].keyserverName, expected[i].keyserverName);
+}
 });
 
 test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
@@ -147,6 +147,32 @@ test(function testBuildNormalRequestWithStandardArgs(){
   Assert.deepEqual(request.args, refreshKeyArgs);
 });
 
+test(function createsRegularRequests_whenUserDoesNotWantTor() {
+  setupKeyserverPrefs("keyserver.1", true);
+  EnigmailPrefs.setPref("downloadKeyWithTor", false);
+  const tor = {
+    userWantsTorWithWasCalled: false,
+    userWantsTorWith: function(actionFlag) {
+      Assert.equal(actionFlag, Ci.nsIEnigmail.DOWNLOAD_KEY);
+      tor.userWantsTorWithWasCalled = true;
+      return false;
+    }
+  };
+  const expectedKeyId = '1234';
+
+  const requests = buildRefreshRequests(expectedKeyId, tor);
+
+  Assert.equal(tor.userWantsTorWithWasCalled, true);
+
+  Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
+  Assert.equal(requests[0].usingTor, false);
+  Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', expectedKeyId]));
+
+  Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
+  Assert.equal(requests[1].usingTor, false);
+  Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
+});
+
 test(function createsRequestsWithTor_whenTorExists(){
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
@@ -166,6 +192,9 @@ test(function createsRequestsWithTor_whenTorExists(){
     },
     userRequiresTor: function(actionFlags) {
       return false;
+    },
+    userWantsTorWith: function(actionFlag) {
+      return true;
     }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
@@ -174,10 +203,13 @@ test(function createsRequestsWithTor_whenTorExists(){
 
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(requests.length, 4);
+
   Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
   Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
+
   Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
   Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
+
   Assert.equal(requests[2].command.path, '/usr/bin/gpg2');
   Assert.deepEqual(requests[2].args, hkpsArgs);
   Assert.equal(requests[3].command.path, '/usr/bin/gpg2');
@@ -199,6 +231,9 @@ test(function createsNormalRequests_whenTorDoesntExist(){
     },
     userRequiresTor: function(actionFlags) {
       return false;
+    },
+    userWantsTorWith: function(actionFlag) {
+      return true;
     }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
@@ -206,11 +241,13 @@ test(function createsNormalRequests_whenTorDoesntExist(){
   const requests = buildRefreshRequests(keyId, tor, httpProxy);
 
   Assert.equal(tor.torPropertiesWasCalled, true);
+  Assert.equal(requests.length, 2);
+
   Assert.equal(requests[0].command.path, '/usr/bin/gpg2');
   Assert.deepEqual(requests[0].args, hkpsArgs);
+
   Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
   Assert.deepEqual(requests[1].args, hkpArgs);
-  Assert.equal(requests.length, 2);
 });
 
 test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
@@ -228,6 +265,9 @@ test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
     userRequiresTorWasCalled: false,
     userRequiresTor: function(actionFlags) {
       tor.userRequiresTorWasCalled = true;
+      return true;
+    },
+    userWantsTorWith: function(actionFlag) {
       return true;
     }
   };

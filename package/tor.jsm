@@ -59,22 +59,6 @@ const USER_PREFS =  {
 };
 
 
-const nsIEnigmail = Ci.nsIEnigmail;
-function userWantsActionOverTor(actionFlags) {
-  switch(actionFlags) {
-    case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
-      return EnigmailPrefs.getPref(USER_PREFS.DOWNLOAD_KEY) === true;
-    case actionFlags & nsIEnigmail.REFRESH_KEY:
-      return EnigmailPrefs.getPref(USER_PREFS.REFRESH_KEY) === true;
-    case actionFlags & nsIEnigmail.SEARCH_KEY:
-      return EnigmailPrefs.getPref(USER_PREFS.SEARCH_KEY) === true;
-    case actionFlags & nsIEnigmail.UPLOAD_KEY:
-      return EnigmailPrefs.getPref(USER_PREFS.UPLOAD_KEY) === true;
-    default:
-      return false;
-  }
-}
-
 function gpgProxyArgs(tor, system) {
   // TODO establish when to use socks5-hostname on nonWindows
   const args = ['--keyserver-options', HTTP_PROXY_GPG_OPTION];
@@ -190,10 +174,8 @@ function findTorExecutableHelper(executableEvaluator) {
 function torProperties(actionFlags, system) {
   const failure = { torExists: false };
 
-  if (userWantsActionOverTor(actionFlags) === false) return failure;
-
   const tor = system.findTor();
-  if (tor.exists === false) return failure;
+  if (tor.exists !== true) return failure;
 
   const torHelper = system.findTorExecutableHelper(ExecutableEvaluator);
   if (torHelper.exists === true) {
@@ -213,12 +195,12 @@ function torProperties(actionFlags, system) {
   };
 }
 
+const nsIEnigmail = Ci.nsIEnigmail;
 const EnigmailTor = {
   torProperties: function(actionFlags) {
     return torProperties(actionFlags, systemCaller);
   },
 
-  //TODO: should check for this in keyserver
   userRequiresTor: function(actionFlags) {
     switch(actionFlags) {
       case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
@@ -229,6 +211,21 @@ const EnigmailTor = {
         return EnigmailPrefs.getPref(USER_PREFS.SEARCH_KEY_REQUIRED) === true;
       case actionFlags & nsIEnigmail.UPLOAD_KEY:
         return EnigmailPrefs.getPref(USER_PREFS.UPLOAD_KEY_REQUIRED) === true;
+      default:
+        return false;
+    }
+  },
+
+  userWantsTorWith(actionFlags) {
+    switch(actionFlags) {
+      case actionFlags & nsIEnigmail.DOWNLOAD_KEY:
+        return EnigmailPrefs.getPref(USER_PREFS.DOWNLOAD_KEY) === true;
+      case actionFlags & nsIEnigmail.REFRESH_KEY:
+        return EnigmailPrefs.getPref(USER_PREFS.REFRESH_KEY) === true;
+      case actionFlags & nsIEnigmail.SEARCH_KEY:
+        return EnigmailPrefs.getPref(USER_PREFS.SEARCH_KEY) === true;
+      case actionFlags & nsIEnigmail.UPLOAD_KEY:
+        return EnigmailPrefs.getPref(USER_PREFS.UPLOAD_KEY) === true;
       default:
         return false;
     }

@@ -126,9 +126,16 @@ function buildNormalRequest(keyId, protocol, httpProxy) {
 }
 
 function buildRefreshRequests(keyId, tor, httpProxy) {
-  const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
+  if (tor.userWantsTorWith(Ci.nsIEnigmail.DOWNLOAD_KEY) !== true) {
+    const requests = [];
+    organizeProtocols().forEach(function(protocol) {
+      requests.push(buildNormalRequest(keyId, protocol, httpProxy));
+    });
+    return requests;
+  }
 
-  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
+  const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
+  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY) == true) {
     EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
     return [];
   }
