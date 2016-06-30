@@ -34,6 +34,7 @@ function isHkps(keyserver){
 }
 
 function sortWithHkpsFirst(keyservers){
+  EnigmailLog.DEBUG("--------keyservers: " + keyservers + "\n");
   return keyservers.sort(function(a, b){
     if (isHkps(b) && !isHkps(a)){
       return 1;
@@ -44,6 +45,8 @@ function sortWithHkpsFirst(keyservers){
     return 0;
   });
 }
+
+
 
 // TODO: TEST FOR UNKNOWN KEYSERVER CASE
 function setUpStateForProtocolAndKeyserver(protocol, keyserver){
@@ -57,12 +60,19 @@ function setUpStateForProtocolAndKeyserver(protocol, keyserver){
   const protocolIncluded = protocolAndKeyserver.length === 2;
 
   if (protocolIncluded) {
+    EnigmailLog.setLogLevel(2000);
+    EnigmailLog.DEBUG("--------protocolAndKeyserverIn: " + protocol + " " + keyserver + "\n");
     protocol = protocolAndKeyserver[0];
     keyserver = protocolAndKeyserver[1];
     const port = supportedProtocols[protocol];
     return { protocol: protocol, keyserverName: keyserver, port: port};
   }
-  return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
+    EnigmailLog.DEBUG("--------protocolAndKeyserverOut: " + protocol + " " + keyserver + "\n");
+    return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
+}
+
+function setUpStateForHkpProtocolAndKeyserver(keyserver){
+    return { protocol: "hkp", keyserverName: keyserver, port: "11371"};
 }
 
 function organizeProtocols() {
@@ -70,7 +80,13 @@ function organizeProtocols() {
   let states = [];
   for (let i=0; i < keyservers.length; i++) {
     states.push(setUpStateForProtocolAndKeyserver("hkps", keyservers[i]));
-    states.push(setUpStateForProtocolAndKeyserver('hkp', keyservers[i]));
+  }
+  for (let i=0; i < keyservers.length; i++) {
+    const protocolAndKeyserver = keyservers[i].split("://");
+    const protocolIncluded = protocolAndKeyserver.length === 2;
+    if (!protocolIncluded){
+      states.push(setUpStateForHkpProtocolAndKeyserver(keyservers[i]));
+    }
   }
   states = sortWithHkpsFirst(states);
   return states;

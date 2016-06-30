@@ -53,9 +53,9 @@ test(function setsUpStatesWithMixOfSpecifiedProtocols() {
   ];
 
   const sortedRequests = organizeProtocols();
-  for(var i = 0; i < sortedRequests; i++) {
-    Assert.equal(sortedRequests.protocol = expected.protocol);
-    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
+  for(var i = 0; i < sortedRequests.length; i++) {
+    Assert.equal(sortedRequests[i].protocol, expected[i].protocol);
+    Assert.equal(sortedRequests[i].keyserverName, expected[i].keyserverName);
   }
 });
 
