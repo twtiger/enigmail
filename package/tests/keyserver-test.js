@@ -48,8 +48,8 @@ test(function setsUpStatesWithMixOfSpecifiedProtocols() {
     { protocol: 'hkps', keyserverName: 'keyserver.3'},
   { protocol: 'hkps', keyserverName: 'keyserver.4'},
   { protocol: 'hkp', keyserverName: 'keyserver.1'},
-  { protocol: 'ldap', keyserverName: 'keyserver.5'},
   { protocol: 'hkp', keyserverName: 'keyserver.3'},
+  { protocol: 'ldap', keyserverName: 'keyserver.5'},
   ];
 
   const sortedRequests = organizeProtocols();

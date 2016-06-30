@@ -49,44 +49,36 @@ function sortWithHkpsFirst(keyservers){
 
 
 // TODO: TEST FOR UNKNOWN KEYSERVER CASE
-function setUpStateForProtocolAndKeyserver(protocol, keyserver){
+function buildProtocolAndKeyserver(keyserver){
   const supportedProtocols = {
     "hkps": "443",
     "hkp": "11371",
     "ldap": "389"
   };
 
+  let protocols = [];
+
   const protocolAndKeyserver = keyserver.split("://");
   const protocolIncluded = protocolAndKeyserver.length === 2;
 
   if (protocolIncluded) {
-    EnigmailLog.setLogLevel(2000);
-    EnigmailLog.DEBUG("--------protocolAndKeyserverIn: " + protocol + " " + keyserver + "\n");
-    protocol = protocolAndKeyserver[0];
-    keyserver = protocolAndKeyserver[1];
+    const protocol = protocolAndKeyserver[0];
+    const k = protocolAndKeyserver[1];
     const port = supportedProtocols[protocol];
-    return { protocol: protocol, keyserverName: keyserver, port: port};
+    protocols.push({ protocol: protocol, keyserverName: k, port: port});
   }
-    EnigmailLog.DEBUG("--------protocolAndKeyserverOut: " + protocol + " " + keyserver + "\n");
-    return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
-}
-
-function setUpStateForHkpProtocolAndKeyserver(keyserver){
-    return { protocol: "hkp", keyserverName: keyserver, port: "11371"};
+  else {
+    protocols.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
+    protocols.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
+  }
+  return protocols;
 }
 
 function organizeProtocols() {
   const keyservers = getKeyservers();
   let states = [];
   for (let i=0; i < keyservers.length; i++) {
-    states.push(setUpStateForProtocolAndKeyserver("hkps", keyservers[i]));
-  }
-  for (let i=0; i < keyservers.length; i++) {
-    const protocolAndKeyserver = keyservers[i].split("://");
-    const protocolIncluded = protocolAndKeyserver.length === 2;
-    if (!protocolIncluded){
-      states.push(setUpStateForHkpProtocolAndKeyserver(keyservers[i]));
-    }
+    states = states.concat(buildProtocolAndKeyserver(keyservers[i]));
   }
   states = sortWithHkpsFirst(states);
   return states;
