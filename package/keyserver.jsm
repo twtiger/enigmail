@@ -84,7 +84,7 @@ function resolvePath(executable) {
   return ExecutableEvaluator.executor.findExecutable(executable);
 }
 
-function buildRequestOverTor(torProperties, keyId, protocol) {
+function gpgRequestOverTor(keyId, protocol, torProperties) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
   let result = { envVars: torProperties.envVars, usingTor: true };
 
@@ -112,7 +112,7 @@ function createArgsForNormalRequests(keyId, protocol, httpProxy) {
   return args.concat(['--keyserver', getKeyserverAddress(protocol)]).concat(['--recv-keys', keyId]);
 }
 
-function buildNormalRequest(keyId, protocol, httpProxy) {
+function gpgRequest(keyId, protocol, httpProxy) {
   const refreshArgs = createArgsForNormalRequests(keyId, protocol, httpProxy);
   return {
     command: EnigmailGpgAgent.agentPath,
@@ -122,36 +122,34 @@ function buildNormalRequest(keyId, protocol, httpProxy) {
   };
 }
 
-function buildRefreshRequests(keyId, tor, httpProxy) {
-  if (tor.userWantsTorWith(Ci.nsIEnigmail.DOWNLOAD_KEY) !== true) {
-    const requests = [];
-    organizeProtocols().forEach(function(protocol) {
-      requests.push(buildNormalRequest(keyId, protocol, httpProxy));
-    });
-    return requests;
-  }
-
-  const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
-  if (!torProperties.torExists && tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY) == true) {
-    EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
-    return [];
-  }
-
-  const protocols = organizeProtocols();
+function buildManyRequests(requestBuilder, keyId, proxyInfo) {
   const requests = [];
-
-  if (torProperties.torExists === true)  {
-    for (let i=0; i<protocols.length; i++) {
-      requests.push(buildRequestOverTor(torProperties, keyId, protocols[i]));
-    }
-  }
-
-  for (let i=0; i<protocols.length; i++) {
-    if (!tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
-      requests.push(buildNormalRequest(keyId, protocols[i], httpProxy));
-    }
-  }
+  organizeProtocols().forEach(function(protocol) {
+    requests.push(requestBuilder(keyId, protocol, proxyInfo));
+  });
   return requests;
+}
+
+function buildRefreshRequests(keyId, tor, httpProxy) {
+  const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
+
+  if (tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY) === true) {
+    if (!torProperties.torExists) {
+      EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
+      return [];
+    }
+
+    return buildManyRequests(gpgRequestOverTor, keyId, torProperties);
+  }
+
+  if (tor.userWantsTorWith(Ci.nsIEnigmail.DOWNLOAD_KEY) === true && torProperties.torExists === true) {
+    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties);
+    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy);
+
+    return torRequests.concat(regularRequests);
+  }
+
+  return buildManyRequests(gpgRequest, keyId, httpProxy);
 }
 
 function contains(superSet, subSet) {
