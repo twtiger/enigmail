@@ -158,9 +158,10 @@ test(function createsRegularRequests_whenUserDoesNotWantTor() {
       return false;
     }
   };
+  const httpProxy = {getHttpProxy: function() {return null;} };
   const expectedKeyId = '1234';
 
-  const requests = buildRefreshRequests(expectedKeyId, tor);
+  const requests = buildRefreshRequests(expectedKeyId, tor, httpProxy);
 
   Assert.equal(tor.userWantsTorWithWasCalled, true);
 
