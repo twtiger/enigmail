@@ -64,17 +64,3 @@ test(function initializeWillNotSetEmptyEnvironmentValue() {
     Assert.assertArrayNotContains(EnigmailCore.getEnvList(), "APPDATA=");
   });
 });
-
-test(withLogFiles(function initializeWillStartKeyRefreshIfToggledOn(){
-  var window = JSUnit.createStubWindow();
-  newEnigmail(function(enigmail) {
-    enigmail.initialize(window, "");
-  });
-  assertLogDoesNotContain("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
-
-  EnigmailPrefs.setPref("keyRefreshOn", true);
-  newEnigmail(function(enigmail) {
-    enigmail.initialize(window, "");
-  });
-  assertLogContains("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds:");
-}));
