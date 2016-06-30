@@ -267,32 +267,3 @@ function assertLogContains(expected) {
 function assertLogDoesNotContain(expected) {
   Assert.equal(EnigmailLog.getLogData(EnigmailCore.version, EnigmailPrefs).indexOf(expected), -1);
 }
-
-
-let setTimeoutWasCalled = false;
-const MockTimer = {
-  setTimeout: function(f, time) {
-    setTimeoutWasCalled = true;
-  },
-  resetMock: function() {
-    setTimeoutWasCalled = false;
-  }
-};
-
-function assertSetTimeoutWasCalled(testName, expectedCallbackFunction) {
-  Assert.ok(setTimeoutWasCalled, "MockTimer.setTimeout() was not called. in test: " + testName);
-}
-
-function assertSetTimeoutWasNotCalled(testName) {
-  Assert.equal(setTimeoutWasCalled, false);
-}
-
-function withMockTimer(f) {
-  return function() {
-    try {
-      f();
-    } finally {
-      MockTimer.resetMock();
-    }
-  };
-}
