@@ -45,9 +45,6 @@ function sortWithHkpsFirst(keyservers){
   });
 }
 
-
-
-// TODO: TEST FOR UNKNOWN KEYSERVER CASE
 function buildProtocolAndKeyserver(keyserver){
   const supportedProtocols = {
     "hkps": "443",
