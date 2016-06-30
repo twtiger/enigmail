@@ -54,7 +54,7 @@ function startWrapper() {
 
 function startWith(timer, algorithm) {
   if (EnigmailPrefs.getPref("keyserver").trim() === ""){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keyservers are available. Did not start refresh service.\n");
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.\n");
     timer.initWithCallback(startWrapper(),
       ONE_HOUR_IN_MILLISEC,
       Ci.nsITimer.TYPE_ONE_SHOT);
@@ -77,6 +77,7 @@ function startWith(timer, algorithm) {
 // going to be refreshed at. It will choose a new key and a new
 // refresh time each run.
 function start() {
+  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
   startWith(timer(), KeyRefreshAlgorithm);
 }
 

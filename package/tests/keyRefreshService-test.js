@@ -8,7 +8,7 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, assertLogContains: false, */
 
 testing("keyRefreshService.jsm"); /*global startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false */
 
@@ -148,6 +148,6 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
 
   startWith(timer);
 
-  assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Did not start refresh service.");
+  assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 });
