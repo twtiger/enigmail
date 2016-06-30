@@ -34,7 +34,6 @@ function isHkps(keyserver){
 }
 
 function sortWithHkpsFirst(keyservers){
-  EnigmailLog.DEBUG("--------keyservers: " + keyservers + "\n");
   return keyservers.sort(function(a, b){
     if (isHkps(b) && !isHkps(a)){
       return 1;
@@ -88,7 +87,7 @@ function resolvePath(executable) {
   return ExecutableEvaluator.executor.findExecutable(executable);
 }
 
-function requestWithTor(torProperties, keyId, protocol) {
+function buildRequestOverTor(torProperties, keyId, protocol) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
   let result = { envVars: torProperties.envVars, usingTor: true };
 
@@ -107,7 +106,7 @@ function getKeyserverAddress(protocol) {
   return protocol.protocol + "://" + protocol.keyserverName + ":" + protocol.port;
 }
 
-function createRefreshKeyArgsForNormalRequests(keyId, protocol, httpProxy) {
+function createArgsForNormalRequests(keyId, protocol, httpProxy) {
   const proxyHost = httpProxy.getHttpProxy(protocol.keyserverName);
   let args = EnigmailGpg.getStandardArgs(true);
   if (proxyHost) {
@@ -116,11 +115,12 @@ function createRefreshKeyArgsForNormalRequests(keyId, protocol, httpProxy) {
   return args.concat(['--keyserver', getKeyserverAddress(protocol)]).concat(['--recv-keys', keyId]);
 }
 
-function buildNormalRequest(refreshKeyArgs) {
+function buildNormalRequest(keyId, protocol, httpProxy) {
+  const refreshArgs = createArgsForNormalRequests(keyId, protocol, httpProxy);
   return {
     command: EnigmailGpgAgent.agentPath,
     usingTor: false,
-    args: refreshKeyArgs,
+    args: refreshArgs,
     envVars: []
   };
 }
@@ -136,20 +136,17 @@ function buildRefreshRequests(keyId, tor, httpProxy) {
   const protocols = organizeProtocols();
   const requests = [];
 
-  // TODO we could build everything, and then sort at the end
   if (torProperties.torExists === true)  {
     for (let i=0; i<protocols.length; i++) {
-      requests.push(requestWithTor(torProperties, keyId, protocols[i]));
+      requests.push(buildRequestOverTor(torProperties, keyId, protocols[i]));
     }
   }
 
   for (let i=0; i<protocols.length; i++) {
     if (!tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY)) {
-      const refreshArgs = createRefreshKeyArgsForNormalRequests(keyId, protocols[i], httpProxy);
-      requests.push(buildNormalRequest(refreshArgs));
+      requests.push(buildNormalRequest(keyId, protocols[i], httpProxy));
     }
   }
-
   return requests;
 }
 
