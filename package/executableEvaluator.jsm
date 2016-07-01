@@ -85,17 +85,18 @@ const executor = {
     }
     return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
   },
-  gpgVersionOverOrEqual: function(agentVersion, minimumVersion) {
-    return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
-  }
 };
+
+function gpgVersionOverOrEqual(agentVersion, minimumVersion) {
+  return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
+}
 
 function exists(executable) {
   return executor.findExecutable(executable) !== null;
 }
 
-function versionOverOrEqual(executable, minimumVersion, executor) {
-  if (executable === 'gpg') return executor.gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
+function versionOverOrEqual(executable, minimumVersion) {
+  if (executable === 'gpg') return gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
   if (!exists(executable)) return false;
 
   const file = executor.findExecutable(executable);

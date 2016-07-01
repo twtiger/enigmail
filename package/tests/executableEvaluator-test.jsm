@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionOverOrEqual:false, gpgVersion: false*/
+testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionOverOrEqual:false, gpgVersion: false, gpgVersionOverOrEqual: false*/
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
@@ -61,11 +61,8 @@ test(function reportCurlDoesNotExist() {
 });
 
 test(function gpgNotOverOrEqual() {
-  const executor = {
-    gpgVersionOverOrEqual: function() { return false; }
-  };
   const minimum = { major: 2, minor: 0, patch: 30 };
-  Assert.equal(versionOverOrEqual('gpg', minimum, executor), false);
+  Assert.equal(versionOverOrEqual('gpg', minimum), false);
 });
 
 test(function evaluatleGpgWithEnigmailGpg() {
