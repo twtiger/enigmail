@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests:false, gpgRequest: false, createArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false */
+testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests: false, gpgRequest: false, createArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -13,59 +13,6 @@ function setupKeyserverPrefs(keyservers, autoOn) {
   EnigmailPrefs.setPref("autoKeyServerSelection", autoOn);
 }
 
-test(function organizeProtocols_withOneHkpsServer() {
-  setupKeyserverPrefs("keyserver.1", true);
-  const expected = [ {protocol: 'hkps', keyserverName: 'keyserver.1'},
-    {protocol: 'hkp', keyserverName: 'keyserver.1'} ];
-
-  const sortedRequests = organizeProtocols();
-  for(let i = 0; i < sortedRequests; i++) {
-    Assert.equal(sortedRequests.protocol = expected.protocol);
-    Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
-  }
-});
-
-test(function createStatesForMultipleKeyservers() {
-  setupKeyserverPrefs("keyserver.1, keyserver.2, keyserver.3", false);
-  const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.1' },
-    { protocol: 'hkps', keyserverName: 'keyserver.2' },
-    { protocol: 'hkps', keyserverName: 'keyserver.3' },
-    { protocol: 'hkp', keyserverName: 'keyserver.1' },
-    { protocol: 'hkp', keyserverName: 'keyserver.2' },
-    { protocol: 'hkp', keyserverName: 'keyserver.3' },
-  ];
-
-const sortedRequests = organizeProtocols();
-for(let i = 0; i < sortedRequests; i++) {
-  Assert.equal(sortedRequests.protocol = expected.protocol);
-  Assert.equal(sortedRequests.keyserverName = expected.keyserverName);
-}
-});
-
-test(function setsUpStatesWithMixOfSpecifiedProtocols() {
-  setupKeyserverPrefs("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
-  const expected = [ { protocol: 'hkps', keyserverName: 'keyserver.2'},
-    { protocol: 'hkps', keyserverName: 'keyserver.3'},
-    { protocol: 'hkps', keyserverName: 'keyserver.4'},
-    { protocol: 'hkp', keyserverName: 'keyserver.1'},
-    { protocol: 'hkp', keyserverName: 'keyserver.3'},
-    { protocol: 'ldap', keyserverName: 'keyserver.5'},
-  ];
-
-const sortedRequests = organizeProtocols();
-for(let i = 0; i < sortedRequests.length; i++) {
-  Assert.equal(sortedRequests[i].protocol, expected[i].protocol);
-  Assert.equal(sortedRequests[i].keyserverName, expected[i].keyserverName);
-}
-});
-
-test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
-  const unorderedKeyservers = [{protocol: "hkp"}, {protocol: "hkps"}, {protocol: "hkps"}];
-  const orderedKeyservers = [{protocol: "hkps"}, {protocol: "hkps"}, {protocol: "hkp"}];
-
-  Assert.deepEqual(sortWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
-});
-
 test(function setupRequestWithTorHelper(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = { torExists: true,
@@ -73,7 +20,7 @@ test(function setupRequestWithTorHelper(){
     args: torArgs,
     envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"] };
 
-  const request = gpgRequestOverTor('1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'}, torProperties);
+  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties);
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   const expectedArgs = torArgs
@@ -96,7 +43,7 @@ test(function setupRequestWithTorHelperWithEnvVariables(){
     .concat(['--keyserver', 'hkps://keyserver.1:443'])
     .concat(['--recv-keys', '1234']);
 
-  const request = gpgRequestOverTor('1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'}, torProperties);
+  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties);
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   Assert.deepEqual(request.args, expectedArgs);
@@ -107,7 +54,7 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
   const gpgProxyArgs = ['--keyserver-options', 'http-proxy=socks5h://randomUser:randomPassword@127.0.0.1:9050'];
   const torProperties = { torExists: true, command: 'gpg', args: gpgProxyArgs, envVars: []};
 
-  const request = gpgRequestOverTor('1234', {protocol:'hkps', keyserverName:'keyserver.1', port: '443'}, torProperties);
+  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
 
@@ -120,7 +67,7 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
 
 test(function createStandardRefreshKeyArguments(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
-  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
+  const protocol = 'hkps://keyserver.1:443';
   const httpProxy = {getHttpProxy: function() {return null;} };
 
   const args = createArgsForNormalRequests('1234', protocol, httpProxy);
@@ -129,7 +76,7 @@ test(function createStandardRefreshKeyArguments(){
 
 test(function createStandardRefreshKeyArgumentsWhenUserHasHttpProxy(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver-options', 'http-proxy=someProxyHost', '--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
-  const protocol = { protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
+  const protocol = 'hkps://keyserver.1:443';
   const httpProxy = {getHttpProxy: function() {return 'someProxyHost';} };
 
   const args = createArgsForNormalRequests('1234', protocol, httpProxy);
@@ -138,7 +85,7 @@ test(function createStandardRefreshKeyArgumentsWhenUserHasHttpProxy(){
 
 test(function testBuildNormalRequestWithStandardArgs(){
   const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
-  const protocol = {protocol: 'hkps', keyserverName: 'keyserver.1', port: '443'};
+  const protocol = 'hkps://keyserver.1:443';
 
   const httpProxy = {getHttpProxy: function() {return null;} };
   const request = gpgRequest('1234', protocol, httpProxy);
@@ -147,7 +94,7 @@ test(function testBuildNormalRequestWithStandardArgs(){
   Assert.deepEqual(request.args, refreshKeyArgs);
 });
 
-test(function createsRegularRequests_whenUserDoesNotWantTor() {
+test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   setupKeyserverPrefs("keyserver.1", true);
   EnigmailPrefs.setPref("downloadKeyWithTor", false);
   const tor = {
@@ -177,14 +124,15 @@ test(function createsRegularRequests_whenUserDoesNotWantTor() {
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
   Assert.equal(requests[0].usingTor, false);
+
   Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', expectedKeyId]));
 
   Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
   Assert.equal(requests[1].usingTor, false);
   Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
-});
+}));
 
-test(function createsRequestsWithTor_whenTorExists(){
+test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(enigmail){
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
@@ -225,9 +173,9 @@ test(function createsRequestsWithTor_whenTorExists(){
   Assert.deepEqual(requests[2].args, hkpsArgs);
   Assert.equal(requests[3].command.path, '/usr/bin/gpg2');
   Assert.deepEqual(requests[3].args, hkpArgs);
-});
+}));
 
-test(function createsNormalRequests_whenTorDoesntExist(){
+test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
@@ -259,9 +207,9 @@ test(function createsNormalRequests_whenTorDoesntExist(){
 
   Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
   Assert.deepEqual(requests[1].args, hkpArgs);
-});
+}));
 
-test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
+test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   setupKeyserverPrefs("keyserver.1, keyserver.2", true);
   EnigmailPrefs.setPref("downloadKeyRequireTor", true);
   const tor = {
@@ -289,7 +237,7 @@ test(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   Assert.equal(requests.length, 0);
   Assert.equal(tor.torPropertiesWasCalled, true);
   Assert.equal(tor.userRequiresTorWasCalled, true);
-});
+}));
 
 function setupAgentPathAndRequest(enigmail) {
   withEnvironment({}, function(e) {

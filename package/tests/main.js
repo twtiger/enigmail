@@ -21,6 +21,7 @@ do_subtest("streams-test.js");
 do_subtest("keyRing-test.js");
 do_subtest("keyEditor-test.js");
 do_subtest("keyserver-test.js");
+do_subtest("keyserverUris-test.js");
 do_subtest("locale-test.js");
 do_subtest("log-test.js");
 do_subtest("mime-test.js");

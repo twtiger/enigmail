@@ -20,72 +20,14 @@ Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
-
-
-const KEYSERVER_PREF = "keyserver";
-
-function getKeyservers(){
-  const keyservers = EnigmailPrefs.getPref(KEYSERVER_PREF).split(/\s*[,;]\s*/g);
-  return EnigmailPrefs.getPref("autoKeyServerSelection") ? [keyservers[0]] : keyservers;
-}
-
-function isHkps(keyserver){
-  return keyserver.protocol === "hkps";
-}
-
-function sortWithHkpsFirst(keyservers){
-  return keyservers.sort(function(a, b){
-    if (isHkps(b) && !isHkps(a)){
-      return 1;
-    }
-    if (isHkps(a) && !isHkps(b)){
-      return -1;
-    }
-    return 0;
-  });
-}
-
-function buildProtocolAndKeyserver(keyserver){
-  const supportedProtocols = {
-    "hkps": "443",
-    "hkp": "11371",
-    "ldap": "389"
-  };
-
-  let protocols = [];
-
-  const protocolAndKeyserver = keyserver.split("://");
-  const protocolIncluded = protocolAndKeyserver.length === 2;
-
-  if (protocolIncluded) {
-    const protocol = protocolAndKeyserver[0];
-    const k = protocolAndKeyserver[1];
-    const port = supportedProtocols[protocol];
-    protocols.push({ protocol: protocol, keyserverName: k, port: port});
-  }
-  else {
-    protocols.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
-    protocols.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
-  }
-  return protocols;
-}
-
-function organizeProtocols() {
-  const keyservers = getKeyservers();
-  let states = [];
-  for (let i=0; i < keyservers.length; i++) {
-    states = states.concat(buildProtocolAndKeyserver(keyservers[i]));
-  }
-  states = sortWithHkpsFirst(states);
-  return states;
-}
+Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
 function resolvePath(executable) {
   return ExecutableEvaluator.executor.findExecutable(executable);
 }
 
-function gpgRequestOverTor(keyId, protocol, torProperties) {
-  let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', getKeyserverAddress(protocol)]);
+function gpgRequestOverTor(keyId, uri, torProperties) {
+  let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', uri]);
   let result = { envVars: torProperties.envVars, usingTor: true };
 
   if (torProperties.command === 'gpg') {
@@ -99,21 +41,17 @@ function gpgRequestOverTor(keyId, protocol, torProperties) {
   return result;
 }
 
-function getKeyserverAddress(protocol) {
-  return protocol.protocol + "://" + protocol.keyserverName + ":" + protocol.port;
-}
-
-function createArgsForNormalRequests(keyId, protocol, httpProxy) {
-  const proxyHost = httpProxy.getHttpProxy(protocol.keyserverName);
+function createArgsForNormalRequests(keyId, uri, httpProxy) {
+  const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
   let args = EnigmailGpg.getStandardArgs(true);
   if (proxyHost) {
     args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
   }
-  return args.concat(['--keyserver', getKeyserverAddress(protocol)]).concat(['--recv-keys', keyId]);
+  return args.concat(['--keyserver', uri]).concat(['--recv-keys', keyId]);
 }
 
-function gpgRequest(keyId, protocol, httpProxy) {
-  const refreshArgs = createArgsForNormalRequests(keyId, protocol, httpProxy);
+function gpgRequest(keyId, uri, httpProxy) {
+  const refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy);
   return {
     command: EnigmailGpgAgent.agentPath,
     usingTor: false,
@@ -124,8 +62,8 @@ function gpgRequest(keyId, protocol, httpProxy) {
 
 function buildManyRequests(requestBuilder, keyId, proxyInfo) {
   const requests = [];
-  organizeProtocols().forEach(function(protocol) {
-    requests.push(requestBuilder(keyId, protocol, proxyInfo));
+  KeyserverURIs.prioritiseEncryption().forEach(function(uri) {
+    requests.push(requestBuilder(keyId, uri, proxyInfo));
   });
   return requests;
 }
@@ -306,11 +244,12 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
 
 const EnigmailKeyServer= {
   access: access,
+
   refresh: function(keyId) {
     EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
-    const orderedRequests = buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy);
-    for (let i=0; i<orderedRequests.length; i++) {
-      if (executesSuccessfully(orderedRequests[i], subprocess) === true) break;
-    }
+
+    buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy).forEach(function(request) {
+      if (executesSuccessfully(request, subprocess) === true) return;
+    });
   }
 };
