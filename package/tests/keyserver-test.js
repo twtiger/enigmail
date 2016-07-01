@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, executesSuccessfully: false, buildRefreshRequests: false, gpgRequest: false, createArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false */
+testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY_WITH_TOR_PREF, DOWNLOAD_KEY_REQUIRES_TOR_PREF, executesSuccessfully: false, buildRefreshRequests: false, gpgRequest: false, createArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -98,29 +98,16 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   setupKeyserverPrefs("keyserver.1", true);
   EnigmailPrefs.setPref("downloadKeyWithTor", false);
   const tor = {
-    torProperties: function(flag) {
-      Assert.equal(flag, Ci.nsIEnigmail.DOWNLOAD_KEY);
+    torProperties: function() {
       return {
         torExists: false
       };
     },
-    userRequiresTor: function(flag) {
-      Assert.equal(flag, Ci.nsIEnigmail.DOWNLOAD_KEY);
-      return false;
-    },
-    userWantsTorWithWasCalled: false,
-    userWantsTorWith: function(actionFlag) {
-      Assert.equal(actionFlag, Ci.nsIEnigmail.DOWNLOAD_KEY);
-      tor.userWantsTorWithWasCalled = true;
-      return false;
-    }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
   const expectedKeyId = '1234';
 
   const requests = buildRefreshRequests(expectedKeyId, tor, httpProxy);
-
-  Assert.equal(tor.userWantsTorWithWasCalled, true);
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
   Assert.equal(requests[0].usingTor, false);
@@ -133,6 +120,8 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
 }));
 
 test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(enigmail){
+  EnigmailPrefs.setPref(DOWNLOAD_KEY_REQUIRES_TOR_PREF, false);
+  EnigmailPrefs.setPref(DOWNLOAD_KEY_WITH_TOR_PREF, true);
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
@@ -149,12 +138,6 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
         envVars: []
       };
     },
-    userRequiresTor: function(actionFlags) {
-      return false;
-    },
-    userWantsTorWith: function(actionFlag) {
-      return true;
-    }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
 
@@ -188,12 +171,6 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
         torExists: false,
       };
     },
-    userRequiresTor: function(actionFlags) {
-      return false;
-    },
-    userWantsTorWith: function(actionFlag) {
-      return true;
-    }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
 
@@ -214,21 +191,12 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   EnigmailPrefs.setPref("downloadKeyRequireTor", true);
   const tor = {
     torPropertiesWasCalled: false,
-    torProperties: function(actionFlags) {
-      Assert.equal(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY);
+    torProperties: function() {
       tor.torPropertiesWasCalled = true;
       return {
         torExists: false
       };
     },
-    userRequiresTorWasCalled: false,
-    userRequiresTor: function(actionFlags) {
-      tor.userRequiresTorWasCalled = true;
-      return true;
-    },
-    userWantsTorWith: function(actionFlag) {
-      return true;
-    }
   };
   const httpProxy = {getHttpProxy: function() {return null;} };
 
@@ -236,7 +204,6 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
 
   Assert.equal(requests.length, 0);
   Assert.equal(tor.torPropertiesWasCalled, true);
-  Assert.equal(tor.userRequiresTorWasCalled, true);
 }));
 
 function setupAgentPathAndRequest(enigmail) {

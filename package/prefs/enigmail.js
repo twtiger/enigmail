@@ -200,13 +200,7 @@ pref("extensions.enigmail.torBrowserBundlePort", "9150");
 
 // gpg tor actions
 pref("extensions.enigmail.downloadKeyWithTor", true);
-pref("extensions.enigmail.refreshKeysWithTor", true);
-pref("extensions.enigmail.searchKeyWithTor", true);
-pref("extensions.enigmail.uploadKeyWithTor", true);
 pref("extensions.enigmail.downloadKeyRequireTor", false);
-pref("extensions.enigmail.refreshKeysRequireTor", false);
-pref("extensions.enigmail.searchKeyRequireTor", false);
-pref("extensions.enigmail.uploadKeyRequireTor", false);
 
 // Hours per week that Enigmail is available for refreshing keys
 // The smaller the hours available, the more often the refresh

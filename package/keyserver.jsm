@@ -68,22 +68,30 @@ function buildManyRequests(requestBuilder, keyId, proxyInfo) {
   return requests;
 }
 
-function buildRefreshRequests(keyId, tor, httpProxy) {
-  const torProperties = tor.torProperties(Ci.nsIEnigmail.DOWNLOAD_KEY);
+const DOWNLOAD_KEY_REQUIRES_TOR_PREF = "downloadKeyRequireTor";
+function userRequiresTor() {
+  return EnigmailPrefs.getPref(DOWNLOAD_KEY_REQUIRES_TOR_PREF) === true;
+}
 
-  if (tor.userRequiresTor(Ci.nsIEnigmail.DOWNLOAD_KEY) === true) {
+const DOWNLOAD_KEY_WITH_TOR_PREF = "downloadKeyWithTor";
+function userWantsTor() {
+  return EnigmailPrefs.getPref(DOWNLOAD_KEY_WITH_TOR_PREF) === true;
+}
+
+function buildRefreshRequests(keyId, tor, httpProxy) {
+  const torProperties = tor.torProperties();
+
+  if (userRequiresTor()) {
     if (!torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
       return [];
     }
-
     return buildManyRequests(gpgRequestOverTor, keyId, torProperties);
   }
 
-  if (tor.userWantsTorWith(Ci.nsIEnigmail.DOWNLOAD_KEY) === true && torProperties.torExists === true) {
+  if (userWantsTor() && torProperties.torExists === true) {
     const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties);
     const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy);
-
     return torRequests.concat(regularRequests);
   }
 

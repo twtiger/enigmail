@@ -8,14 +8,11 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global EnigmailTor, USER_PREFS, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
+testing("tor.jsm"); /*global EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-
-
-const DOWNLOAD_KEY_ACTION_FLAG = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
   const executableEvaluator = {
@@ -131,7 +128,6 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(function returnsFailure_whenSystemCannotFindTor() {
-  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const system = {
     findTorWasCalled : false,
     findTor: function() {
@@ -142,12 +138,11 @@ test(function returnsFailure_whenSystemCannotFindTor() {
     }
   };
 
-  Assert.deepEqual(torProperties(DOWNLOAD_KEY_ACTION_FLAG, system), { torExists: false });
+  Assert.deepEqual(torProperties(system), { torExists: false });
   Assert.equal(system.findTorWasCalled, true);
 });
 
 test(function returnsFailure_whenFindTorReturnsBadThing() {
-  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const system = {
     findTorWasCalled : false,
     findTor: function() {
@@ -158,12 +153,11 @@ test(function returnsFailure_whenFindTorReturnsBadThing() {
     }
   };
 
-  Assert.deepEqual(torProperties(DOWNLOAD_KEY_ACTION_FLAG, system), { torExists: false });
+  Assert.deepEqual(torProperties(system), { torExists: false });
   Assert.equal(system.findTorWasCalled, true);
 });
 
 test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
-  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
@@ -190,7 +184,7 @@ test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
     }
   };
 
-  const properties = torProperties(DOWNLOAD_KEY_ACTION_FLAG, system);
+  const properties = torProperties(system);
 
   Assert.equal(properties.torExists, true);
   Assert.equal(properties.command, 'torsocks');
@@ -200,7 +194,6 @@ test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
 });
 
 test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
-  EnigmailPrefs.setPref(USER_PREFS.DOWNLOAD_KEY, true);
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const gpgArgs = ['--keyserver-options', 'http-proxy=socks5h://'+username+':'+password+'@127.0.0.1:9150'];
@@ -230,7 +223,7 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
     }
   };
 
-  const properties = torProperties(DOWNLOAD_KEY_ACTION_FLAG, system);
+  const properties = torProperties(system);
 
   Assert.equal(properties.torExists, true);
   Assert.equal(properties.command, 'gpg');
