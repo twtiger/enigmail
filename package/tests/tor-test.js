@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
+testing("tor.jsm"); /*global EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyInfo, findTorExecutableHelper: false, buildEnvVars: false*/
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
@@ -100,8 +100,8 @@ test(function createGpgProxyArgs_forWindows() {
     }
   };
 
-  const expectedHttpProxyAddress = 'http-proxy=socks5-hostname://'+username+':'+password+'@127.0.0.1:9050';
-  Assert.deepEqual(gpgProxyArgs(tor, system), ['--keyserver-options', expectedHttpProxyAddress]);
+  const expectedHttpProxyAddress = 'socks5-hostname://'+username+':'+password+'@127.0.0.1:9050';
+  Assert.deepEqual(gpgProxyInfo(tor, system), expectedHttpProxyAddress);
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
 
@@ -122,8 +122,8 @@ test(function createGpgProxyArgs_forLinux() {
     }
   };
 
-  const expectedHttpProxyAddress = 'http-proxy=socks5h://'+username+':'+password+'@192.8.8.4:9150';
-  Assert.deepEqual(gpgProxyArgs(tor, system), ['--keyserver-options', expectedHttpProxyAddress]);
+  const expectedHttpProxyAddress = 'socks5h://'+username+':'+password+'@192.8.8.4:9150';
+  Assert.deepEqual(gpgProxyInfo(tor, system), expectedHttpProxyAddress);
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
 
@@ -196,7 +196,7 @@ test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
 test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
-  const gpgArgs = ['--keyserver-options', 'http-proxy=socks5h://'+username+':'+password+'@127.0.0.1:9150'];
+  const gpgArgs = ['socks5h://'+username+':'+password+'@127.0.0.1:9150'];
   const system = {
     findTorWasCalled: false,
     findTor: function() {

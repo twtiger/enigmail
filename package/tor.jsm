@@ -47,18 +47,18 @@ const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
-function gpgProxyArgs(tor, system) {
+function gpgProxyInfo(tor, system) {
   // TODO establish when to use socks5-hostname on nonWindows
-  const args = ['--keyserver-options', HTTP_PROXY_GPG_OPTION];
+  let proxyInfo = "";
   if (system.isDosLike() === true) {
-    args[1] += OLD_CURL_PROTOCOL;
+    proxyInfo += OLD_CURL_PROTOCOL;
   } else {
-    args[1] += NEW_CURL_PROTOCOL;
+    proxyInfo += NEW_CURL_PROTOCOL;
   }
 
-  args[1] += tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+  proxyInfo += tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
 
-  return args;
+  return proxyInfo;
 }
 
 function torOnEither(browserBundlePortPref, servicePortPref) {
@@ -178,7 +178,7 @@ function torProperties(system) {
   return {
     torExists: tor.exists,
     command: 'gpg',
-    args: gpgProxyArgs(tor, system),
+    args: [gpgProxyInfo(tor, system)],
     envVars: []
   };
 }

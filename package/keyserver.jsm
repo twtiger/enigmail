@@ -32,7 +32,7 @@ function gpgRequestOverTor(keyId, uri, torProperties) {
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
-    result.args = standardArgs.concat(torProperties.args).concat(['--recv-keys', keyId]);
+    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(['--recv-keys', keyId]);
   } else {
     result.command = resolvePath(torProperties.command);
     let torHelperArgs = standardArgs.concat(['--recv-keys', keyId]);
@@ -41,11 +41,15 @@ function gpgRequestOverTor(keyId, uri, torProperties) {
   return result;
 }
 
+function buildProxyInfo(proxyInfo) {
+  return ["--keyserver-options", "http-proxy=" + proxyInfo];
+}
+
 function createArgsForNormalRequests(keyId, uri, httpProxy) {
   const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
   let args = EnigmailGpg.getStandardArgs(true);
   if (proxyHost) {
-    args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
+    args = args.concat(buildProxyInfo(proxyHost));
   }
   return args.concat(['--keyserver', uri]).concat(['--recv-keys', keyId]);
 }
