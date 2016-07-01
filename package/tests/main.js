@@ -30,7 +30,6 @@ do_subtest("funcs-test.js");
 do_subtest("mimeDecrypt-test.js");
 do_subtest("expiry-test.js");
 do_subtest("installGnuPG-test.js");
-do_subtest("refreshWarrior-test.js");
 do_subtest("keyRefreshService-test.js");
 do_subtest("keyRefreshAlgorithm-test.js");
 do_subtest("tor-test.js");

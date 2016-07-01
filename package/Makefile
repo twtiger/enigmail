@@ -70,7 +70,6 @@ MODFILES = \
            promise.jsm \
            protocolHandler.jsm \
            randomNumber.jsm \
-           refreshWarrior.jsm \
            rules.jsm \
            socks5Proxy.jsm \
            streams.jsm \
