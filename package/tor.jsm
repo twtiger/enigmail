@@ -22,10 +22,18 @@ const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-const MINIMUM_CURL_VERSION = {
+// Minimum for using socks5h:// prefix
+const MINIMUM_CURL_SOCKS5H_VERSION = {
   major: 7,
   minor: 21,
   patch: 7
+};
+
+// Minimum for using socks5 proxies with curl
+const MINIMUM_CURL_SOCKS5_PROXY_VERSION = {
+  major: 7,
+  minor: 18,
+  patch: 0
 };
 
 const TORSOCKS_VERSION_2 = {
@@ -46,11 +54,11 @@ const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
-function gpgProxyInfo(tor, system) {
-  // TODO establish when to use socks5-hostname on nonWindows
-  let proxyInfo = "";
-  if (system.isDosLike() === true) {
-    proxyInfo += OLD_CURL_PROTOCOL;
+function gpgProxyArgs(tor, system, executableEvaluator) {
+  const args = ['--keyserver-options', HTTP_PROXY_GPG_OPTION];
+  if (system.isDosLike() === true ||
+    !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION, ExecutableEvaluator.executor)) {
+    args[1] += OLD_CURL_PROTOCOL;
   } else {
     proxyInfo += NEW_CURL_PROTOCOL;
   }
@@ -84,7 +92,7 @@ function meetsOSConstraints(os, executableEvaluator) {
   if (['WINNT', 'OS2'].indexOf(os) > -1) {
     return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor);
   } else {
-    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_VERSION, ExecutableEvaluator.executor);
+    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION, ExecutableEvaluator.executor);
   }
 }
 
@@ -175,7 +183,7 @@ function torProperties(system) {
   return {
     torExists: tor.exists,
     command: 'gpg',
-    args: [gpgProxyInfo(tor, system)],
+    args: gpgProxyArgs(tor, system, ExecutableEvaluator),
     envVars: []
   };
 }

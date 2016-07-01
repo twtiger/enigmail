@@ -8,7 +8,11 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
+<<<<<<< 55405ca6e7cc0562b19962839f32f8002999657e
 testing("tor.jsm"); /*global EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_VERSION, createHelperArgs, gpgProxyInfo, findTorExecutableHelper: false, buildEnvVars: false*/
+=======
+  testing("tor.jsm"); /*global EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
+>>>>>>> Does not use tor when curl does not meet minimum version to use socks5 proxies
 
 component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
@@ -44,13 +48,12 @@ test(function evaluateGpgVersionWhenOsIsWindows32() {
   Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
 });
 
-
-test(function evaluateCurlVersionWhenOsIsNotWindows() {
+test(function whenMeetsMinimumCurlSocksVersion() {
   const executableEvaluator = {
     versionOverOrEqualWasCalled: false,
     versionOverOrEqual: function(executable, minimumVersion) {
       Assert.equal(executable, 'curl');
-      Assert.deepEqual(minimumVersion, MINIMUM_CURL_VERSION);
+      Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
       executableEvaluator.versionOverOrEqualWasCalled = true;
       return true;
     }
@@ -99,9 +102,25 @@ test(function createGpgProxyArgs_forWindows() {
       return true;
     }
   };
+  const executableEvaluator = {
+    versionOverOrEqualWasCalled: false,
+    versionOverOrEqual: function(executable, minimum) {
+      Assert.equal(executable, 'curl');
+      Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
+      executableEvaluator.versionOverOrEqualWasCalled = true;
+      return false;
+    }
+  };
 
+  const args = gpgProxyArgs(tor, system, executableEvaluator);
+
+  <<<<<<< 55405ca6e7cc0562b19962839f32f8002999657e
   const expectedHttpProxyAddress = 'socks5-hostname://'+username+':'+password+'@127.0.0.1:9050';
   Assert.deepEqual(gpgProxyInfo(tor, system), expectedHttpProxyAddress);
+  =======
+    const expectedHttpProxyAddress = 'http-proxy=socks5-hostname://'+username+':'+password+'@127.0.0.1:9050';
+  Assert.deepEqual(args, ['--keyserver-options', expectedHttpProxyAddress]);
+  >>>>>>> Does not use tor when curl does not meet minimum version to use socks5 proxies
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
 
@@ -121,11 +140,57 @@ test(function createGpgProxyArgs_forLinux() {
       return false;
     }
   };
+  const executableEvaluator = {
+    versionOverOrEqualWasCalled: false,
+    versionOverOrEqual: function(executable, minimum) {
+      Assert.equal(executable, 'curl');
+      Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
+      executableEvaluator.versionOverOrEqualWasCalled = true;
+      return true;
+    }
+  };
 
-  const expectedHttpProxyAddress = 'socks5h://'+username+':'+password+'@192.8.8.4:9150';
-  Assert.deepEqual(gpgProxyInfo(tor, system), expectedHttpProxyAddress);
+  const args = gpgProxyArgs(tor, system, executableEvaluator);
+
+  const expectedHttpProxyAddress = 'http-proxy=socks5h://'+username+':'+password+'@192.8.8.4:9150';
+  Assert.deepEqual(args, ['--keyserver-options', expectedHttpProxyAddress]);
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
+
+test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
+  const username = RandomNumberGenerator.getUint32();
+  const password = RandomNumberGenerator.getUint32();
+  const tor = {
+    ip: '192.8.8.4',
+    port: 9150,
+    username: username,
+    password: password
+  };
+  const system = {
+    isDosLikeWasCalled: false,
+    isDosLike: function() {
+      system.isDosLikeWasCalled = true;
+      return false;
+    }
+  };
+  const executableEvaluator = {
+    versionOverOrEqualWasCalled: false,
+    versionOverOrEqual: function(executable, minimum) {
+      Assert.equal(executable, 'curl');
+      Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
+      executableEvaluator.versionOverOrEqualWasCalled = true;
+      return false;
+    }
+  };
+
+  const args = gpgProxyArgs(tor, system, executableEvaluator);
+
+  const expectedHttpProxyAddress = 'http-proxy=socks5-hostname://'+username+':'+password+'@192.8.8.4:9150';
+  Assert.deepEqual(args, ['--keyserver-options', expectedHttpProxyAddress]);
+  Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
+  Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, 'versionOverOrEqual was not called');
+});
+
 
 test(function returnsFailure_whenSystemCannotFindTor() {
   const system = {
@@ -157,7 +222,7 @@ test(function returnsFailure_whenFindTorReturnsBadThing() {
   Assert.equal(system.findTorWasCalled, true);
 });
 
-test(function returnsSuccesWithArgs_whenAbleToFindTorAndTorsocks() {
+test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
@@ -258,6 +323,7 @@ test(function testUseTorSocks1WhenAvailable() {
   const e = MockExecutableEvaluatorBuilder.build('torsocks').withVersion(false).get();
 
   const result = findTorExecutableHelper(e);
+
   Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks');
   Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
