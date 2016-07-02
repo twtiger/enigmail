@@ -43,7 +43,6 @@ const MINIMUM_WINDOWS_GPG_VERSION = {
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
-const HTTP_PROXY_GPG_OPTION = "http-proxy=";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
@@ -55,9 +54,7 @@ function gpgProxyInfo(tor, system) {
   } else {
     proxyInfo += NEW_CURL_PROTOCOL;
   }
-
   proxyInfo += tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
-
   return proxyInfo;
 }
 
