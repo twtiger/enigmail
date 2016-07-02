@@ -161,6 +161,11 @@ function executesSuccessfully(request, subproc) {
  * @return:      Subprocess object, or null in case process could not be started
  */
 function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+  const result = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
+  return submit(result.args, result.inputData, result.listener, result.isDownload);
+}
+
+function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   let args = EnigmailGpg.getStandardArgs(true);
 
   if (!keyserver) {
@@ -178,9 +183,9 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
       concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
   }
 
-  const proxyHost = EnigmailHttpProxy.getHttpProxy(keyserver);
+  const proxyHost = httpProxy.getHttpProxy(keyserver);
   if (proxyHost) {
-    args = args.concat(["--keyserver-options", "http-proxy=" + proxyHost]);
+    args = args.concat(buildProxyInfo(proxyHost));
   }
 
   args = args.concat(["--keyserver", keyserver.trim()]);
@@ -207,6 +212,10 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
 
   const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
 
+  return {args: args, inputData: inputData, isDownload: isDownload};
+}
+
+function submit(args, inputData, listener, isDownload) {
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
 
   let proc = null;
