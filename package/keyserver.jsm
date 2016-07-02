@@ -32,13 +32,17 @@ function gpgRequestOverTor(keyId, uri, torProperties) {
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
-    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(['--recv-keys', keyId]);
+    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(buildReceiveRequest(keyId));
   } else {
     result.command = resolvePath(torProperties.command);
-    let torHelperArgs = standardArgs.concat(['--recv-keys', keyId]);
+    let torHelperArgs = standardArgs.concat(buildReceiveRequest(keyId));
     result.args = torProperties.args.concat(torHelperArgs);
   }
   return result;
+}
+
+function buildReceiveRequest(keys) {
+  return ['--recv-keys'].concat(keys);
 }
 
 function buildProxyInfo(proxyInfo) {
@@ -51,7 +55,7 @@ function createArgsForNormalRequests(keyId, uri, httpProxy) {
   if (proxyHost) {
     args = args.concat(buildProxyInfo(proxyHost));
   }
-  return args.concat(['--keyserver', uri]).concat(['--recv-keys', keyId]);
+  return args.concat(['--keyserver', uri]).concat(buildReceiveRequest(keyId));
 }
 
 function gpgRequest(keyId, uri, httpProxy) {
@@ -72,11 +76,13 @@ function buildManyRequests(requestBuilder, keyId, proxyInfo) {
   return requests;
 }
 
+// TODO this should probably be in the torProperties object
 const DOWNLOAD_KEY_REQUIRES_TOR_PREF = "downloadKeyRequireTor";
 function userRequiresTor() {
   return EnigmailPrefs.getPref(DOWNLOAD_KEY_REQUIRES_TOR_PREF) === true;
 }
 
+// TODO this should probably be in the torProperties object
 const DOWNLOAD_KEY_WITH_TOR_PREF = "downloadKeyWithTor";
 function userWantsTor() {
   return EnigmailPrefs.getPref(DOWNLOAD_KEY_WITH_TOR_PREF) === true;
@@ -194,8 +200,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   const searchTermsList = searchTerms.split(" ");
 
   if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) {
-    args.push("--recv-keys");
-    args = args.concat(searchTermsList);
+    args = args.concat(buildReceiveRequest(searchTermsList));
   }
   else if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) {
     args.push("--refresh-keys");
