@@ -26,23 +26,50 @@ function resolvePath(executable) {
   return ExecutableEvaluator.findExecutable(executable);
 }
 
-function gpgRequestOverTor(keyId, uri, torProperties) {
+function buildReceiveRequest(keys) {
+  return ['--recv-keys'].concat(keys);
+}
+
+function buildSearchRequest(keys) {
+  return ['--search-keys'].concat(keys).concat('quit\n');
+}
+
+function buildUploadRequest(keys) {
+  return ['--send-keys'].concat(keys);
+}
+
+function buildRefreshRequest(keys) {
+  return ['--refresh-keys'];
+}
+
+function getRequestActionBuilder(actionFlags) {
+  if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) {return buildReceiveRequest;}
+  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {return buildSearchRequest;}
+  if (actionFlags & Ci.nsIEnigmail.UPLOAD_KEY) {return buildUploadRequest;}
+  if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) {return buildRefreshRequest;}
+  return null;
+}
+
+// TODO this needs to be added to Tor requests in extending to other actions
+function getInputData(actionFlags) {
+  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {return 'quit\n';}
+  return null;
+}
+
+function gpgRequestOverTor(keyId, uri, torProperties, action) {
   let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', uri]);
   let result = { envVars: torProperties.envVars, usingTor: true };
+  const requestActionBuilder = getRequestActionBuilder(action);
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
-    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(buildReceiveRequest(keyId));
+    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(requestActionBuilder(keyId));
   } else {
     result.command = resolvePath(torProperties.command);
-    let torHelperArgs = standardArgs.concat(buildReceiveRequest(keyId));
+    let torHelperArgs = standardArgs.concat(requestActionBuilder(keyId));
     result.args = torProperties.args.concat(torHelperArgs);
   }
   return result;
-}
-
-function buildReceiveRequest(keys) {
-  return ['--recv-keys'].concat(keys);
 }
 
 function buildProxyInfo(proxyInfo) {
@@ -51,68 +78,98 @@ function buildProxyInfo(proxyInfo) {
 
 function createArgsForNormalRequests(keyId, uri, httpProxy) {
   const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
+
   let args = EnigmailGpg.getStandardArgs(true);
   if (proxyHost) {
     args = args.concat(buildProxyInfo(proxyHost));
   }
-  return args.concat(['--keyserver', uri]).concat(buildReceiveRequest(keyId));
+  return args.concat(['--keyserver', uri]);
 }
 
-function gpgRequest(keyId, uri, httpProxy) {
-  const refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy);
+function gpgRequest(keyId, uri, httpProxy, action) {
+  const requestActionBuilder = getRequestActionBuilder(action);
+
+  let refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy);
+  refreshArgs = refreshArgs.concat(requestActionBuilder(keyId));
   return {
     command: EnigmailGpgAgent.agentPath,
     usingTor: false,
     args: refreshArgs,
+    inputData: getInputData(action),
     envVars: []
   };
 }
 
-function buildManyRequests(requestBuilder, keyId, proxyInfo) {
+function buildManyRequests(requestBuilder, keyId, proxyInfo, action) {
   const requests = [];
   KeyserverURIs.prioritiseEncryption().forEach(function(uri) {
-    requests.push(requestBuilder(keyId, uri, proxyInfo));
+    requests.push(buildRequest(requestBuilder, keyId, proxyInfo, action, uri));
   });
   return requests;
 }
 
-// TODO this should probably be in the torProperties object
-const DOWNLOAD_KEY_REQUIRES_TOR_PREF = "downloadKeyRequireTor";
-function userRequiresTor() {
-  return EnigmailPrefs.getPref(DOWNLOAD_KEY_REQUIRES_TOR_PREF) === true;
+function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) {
+  let request = requestBuilder(keyId, keyserver, proxyInfo, actionFlags);
+  const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+  request.isDownload = isDownload;
+  return request;
 }
 
-// TODO this should probably be in the torProperties object
-const DOWNLOAD_KEY_WITH_TOR_PREF = "downloadKeyWithTor";
-function userWantsTor() {
-  return EnigmailPrefs.getPref(DOWNLOAD_KEY_WITH_TOR_PREF) === true;
+// TODO this should probably be in tor
+const TOR_USER_PREFERENCES= {
+  DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
+  SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
+  UPLOAD: {requires: "uploadKeyRequireTor", uses: "uploadKeyWithTor", constant: Ci.nsIEnigmail.UPLOAD_KEY},
+  REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
+};
+
+// TODO this could be collapsed with userWantsTor, with required maybe set as a boolean
+function userRequiresTor(actionFlags) {
+  for (let key in TOR_USER_PREFERENCES) {
+    if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
+      const pref = TOR_USER_PREFERENCES[key].requires;
+      return EnigmailPrefs.getPref(pref) === true;
+    }
+  }
+  return null;
+}
+
+// TODO this should probably be in tor
+function userWantsTor(actionFlags) {
+  for (let key in TOR_USER_PREFERENCES) {
+    if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
+      const pref = TOR_USER_PREFERENCES[key].uses;
+      return EnigmailPrefs.getPref(pref) === true;
+    }
+  }
+  return null;
 }
 
 function buildRefreshRequests(keyId, tor, httpProxy) {
   const torProperties = tor.torProperties();
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  if (userRequiresTor()) {
+  if (userRequiresTor(refreshAction)) {
     if (!torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
       return [];
     }
-    return buildManyRequests(gpgRequestOverTor, keyId, torProperties);
+    return buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
   }
 
-  if (userWantsTor() && torProperties.torExists === true) {
-    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties);
-    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy);
+  if (userWantsTor(refreshAction) && torProperties.torExists === true) {
+    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
+    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
     return torRequests.concat(regularRequests);
   }
-
-  return buildManyRequests(gpgRequest, keyId, httpProxy);
+  return buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
 }
 
 function contains(superSet, subSet) {
   return superSet.indexOf(subSet) > -1;
 }
 
-function executesSuccessfully(request, subproc) {
+function execute(request, subproc) {
   EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
 
   function convertRequestArgsToStrings(args) {
@@ -131,7 +188,7 @@ function executesSuccessfully(request, subproc) {
   let successful = false;
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
-  subproc.call({
+  let proc = subproc.call({
     command: request.command,
     arguments: convertRequestArgsToStrings(request.args),
     environment: envVars,
@@ -167,8 +224,9 @@ function executesSuccessfully(request, subproc) {
  * @return:      Subprocess object, or null in case process could not be started
  */
 function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-  const result = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
-  return submit(result.args, result.inputData, result.listener, result.isDownload);
+  const request = build(keyserver, searchTerms, actionFlags, errorMsgObj, EnigmailHttpProxy);
+  if (request === null) return null;
+  return submit(request.args, request.inputData, listener, request.isDownload);
 }
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
@@ -183,41 +241,8 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
     errorMsgObj.value = EnigmailLocale.getString("failNoID");
     return null;
   }
-
-  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {
-    args = EnigmailGpg.getStandardArgs(false).
-      concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
-  }
-
-  const proxyHost = httpProxy.getHttpProxy(keyserver);
-  if (proxyHost) {
-    args = args.concat(buildProxyInfo(proxyHost));
-  }
-
-  args = args.concat(["--keyserver", keyserver.trim()]);
-
-  let inputData = null;
   const searchTermsList = searchTerms.split(" ");
-
-  if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) {
-    args = args.concat(buildReceiveRequest(searchTermsList));
-  }
-  else if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) {
-    args.push("--refresh-keys");
-  }
-  else if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {
-    args.push("--search-keys");
-    args = args.concat(searchTermsList);
-    inputData = "quit\n";
-  }
-  else if (actionFlags & Ci.nsIEnigmail.UPLOAD_KEY) {
-    args.push("--send-keys");
-    args = args.concat(searchTermsList);
-  }
-
-  const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-
-  return {args: args, inputData: inputData, isDownload: isDownload};
+  return buildRequest(gpgRequest, searchTermsList, httpProxy, actionFlags, keyserver.trim());
 }
 
 function submit(args, inputData, listener, isDownload) {
@@ -275,7 +300,7 @@ const EnigmailKeyServer= {
     EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
 
     buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy).forEach(function(request) {
-      if (executesSuccessfully(request, subprocess) === true) return;
+      if (execute(request, subprocess) === true) return;
     });
   }
 };
