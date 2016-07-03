@@ -36,17 +36,17 @@ const MINIMUM_CURL_SOCKS5_PROXY_VERSION = {
   patch: 0
 };
 
-const TORSOCKS_VERSION_2 = {
-  major: 2,
-  minor: 0,
-  patch: 0
-};
-
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = {
   major: 2,
   minor: 0,
   patch: 30
+};
+
+const TORSOCKS_VERSION_2 = {
+  major: 2,
+  minor: 0,
+  patch: 0
 };
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
@@ -55,10 +55,10 @@ const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
 function gpgProxyArgs(tor, system, executableEvaluator) {
-  const args = ['--keyserver-options', HTTP_PROXY_GPG_OPTION];
+  let proxyInfo = "";
   if (system.isDosLike() === true ||
     !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION, ExecutableEvaluator.executor)) {
-    args[1] += OLD_CURL_PROTOCOL;
+    proxyInfo += OLD_CURL_PROTOCOL;
   } else {
     proxyInfo += NEW_CURL_PROTOCOL;
   }
