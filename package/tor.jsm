@@ -57,7 +57,7 @@ const OLD_CURL_PROTOCOL = "socks5-hostname://";
 function gpgProxyArgs(tor, system, executableEvaluator) {
   let proxyInfo = "";
   if (system.isDosLike() === true ||
-    !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION, ExecutableEvaluator.executor)) {
+    !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
     proxyInfo += OLD_CURL_PROTOCOL;
   } else {
     proxyInfo += NEW_CURL_PROTOCOL;
@@ -90,9 +90,9 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
 
 function meetsOSConstraints(os, executableEvaluator) {
   if (['WINNT', 'OS2'].indexOf(os) > -1) {
-    return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION, ExecutableEvaluator.executor);
+    return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION);
   } else {
-    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION, ExecutableEvaluator.executor);
+    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
 }
 

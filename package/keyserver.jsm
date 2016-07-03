@@ -23,7 +23,7 @@ Cu.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEv
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
 function resolvePath(executable) {
-  return ExecutableEvaluator.executor.findExecutable(executable);
+  return ExecutableEvaluator.findExecutable(executable);
 }
 
 function gpgRequestOverTor(keyId, uri, torProperties) {
