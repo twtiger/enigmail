@@ -46,16 +46,10 @@ function refreshKey() {
   };
 }
 
-function startWrapper() {
-  return function() {
-    KeyRefreshService.start();
-  };
-}
-
 function startWith(timer, algorithm) {
   if (EnigmailPrefs.getPref("keyserver").trim() === ""){
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.\n");
-    timer.initWithCallback(startWrapper(),
+    timer.initWithCallback(KeyRefreshService.start,
       ONE_HOUR_IN_MILLISEC,
       Ci.nsITimer.TYPE_ONE_SHOT);
     return;
@@ -63,7 +57,7 @@ function startWith(timer, algorithm) {
 
   if (EnigmailKeyRing.getAllKeys().keyList.length === 0) {
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.\n");
-    timer.initWithCallback(startWrapper(),
+    timer.initWithCallback(KeyRefreshService.start,
       ONE_HOUR_IN_MILLISEC,
       Ci.nsITimer.TYPE_ONE_SHOT);
     return;
@@ -82,5 +76,5 @@ function start() {
 }
 
 const KeyRefreshService = {
-  start: start,
+  start: start
 };
