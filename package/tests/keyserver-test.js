@@ -31,7 +31,6 @@ test(function setupRequestWithTorHelper(){
       .concat(['--recv-keys', '1234']);
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  EnigmailLog.setLogLevel(8000);
   const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties, action);
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
@@ -84,7 +83,8 @@ test(function createStandardRefreshKeyArguments(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443']);
   const protocol = 'hkps://keyserver.1:443';
 
-  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy(null));
+  const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy(null), action);
   Assert.deepEqual(args, expectedArgs);
 });
 
@@ -93,7 +93,8 @@ test(function createStandardRefreshKeyArgumentsWhenUserHasHttpProxy(){
   const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver-options', 'http-proxy=someProxyHost', '--keyserver', 'hkps://keyserver.1:443']);
   const protocol = 'hkps://keyserver.1:443';
 
-  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy('someProxyHost'));
+  const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy('someProxyHost'), action);
   Assert.deepEqual(args, expectedArgs);
 });
 
@@ -120,7 +121,6 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   };
   const expectedKeyId = '1234';
 
-  EnigmailLog.setLogLevel(8000);
   const requests = buildRefreshRequests(expectedKeyId, tor, buildMockHttpProxy(null));
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
@@ -258,8 +258,7 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
   Assert.equal(subproc.callWasCalled, true);
 }));
 
-/// Adding tests to start refactoring to use the same code for refreshing keys as for other gpg arguments
-// Always sends fully-formed keyserver uri
+// build always expects a fully-formed keyserver uri
 
 test(function testBasicNormalQuery() {
   var actionflags = Ci.nsIEnigmail.REFRESH_KEY;
@@ -267,10 +266,14 @@ test(function testBasicNormalQuery() {
   var searchterms = "";
   var errormsgobj = {};
 
+  const expectedArgs = EnigmailGpg.getStandardArgs(true)
+                        .concat("--keyserver")
+                        .concat("keyserver0005")
+                        .concat("--refresh-keys");
+
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj, buildMockHttpProxy(null));
 
-  Assert.ok(keyRequest.args.indexOf("--refresh-keys") !== -1);
-  Assert.ok(keyRequest.args.indexOf("keyserver0005") !== -1); // eslint-disable-line dot-notation
+  Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
   Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.REFRESH_KEY);
   Assert.equal(errormsgobj.value, null);
@@ -282,27 +285,37 @@ test(function testBasicNormalQueryWithHTTPPRoxy() {
   var searchterms = "1";
   var errormsgobj = {};
 
+  const expectedArgs = EnigmailGpg.getStandardArgs(true)
+                        .concat("--keyserver-options")
+                        .concat("http-proxy=someHttpProxy")
+                        .concat("--keyserver")
+                        .concat("keyserver0005")
+                        .concat("--refresh-keys");
+
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj, buildMockHttpProxy("someHttpProxy"));
 
-  Assert.ok(keyRequest.args.indexOf("--refresh-keys") !== -1);
-  Assert.ok(keyRequest.args.indexOf("--keyserver") !== -1);
-  Assert.ok(keyRequest.args.indexOf("http-proxy=someHttpProxy") !== -1);
-  Assert.ok(keyRequest.args.indexOf("keyserver0005") !== -1); // eslint-disable-line dot-notation
+  Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
   Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.REFRESH_KEY);
   Assert.equal(errormsgobj.value, null);
 });
 
 test(function testBasicNormalQueryWithInputData() {
-  var actionflags = Ci.nsIEnigmail.SEARCH_KEY;
-  var keyserver = "keyserver0005";
-  var searchterms = "1";
-  var errormsgobj = {};
+  const actionflags = Ci.nsIEnigmail.SEARCH_KEY;
+  const keyserver = "keyserver0005";
+  const searchterms = "1";
+  const errormsgobj = {};
+
+  const expectedArgs = EnigmailGpg.getStandardArgs(false)
+                        .concat(["--command-fd", "0", "--fixed-list", "--with-colons"])
+                        .concat("--keyserver")
+                        .concat("keyserver0005")
+                        .concat("--search-keys")
+                        .concat("1");
 
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj, buildMockHttpProxy(null));
 
-  Assert.ok(keyRequest.args.indexOf("--search-keys") !== -1);
-  Assert.ok(keyRequest.args.indexOf("keyserver0005") !== -1); // eslint-disable-line dot-notation
+  Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, "quit\n");
   Assert.equal(keyRequest.isDownload, 0);
   Assert.equal(errormsgobj.value, null);
@@ -314,11 +327,15 @@ test(function testNormalReceiveKeyQuery() {
   var searchterms = "0001";
   var errormsgobj = {};
 
+  const expectedArgs = EnigmailGpg.getStandardArgs(true)
+                        .concat("--keyserver")
+                        .concat("keyserver0005")
+                        .concat("--recv-keys")
+                        .concat("0001");
+
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj, buildMockHttpProxy(null));
 
-  Assert.ok(keyRequest.args.indexOf("--recv-keys") !== -1);
-  Assert.ok(keyRequest.args.indexOf("0001") !== -1);
-  Assert.ok(keyRequest.args.indexOf("keyserver0005") !== -1); // eslint-disable-line dot-notation
+  Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
   Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.DOWNLOAD_KEY);
   Assert.equal(errormsgobj.value, null);
@@ -330,11 +347,15 @@ test(function testNormalUploadKeyRequest() {
   var searchterms = "0001";
   var errormsgobj = {};
 
+  const expectedArgs = EnigmailGpg.getStandardArgs(true)
+                        .concat("--keyserver")
+                        .concat("keyserver0005")
+                        .concat("--send-keys")
+                        .concat("0001");
+
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj, buildMockHttpProxy(null));
 
-  Assert.ok(keyRequest.args.indexOf("--send-keys") !== -1);
-  Assert.ok(keyRequest.args.indexOf("0001") !== -1);
-  Assert.ok(keyRequest.args.indexOf("keyserver0005") !== -1); // eslint-disable-line dot-notation
+  Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
   Assert.equal(keyRequest.isDownload, 0);
   Assert.equal(errormsgobj.value, null);

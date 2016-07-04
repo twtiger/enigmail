@@ -31,7 +31,7 @@ function buildReceiveRequest(keys) {
 }
 
 function buildSearchRequest(keys) {
-  return ['--search-keys'].concat(keys).concat('quit\n');
+  return ['--search-keys'].concat(keys);
 }
 
 function buildUploadRequest(keys) {
@@ -76,10 +76,17 @@ function buildProxyInfo(proxyInfo) {
   return ["--keyserver-options", "http-proxy=" + proxyInfo];
 }
 
-function createArgsForNormalRequests(keyId, uri, httpProxy) {
+function buildStandardArgs(action) {
+  if (action & Ci.nsIEnigmail.SEARCH_KEY) {
+    return EnigmailGpg.getStandardArgs(false).concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
+  }
+  return EnigmailGpg.getStandardArgs(true);
+}
+
+function createArgsForNormalRequests(keyId, uri, httpProxy, action) {
   const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
 
-  let args = EnigmailGpg.getStandardArgs(true);
+  let args = buildStandardArgs(action);
   if (proxyHost) {
     args = args.concat(buildProxyInfo(proxyHost));
   }
@@ -89,7 +96,7 @@ function createArgsForNormalRequests(keyId, uri, httpProxy) {
 function gpgRequest(keyId, uri, httpProxy, action) {
   const requestActionBuilder = getRequestActionBuilder(action);
 
-  let refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy);
+  let refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy, action);
   refreshArgs = refreshArgs.concat(requestActionBuilder(keyId));
   return {
     command: EnigmailGpgAgent.agentPath,
