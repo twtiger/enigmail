@@ -231,7 +231,7 @@ function execute(request, subproc) {
  * @return:      Subprocess object, or null in case process could not be started
  */
 function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-  const request = build(keyserver, searchTerms, actionFlags, errorMsgObj, EnigmailHttpProxy);
+  const request = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
   if (request === null) return null;
   return submit(request.args, request.inputData, listener, request.isDownload);
 }
