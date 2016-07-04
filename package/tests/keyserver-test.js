@@ -362,39 +362,3 @@ test(function testErrorSearchQueryWithNoID() {
   Assert.equal(errormsgobj.value, EnigmailLocale.getString("failNoID"));
 });
 
-//test(function testBuildRefreshRequests() {
-//  setupKeyserverPrefs("keyserver.1", true);
-//  EnigmailPrefs.setPref("downloadKeyWithTor", false);
-//  const tor = {
-//    torProperties: function() {
-//      return {
-//        torExists: false
-//      };
-//    },
-//  };
-//  const searchTerms = '1234';
-//  const keyserver = 'keyserver.1';
-//  var actionFlags = Ci.nsIEnigmail.DOWNLOAD_KEY;
-//
-//  const requests = buildRequests(keyserver, searchTerms, actionFlags, tor, buildMockHttpProxy(null));
-//
-//  Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
-//  Assert.equal(requests[0].usingTor, false);
-//
-//  Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', searchTerms]));
-//
-//  Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
-//  Assert.equal(requests[1].usingTor, false);
-//  Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
-//  buildRequests
-//
-//  Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
-//  Assert.equal(requests[0].usingTor, false);
-//
-//  Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', expectedKeyId]));
-//
-//  Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
-//  Assert.equal(requests[1].usingTor, false);
-//  Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
-//
-//})
