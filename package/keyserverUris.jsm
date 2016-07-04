@@ -40,34 +40,32 @@ function buildProtocolAndKeyserver(keyserver){
     "ldap": "389"
   };
 
-  let protocols = [];
-
   const protocolAndKeyserver = keyserver.split("://");
   const protocolIncluded = protocolAndKeyserver.length === 2;
 
+  const uris = [];
   if (protocolIncluded) {
     const protocol = protocolAndKeyserver[0];
     const keyserverName = protocolAndKeyserver[1];
     const port = supportedProtocols[protocol];
 
-    protocols.push({ protocol: protocol, keyserverName: keyserverName, port: port});
+    uris.push({ protocol: protocol, keyserverName: keyserverName, port: port});
   }
   else {
-    protocols.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
-    protocols.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
+    uris.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
+    uris.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
   }
-  return protocols;
+  return uris;
 }
 
 function prioritiseEncryption() {
-  const keyservers = getKeyservers();
-  let states = [];
-  for (let i=0; i < keyservers.length; i++) {
-    states = states.concat(buildProtocolAndKeyserver(keyservers[i]));
-  }
+  let uris = [];
+  getKeyservers().forEach(function(keyserver) {
+    uris = uris.concat(buildProtocolAndKeyserver(keyserver));
+  });
 
   const addresses = [];
-  sortWithHkpsFirst(states).forEach(function(uri) {
+  sortWithHkpsFirst(uris).forEach(function(uri) {
     addresses.push(concatAddress(uri.protocol, uri.keyserverName, uri.port));
   });
   return addresses;

@@ -55,15 +55,12 @@ const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
 function gpgProxyArgs(tor, system, executableEvaluator) {
-  let proxyInfo = "";
   if (system.isDosLike() === true ||
     !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    proxyInfo += OLD_CURL_PROTOCOL;
+    return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
   } else {
-    proxyInfo += NEW_CURL_PROTOCOL;
+    return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
   }
-  proxyInfo += tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
-  return proxyInfo;
 }
 
 function torOnEither(browserBundlePortPref, servicePortPref) {
