@@ -300,10 +300,8 @@ const EnigmailKeyServer= {
     EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
 
     const requests = buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy);
-    let i=0;
-    while (i < requests.length) {
-      if (execute(requests[i], subprocess) === true) break;
-      i++;
+    for (let i=0; i<requests.length; i++) {
+      if (execute(requests[i], subprocess) === true) return;
     }
   }
 };
