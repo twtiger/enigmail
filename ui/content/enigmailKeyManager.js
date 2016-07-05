@@ -1121,7 +1121,7 @@ function userAcceptsWarning(warningMessage) {
 
   let checkedObj = {};
   const confirm = EnigLongAlert(warningMessage, EnigGetString("dlgNoPrompt"), EnigGetString("dlg.button.continue"), ":cancel", null, checkedObj) === 0;
-  if (checkedObj.value === true)
+  if (checkedObj.value)
     EnigSetPref("warnRefreshAll", false);
   return confirm;
 }
