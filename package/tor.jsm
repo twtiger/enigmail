@@ -72,7 +72,7 @@ function getAction(actionFlags) {
 
 function isUsed(actionFlags) {
   const action = getAction(actionFlags);
-  return action.uses;
+  return action.uses || action.requires;
 }
 
 function isRequired(actionFlags) {

@@ -183,7 +183,7 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
       };
     },
     isRequired: function(action) {return true;},
-    isUsed: function(action) {return false;}
+    isUsed: function(action) {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;

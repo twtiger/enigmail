@@ -128,14 +128,6 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
   return result;
 }
 
-function buildManyRequests(requestBuilder, keyId, proxyInfo, action) {
-  const requests = [];
-  KeyserverURIs.prioritiseEncryption().forEach(function(uri) {
-    requests.push(buildRequest(requestBuilder, keyId, proxyInfo, action, uri));
-  });
-  return requests;
-}
-
 function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) {
   let request = requestBuilder(keyId, keyserver, proxyInfo, actionFlags);
   const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
@@ -149,15 +141,9 @@ function buildRequests(keyId, action, tor, httpProxy) {
   const uris = KeyserverURIs.prioritiseEncryption();
   let requests = [];
 
-  if (tor.isRequired(action)) {
-    if (!torProperties.torExists) {
+  if (tor.isRequired(action) && !torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
       return [];
-    }
-    uris.forEach(function(uri) {
-      requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties, action, uri));
-    });
-    return requests;
   }
 
   if (tor.isUsed(action) && torProperties.torExists === true) {
@@ -166,9 +152,12 @@ function buildRequests(keyId, action, tor, httpProxy) {
     });
   }
 
-  uris.forEach(function(uri) {
-    requests.push(buildRequest(gpgRequest, keyId, httpProxy, action, uri));
-  });
+  if (!tor.isRequired(action)){
+    uris.forEach(function(uri) {
+      requests.push(buildRequest(gpgRequest, keyId, httpProxy, action, uri));
+    });
+  }
+
   return requests;
 }
 
