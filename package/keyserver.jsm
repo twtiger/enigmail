@@ -188,31 +188,6 @@ function stringContains(stringToCheck, substring) {
   return stringToCheck.indexOf(substring) > -1;
 }
 
-function executeRefresh(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n\n");
-
-  let stdout = '';
-  let stderr = '';
-
-  const listener = {
-    done: function(exitCode) {
-      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
-    },
-    stderr: function(data) {
-      if (data !== "") { EnigmailLog.CONSOLE("stderr: " + data);}
-      stderr += data;
-    },
-    stdout: function(data) {
-      if (data !== "") { EnigmailLog.CONSOLE("stdout: " + data);}
-      stdout += data;
-    }
-  };
-  const proc = execute(request, listener, subproc);
-  proc.wait();
-  const successful = stringContains(stderr, "IMPORT_OK");
-  return successful;
-}
-
 function convertRequestArgsToStrings(args) {
   for (let i=0; i<args.length; i++) {
     if (typeof args[i] !== 'string') {
@@ -272,22 +247,29 @@ function execute(request, listener, subproc) {
   return proc;
 }
 
-/**
- * search, download or upload key on, from or to a keyserver
- *
- * @actionFlags: Integer - flags (bitmap) to determine the required action
- *                         (see nsIEnigmail - Keyserver action flags for details)
- * @keyserver:   String  - keyserver URL (optionally incl. protocol)
- * @searchTerms: String  - space-separated list of search terms or key IDs
- * @listener:    Object  - execStart Listener Object. See execStart for details.
- * @errorMsgObj: Object  - object to hold error message in .value
- *
- * @return:      Subprocess object, or null in case process could not be started
- */
-function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
-  const request = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
-  if (request === null) return null;
-  return execute(request, listener, subprocess);
+function executeRefresh(request, subproc) {
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n\n");
+
+  let stdout = '';
+  let stderr = '';
+
+  const listener = {
+    done: function(exitCode) {
+      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
+    },
+    stderr: function(data) {
+      if (data !== "") { EnigmailLog.CONSOLE("stderr: " + data);}
+      stderr += data;
+    },
+    stdout: function(data) {
+      if (data !== "") { EnigmailLog.CONSOLE("stdout: " + data);}
+      stdout += data;
+    }
+  };
+  const proc = execute(request, listener, subproc);
+  proc.wait();
+  const successful = stringContains(stderr, "IMPORT_OK");
+  return successful;
 }
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
@@ -305,6 +287,33 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   const searchTermsList = searchTerms.split(" ");
   return buildRequest(gpgRequest, searchTermsList, httpProxy, actionFlags, keyserver.trim());
 }
+
+/**
+ * search, download or upload key on, from or to a keyserver
+ *
+ * @actionFlags: Integer - flags (bitmap) to determine the required action
+ *                         (see nsIEnigmail - Keyserver action flags for details)
+ * @keyserver:   String  - keyserver URL (optionally incl. protocol)
+ * @searchTerms: String  - space-separated list of search terms or key IDs
+ * @listener:    Object  - execStart Listener Object. See execStart for details.
+ * @errorMsgObj: Object  - object to hold error message in .value
+ *
+ * @return:      Subprocess object, or null in case process could not be started
+ */
+
+function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
+  const request = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
+  if (request === null) return null;
+  return execute(request, listener, subprocess);
+}
+
+/**
+ * builds a list of gpg requests to try to refresh a key
+ *
+ * @keyId:      Integer - id of the user key to be refreshed
+ *
+ * @return:     No return value; exits when either a key has been successfully refreshed, or if all possible attempts have failed
+ */
 
 function refresh(keyId){
   EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
