@@ -243,8 +243,7 @@ function executeRefresh(request, subproc) {
       stdout += data;
     }
   };
-  const proc = execute(request, listener, subproc);
-  proc.wait();
+  execute(request, listener, subproc).wait();
   const successful = stringContains(stderr, "IMPORT_OK");
   return successful;
 }
