@@ -170,7 +170,7 @@ function buildRequests(keyId, action, tor, httpProxy) {
 
   if (getUserTorPrefs(action, true)) {
     if (!torProperties.torExists) {
-      EnigmailLog.CONSOLE("Unable to perform action with key" + keyId + " because Tor is required but not available.\n");
+      EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
       return [];
     }
     return buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
