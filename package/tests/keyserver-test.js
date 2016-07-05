@@ -167,6 +167,37 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
     isUsed: function() {return true;}
   };
 
+  test(withEnigmail(function createsRequestsWithOnlyTor_whenTorIsRequired(enigmail){
+  setupKeyserverPrefs("keyserver.1", true);
+  const keyId = '1234';
+  const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+  const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
+  const tor = {
+    torProperties: function() {
+      return {
+        torExists: true,
+        command: 'torsocks',
+        args: torArgs,
+        envVars: []
+      };
+    },
+    isRequired: function(action) {return true;},
+    isUsed: function(action) {return false;}
+  };
+
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
+
+  Assert.equal(requests.length, 2);
+
+  Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
+
+  Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
+}));
+
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
 
