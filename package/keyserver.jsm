@@ -39,29 +39,6 @@ function getInputData(actionFlags) {
   return null;
 }
 
-function gpgRequestOverTor(keyId, uri, torProperties, action) {
-  let result = { envVars: torProperties.envVars, usingTor: true };
-
-  if (torProperties.command === 'gpg') {
-    result.command =  EnigmailGpgAgent.agentPath;
-    result.args = requestArgsBuilder.init()
-      .withStandardArgs(action)
-      .withKeyserver(uri)
-      .withTorProxy(torProperties.args)
-      .withAction(action, keyId)
-      .get();
-  } else {
-    result.command = resolvePath(torProperties.command);
-    result.args = requestArgsBuilder.init()
-      .withTorArgs(torProperties.args)
-      .withStandardArgs(action)
-      .withKeyserver(uri)
-      .withAction(action, keyId)
-      .get();
-  }
-  return result;
-}
-
 function buildProxyInfo(httpProxy, uri) {
   const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
   if (proxyHost !== null) {
@@ -128,6 +105,29 @@ function gpgRequest(keyId, uri, httpProxy, action) {
   };
 }
 
+function gpgRequestOverTor(keyId, uri, torProperties, action) {
+  let result = { envVars: torProperties.envVars, usingTor: true };
+
+  if (torProperties.command === 'gpg') {
+    result.command =  EnigmailGpgAgent.agentPath;
+    result.args = requestArgsBuilder.init()
+      .withStandardArgs(action)
+      .withKeyserver(uri)
+      .withTorProxy(torProperties.args)
+      .withAction(action, keyId)
+      .get();
+  } else {
+    result.command = resolvePath(torProperties.command);
+    result.args = requestArgsBuilder.init()
+      .withTorArgs(torProperties.args)
+      .withStandardArgs(action)
+      .withKeyserver(uri)
+      .withAction(action, keyId)
+      .get();
+  }
+  return result;
+}
+
 function buildManyRequests(requestBuilder, keyId, proxyInfo, action) {
   const requests = [];
   KeyserverURIs.prioritiseEncryption().forEach(function(uri) {
@@ -146,20 +146,30 @@ function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) 
 function buildRequests(keyId, action, tor, httpProxy) {
   const torProperties = tor.torProperties();
 
+  const uris = KeyserverURIs.prioritiseEncryption();
+  let requests = [];
+
   if (tor.isRequired(action)) {
     if (!torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
       return [];
     }
-    return buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
+    uris.forEach(function(uri) {
+      requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties, action, uri));
+    });
+    return requests;
   }
 
   if (tor.isUsed(action) && torProperties.torExists === true) {
-    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
-    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, action);
-    return torRequests.concat(regularRequests);
+    uris.forEach(function(uri) {
+      requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties, action, uri));
+    });
   }
-  return buildManyRequests(gpgRequest, keyId, httpProxy, action);
+
+  uris.forEach(function(uri) {
+    requests.push(buildRequest(gpgRequest, keyId, httpProxy, action, uri));
+  });
+  return requests;
 }
 
 function stringContains(stringToCheck, substring) {
