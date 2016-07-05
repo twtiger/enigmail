@@ -66,10 +66,11 @@ function startWith(timer, algorithm) {
   setupNextRefresh(timer, algorithm);
 }
 
-// If this operation is interrupted, it will not keep track of
-// what key it was trying to refresh or what time the key was
-// going to be refreshed at. It will choose a new key and a new
-// refresh time each run.
+/**
+ * starts a continuous refresh service
+ *
+ * this service does not keep state, it will restart each time Enigmail is initialized.
+ */
 function start() {
   EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
   startWith(timer(), KeyRefreshAlgorithm);
