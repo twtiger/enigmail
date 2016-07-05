@@ -50,30 +50,41 @@ function getRequestActionBuilder(actionFlags) {
   return null;
 }
 
-// TODO this needs to be added to Tor requests in extending to other actions
 function getInputData(actionFlags) {
   if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {return 'quit\n';}
   return null;
 }
 
 function gpgRequestOverTor(keyId, uri, torProperties, action) {
-  let standardArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', uri]);
   let result = { envVars: torProperties.envVars, usingTor: true };
   const requestActionBuilder = getRequestActionBuilder(action);
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
-    result.args = standardArgs.concat(buildProxyInfo(torProperties.args)).concat(requestActionBuilder(keyId));
+    result.args = requestArgsBuilder.init()
+      .withStandardArgs(action)
+      .withKeyserver(uri)
+      .withTorProxy(torProperties.args)
+      .withAction(action, keyId)
+      .get();
   } else {
     result.command = resolvePath(torProperties.command);
-    let torHelperArgs = standardArgs.concat(requestActionBuilder(keyId));
-    result.args = torProperties.args.concat(torHelperArgs);
+    result.args = requestArgsBuilder.init()
+      .withTorArgs(torProperties.args)
+      .withStandardArgs(action)
+      .withKeyserver(uri)
+      .withAction(action, keyId)
+      .get();
   }
   return result;
 }
 
-function buildProxyInfo(proxyInfo) {
-  return ["--keyserver-options", "http-proxy=" + proxyInfo];
+function buildProxyInfo(httpProxy, uri) {
+  const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
+  if (proxyHost !== null) {
+    return ["--keyserver-options", "http-proxy=" + proxyHost];
+  }
+  return [];
 }
 
 function buildStandardArgs(action) {
@@ -83,25 +94,55 @@ function buildStandardArgs(action) {
   return EnigmailGpg.getStandardArgs(true);
 }
 
-function createArgsForNormalRequests(keyId, uri, httpProxy, action) {
-  const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
-
-  let args = buildStandardArgs(action);
-  if (proxyHost) {
-    args = args.concat(buildProxyInfo(proxyHost));
+const requestArgsBuilder = {
+  init: function() {
+    this.args = [];
+    return this;
+  },
+  withStandardArgs: function(action) {
+    this.args = this.args.concat(buildStandardArgs(action));
+    return this;
+  },
+  withKeyserver: function(uri) {
+    this.args = this.args.concat(['--keyserver', uri]);
+    return this;
+  },
+  withHttpProxy: function(httpProxy, uri) {
+    this.args = this.args.concat(buildProxyInfo(httpProxy, uri));
+    return this;
+  },
+  withTorArgs: function(args) {
+    this.args = this.args.concat(args);
+    return this;
+  },
+  withTorProxy: function(proxyInfo) {
+    this.args = this.args.concat(["--keyserver-options", "http-proxy=" + proxyInfo]);
+    return this;
+  },
+  withAction: function(action, keyId) {
+    const requestActionBuilder = getRequestActionBuilder(action);
+    this.args = this.args.concat(requestActionBuilder(keyId));
+    return this;
+  },
+  get: function() {
+    return this.args;
   }
-  return args.concat(['--keyserver', uri]);
-}
+};
 
 function gpgRequest(keyId, uri, httpProxy, action) {
   const requestActionBuilder = getRequestActionBuilder(action);
 
-  let refreshArgs = createArgsForNormalRequests(keyId, uri, httpProxy, action);
-  refreshArgs = refreshArgs.concat(requestActionBuilder(keyId));
+  const args = requestArgsBuilder.init()
+    .withStandardArgs(action)
+    .withHttpProxy(httpProxy, uri)
+    .withKeyserver(uri)
+    .withAction(action, keyId)
+    .get();
+
   return {
     command: EnigmailGpgAgent.agentPath,
     usingTor: false,
-    args: refreshArgs,
+    args: args,
     inputData: getInputData(action),
     envVars: []
   };
@@ -141,7 +182,6 @@ function userRequiresTor(actionFlags) {
   return null;
 }
 
-// TODO this should probably be in tor
 function userWantsTor(actionFlags) {
   for (let key in TOR_USER_PREFERENCES) {
     if (TOR_USER_PREFERENCES[key].constant & actionFlags) {

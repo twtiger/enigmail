@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, execute: false, buildRefreshRequests: false, gpgRequest: false, createArgsForNormalRequests: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, execute: false, buildRefreshRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -78,25 +78,6 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, expectedArgs);
 })));
-
-test(function createStandardRefreshKeyArguments(){
-  const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443']);
-  const protocol = 'hkps://keyserver.1:443';
-
-  const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
-  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy(null), action);
-  Assert.deepEqual(args, expectedArgs);
-});
-
-
-test(function createStandardRefreshKeyArgumentsWhenUserHasHttpProxy(){
-  const expectedArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver-options', 'http-proxy=someProxyHost', '--keyserver', 'hkps://keyserver.1:443']);
-  const protocol = 'hkps://keyserver.1:443';
-
-  const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
-  const args = createArgsForNormalRequests('1234', protocol, buildMockHttpProxy('someProxyHost'), action);
-  Assert.deepEqual(args, expectedArgs);
-});
 
 test(function testBuildNormalRequestWithStandardArgs(){
   const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
