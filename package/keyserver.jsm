@@ -143,32 +143,10 @@ function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) 
   return request;
 }
 
-// TODO maybe this should be in tor
-const TOR_USER_PREFERENCES= {
-  DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
-  SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
-  UPLOAD: {requires: "uploadKeyRequireTor", uses: "uploadKeyWithTor", constant: Ci.nsIEnigmail.UPLOAD_KEY},
-  REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
-};
-
-function getUserTorPrefs(actionFlags, isRequired) {
-  for (let key in TOR_USER_PREFERENCES) {
-    if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
-      if (isRequired) {
-        const prefName = TOR_USER_PREFERENCES[key].requires;
-        return EnigmailPrefs.getPref(prefName);
-      }
-      const prefName = TOR_USER_PREFERENCES[key].uses;
-      return EnigmailPrefs.getPref(prefName);
-    }
-  }
-  return false;
-}
-
 function buildRequests(keyId, action, tor, httpProxy) {
   const torProperties = tor.torProperties();
 
-  if (getUserTorPrefs(action, true)) {
+  if (tor.isRequired(action)) {
     if (!torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
       return [];
@@ -176,7 +154,7 @@ function buildRequests(keyId, action, tor, httpProxy) {
     return buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
   }
 
-  if (getUserTorPrefs(action, false) && torProperties.torExists === true) {
+  if (tor.isUsed(action) && torProperties.torExists === true) {
     const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
     const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, action);
     return torRequests.concat(regularRequests);

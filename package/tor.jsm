@@ -54,6 +54,32 @@ const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
 const NEW_CURL_PROTOCOL = "socks5h://";
 const OLD_CURL_PROTOCOL = "socks5-hostname://";
 
+const TOR_USER_PREFERENCES= {
+  DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
+  SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
+  UPLOAD: {requires: "uploadKeyRequireTor", uses: "uploadKeyWithTor", constant: Ci.nsIEnigmail.UPLOAD_KEY},
+  REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
+};
+
+function getAction(actionFlags) {
+  for (let key in TOR_USER_PREFERENCES) {
+    if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
+      return TOR_USER_PREFERENCES[key];
+    }
+  }
+  return null;
+}
+
+function isUsed(actionFlags) {
+  const action = getAction(actionFlags);
+  return action.uses;
+}
+
+function isRequired(actionFlags) {
+  const action = getAction(actionFlags);
+  return action.requires;
+}
+
 function gpgProxyArgs(tor, system, executableEvaluator) {
   if (system.isDosLike() === true ||
     !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
@@ -190,4 +216,6 @@ const EnigmailTor = {
   torProperties: function() {
     return torProperties(systemCaller);
   },
+  isUsed: isUsed,
+  isRequired: isRequired
 };

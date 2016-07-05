@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, executeRefresh: false, buildRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global Ci, executeRefresh: false, buildRequests: false, gpgRequest: false, gpgRequestOverTor: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -92,13 +92,14 @@ test(function testBuildNormalRequestWithStandardArgs(){
 
 test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   setupKeyserverPrefs("keyserver.1", true);
-  EnigmailPrefs.setPref("downloadKeyWithTor", false);
   const tor = {
     torProperties: function() {
       return {
         torExists: false
       };
     },
+    isRequired: function(){ return false;},
+    isUsed: function(){ return false;}
   };
   const expectedKeyId = '1234';
 
@@ -116,8 +117,6 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
 }));
 
 test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(enigmail){
-  EnigmailPrefs.setPref(TOR_USER_PREFERENCES.DOWNLOAD.requires, false);
-  EnigmailPrefs.setPref(TOR_USER_PREFERENCES.DOWNLOAD.uses, true);
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
@@ -132,6 +131,8 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
         envVars: []
       };
     },
+    isRequired: function(action) {return false;},
+    isUsed: function(action) {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -162,6 +163,8 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
         torExists: false,
       };
     },
+    isRequired: function() {return false;},
+    isUsed: function() {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -185,6 +188,8 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
         torExists: false
       };
     },
+    isRequired: function() {return true;},
+    isUsed: function() {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -242,8 +247,6 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
   const result = executeRefresh(simpleRequest, subproc);
   Assert.equal(result, true);
 }));
-
-// build always expects a fully-formed keyserver uri
 
 test(function testBasicNormalQuery() {
   var actionflags = Ci.nsIEnigmail.REFRESH_KEY;
