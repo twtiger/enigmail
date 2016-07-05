@@ -231,7 +231,7 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
         "gpg: Total number processed: 1\n" +
         "gpg:               imported: 1  (RSA: 1)\n");
       proc.done(0);
-      return { wait: function() {} };;
+      return { wait: function() {} };
     }
   };
 
