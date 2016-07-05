@@ -189,23 +189,42 @@ function stringContains(stringToCheck, substring) {
   return stringToCheck.indexOf(substring) > -1;
 }
 
-function execute(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
-
-  function convertRequestArgsToStrings(args) {
-    for (let i=0; i<args.length; i++) {
-      if (typeof args[i] !== 'string') {
-        args[i] = args[i].toString();
-      }
-    }
-    return args;
-  }
-
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
-
+function executeRefresh(request, subproc) {
   let stdout = '';
   let stderr = '';
   let successful = false;
+
+  const listener = {
+    done: function(result) {
+      successful = stringContains(stderr, "IMPORT_OK");
+      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n\n");
+    },
+    stderr: function(data) {
+      stderr += data;
+    },
+    stdout: function(data) {
+      stdout += data;
+    }
+  }
+  const proc = execute(request, subproc, listener);
+  proc.wait();
+  return successful;
+}
+
+function convertRequestArgsToStrings(args) {
+  for (let i=0; i<args.length; i++) {
+    if (typeof args[i] !== 'string') {
+      args[i] = args[i].toString();
+    }
+  }
+  return args;
+}
+
+function execute(request, subproc, listener) {
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
+
+  
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
   let proc = subproc.call({
@@ -215,20 +234,19 @@ function execute(request, subproc) {
     charset: null,
     stdin: null,
     done: function(result) {
-      successful = stringContains(stderr, "IMPORT_OK");
-      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n\n");
+      listener.done(result);
     },
     stdout: function(data) {
-      stdout += data;
+      listener.stdout(data);
       EnigmailLog.CONSOLE("stdout: "+ data);
     },
     stderr: function(data) {
-      stderr += data;
+      listener.stderr(data);
       EnigmailLog.CONSOLE("stderr: "+ data);
     }
-  }).wait();
+  });
 
-  return successful;
+  return proc;
 }
 
 /**
@@ -264,6 +282,7 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   const searchTermsList = searchTerms.split(" ");
   return buildRequest(gpgRequest, searchTermsList, httpProxy, actionFlags, keyserver.trim());
 }
+
 
 function submit(args, inputData, listener, isDownload) {
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
@@ -313,15 +332,15 @@ function submit(args, inputData, listener, isDownload) {
   return proc;
 }
 
+function refresh(keyId){
+  EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
+  const requests = buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy);
+  for (let i=0; i<requests.length; i++) {
+    if (executeRefresh(requests[i], subprocess) === true) return;
+  }
+}
+
 const EnigmailKeyServer= {
   access: access,
-
-  refresh: function(keyId) {
-    EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
-
-    const requests = buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy);
-    for (let i=0; i<requests.length; i++) {
-      if (execute(requests[i], subprocess) === true) return;
-    }
-  }
+  refresh: refresh
 };

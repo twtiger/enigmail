@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, execute: false, buildRefreshRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, executeRefresh: false, buildRefreshRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -209,12 +209,12 @@ test(withEnigmail(function executeReportsFailure_whenReceivingConfigurationError
       subproc.callWasCalled = true;
       proc.stderr("gpg: keyserver receive failed: Configuration error\n");
       proc.done(2);
-      return { wait: function() {} };
+      return {wait: function() {}};
     }
   };
 
-  Assert.equal(execute(simpleRequest, subproc), false);
-  Assert.equal(subproc.callWasCalled, true);
+  const result = executeRefresh(simpleRequest, subproc);
+  Assert.equal(result, false);
 }));
 
 test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(enigmail){
@@ -231,12 +231,12 @@ test(withEnigmail(function executeReportsSuccess_whenReceivingImportSuccessful(e
         "gpg: Total number processed: 1\n" +
         "gpg:               imported: 1  (RSA: 1)\n");
       proc.done(0);
-      return { wait: function() {} };
+      return { wait: function() {} };;
     }
   };
 
-  Assert.equal(execute(simpleRequest, subproc), true);
-  Assert.equal(subproc.callWasCalled, true);
+  const result = executeRefresh(simpleRequest, subproc);
+  Assert.equal(result, true);
 }));
 
 // build always expects a fully-formed keyserver uri
