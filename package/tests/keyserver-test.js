@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, executeRefresh: false, buildRefreshRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global Ci, DOWNLOAD_KEY, TOR_USER_PREFERENCES, executeRefresh: false, buildRequests: false, gpgRequest: false, organizeProtocols: false, sortWithHkpsFirst: false, gpgRequestOverTor: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -102,7 +102,8 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   };
   const expectedKeyId = '1234';
 
-  const requests = buildRefreshRequests(expectedKeyId, tor, buildMockHttpProxy(null));
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(expectedKeyId, refreshAction, tor, buildMockHttpProxy(null));
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
   Assert.equal(requests[0].usingTor, false);
@@ -133,7 +134,8 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
     },
   };
 
-  const requests = buildRefreshRequests(keyId, tor, buildMockHttpProxy(null));
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
 
   Assert.equal(requests.length, 4);
 
@@ -162,7 +164,8 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
     },
   };
 
-  const requests = buildRefreshRequests(keyId, tor, buildMockHttpProxy(null));
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
 
   Assert.equal(requests.length, 2);
 
@@ -184,7 +187,8 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
     },
   };
 
-  const requests = buildRefreshRequests('1234', tor, buildMockHttpProxy(null));
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests('1234', refreshAction, tor, buildMockHttpProxy(null));
   Assert.equal(requests.length, 0);
 }));
 

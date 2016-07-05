@@ -165,24 +165,23 @@ function getUserTorPrefs(actionFlags, isRequired) {
   return false;
 }
 
-function buildRefreshRequests(keyId, tor, httpProxy) {
+function buildRequests(keyId, action, tor, httpProxy) {
   const torProperties = tor.torProperties();
-  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  if (getUserTorPrefs(refreshAction, true)) {
+  if (getUserTorPrefs(action, true)) {
     if (!torProperties.torExists) {
-      EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
+      EnigmailLog.CONSOLE("Unable to perform action with key" + keyId + " because Tor is required but not available.\n");
       return [];
     }
-    return buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
+    return buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
   }
 
-  if (getUserTorPrefs(refreshAction, false) && torProperties.torExists === true) {
-    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
-    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
+  if (getUserTorPrefs(action, false) && torProperties.torExists === true) {
+    const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, action);
+    const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, action);
     return torRequests.concat(regularRequests);
   }
-  return buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
+  return buildManyRequests(gpgRequest, keyId, httpProxy, action);
 }
 
 function stringContains(stringToCheck, substring) {
@@ -309,7 +308,8 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
 
 function refresh(keyId){
   EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
-  const requests = buildRefreshRequests(keyId, EnigmailTor, EnigmailHttpProxy);
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
   for (let i=0; i<requests.length; i++) {
     if (executeRefresh(requests[i], subprocess) === true) return;
   }
