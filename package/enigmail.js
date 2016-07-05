@@ -270,8 +270,7 @@ Enigmail.prototype = {
 
     initializeObserver(this);
 
-    const keyRefreshOn = EnigmailPrefs.getPref("keyRefreshOn");
-    if (keyRefreshOn === true){
+    if (EnigmailPrefs.getPref("keyRefreshOn") === true){
       KeyRefreshService.start();
     }
 
