@@ -72,12 +72,12 @@ function getAction(actionFlags) {
 
 function isUsed(actionFlags) {
   const action = getAction(actionFlags);
-  return action.uses || action.requires;
+  return EnigmailPrefs.getPref(action.requires) || EnigmailPrefs.getPref(action.uses);
 }
 
 function isRequired(actionFlags) {
   const action = getAction(actionFlags);
-  return action.requires;
+  return EnigmailPrefs.getPref(action.requires);
 }
 
 function gpgProxyArgs(tor, system, executableEvaluator) {
