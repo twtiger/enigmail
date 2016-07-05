@@ -1126,7 +1126,7 @@ function userAcceptsWarning(warningMessage) {
   return confirm;
 }
 
-function userAcceptsRefreshWarning(checkedObj) {
+function userAcceptsRefreshWarning() {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true) {
     return userAcceptsWarning(EnigGetString("refreshKeyServiceOn.warn"));
   }
