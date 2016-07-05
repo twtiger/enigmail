@@ -137,7 +137,7 @@ function buildEnvVars(helper) {
 }
 
 function useAuthOverArgs(helper, executableEvaluator) {
-  if (helper == 'torsocks') {
+  if (helper === 'torsocks') {
     return executableEvaluator.versionOverOrEqual('torsocks', TORSOCKS_VERSION_2, ExecutableEvaluator.executor);
   }
   return true;
