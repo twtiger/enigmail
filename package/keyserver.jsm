@@ -26,27 +26,11 @@ function resolvePath(executable) {
   return ExecutableEvaluator.findExecutable(executable);
 }
 
-function buildReceiveRequest(keys) {
-  return ['--recv-keys'].concat(keys);
-}
-
-function buildSearchRequest(keys) {
-  return ['--search-keys'].concat(keys);
-}
-
-function buildUploadRequest(keys) {
-  return ['--send-keys'].concat(keys);
-}
-
-function buildRefreshRequest(keys) {
-  return ['--refresh-keys'];
-}
-
-function getRequestActionBuilder(actionFlags) {
-  if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) {return buildReceiveRequest;}
-  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {return buildSearchRequest;}
-  if (actionFlags & Ci.nsIEnigmail.UPLOAD_KEY) {return buildUploadRequest;}
-  if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) {return buildRefreshRequest;}
+function getRequestAction(actionFlags, keys) {
+  if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) { return ['--recv-keys'].concat(keys); }
+  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) { return ['--search-keys'].concat(keys); }
+  if (actionFlags & Ci.nsIEnigmail.UPLOAD_KEY) { return ['--send-keys'].concat(keys); }
+  if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) { return ['--refresh-keys']; }
   return null;
 }
 
@@ -57,7 +41,6 @@ function getInputData(actionFlags) {
 
 function gpgRequestOverTor(keyId, uri, torProperties, action) {
   let result = { envVars: torProperties.envVars, usingTor: true };
-  const requestActionBuilder = getRequestActionBuilder(action);
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
@@ -119,9 +102,8 @@ const requestArgsBuilder = {
     this.args = this.args.concat(["--keyserver-options", "http-proxy=" + proxyInfo]);
     return this;
   },
-  withAction: function(action, keyId) {
-    const requestActionBuilder = getRequestActionBuilder(action);
-    this.args = this.args.concat(requestActionBuilder(keyId));
+  withAction: function(action, keys) {
+    this.args = this.args.concat(getRequestAction(action, keys));
     return this;
   },
   get: function() {
@@ -130,8 +112,6 @@ const requestArgsBuilder = {
 };
 
 function gpgRequest(keyId, uri, httpProxy, action) {
-  const requestActionBuilder = getRequestActionBuilder(action);
-
   const args = requestArgsBuilder.init()
     .withStandardArgs(action)
     .withHttpProxy(httpProxy, uri)
@@ -179,7 +159,7 @@ function getUserTorPrefs(actionFlags, isRequired) {
         return EnigmailPrefs.getPref(prefName);
       }
       const prefName = TOR_USER_PREFERENCES[key].uses;
-      return  EnigmailPrefs.getPref(prefName);
+      return EnigmailPrefs.getPref(prefName);
     }
   }
   return false;
