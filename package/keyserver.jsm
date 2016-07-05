@@ -163,7 +163,7 @@ function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) 
   return request;
 }
 
-// TODO this should probably be in tor
+// TODO maybe this should be in tor
 const TOR_USER_PREFERENCES= {
   DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
   SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
@@ -171,32 +171,25 @@ const TOR_USER_PREFERENCES= {
   REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
 };
 
-// TODO this could be collapsed with userWantsTor, with required maybe set as a boolean
-function userRequiresTor(actionFlags) {
+function getUserTorPrefs(actionFlags, isRequired) {
   for (let key in TOR_USER_PREFERENCES) {
     if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
-      const pref = TOR_USER_PREFERENCES[key].requires;
-      return EnigmailPrefs.getPref(pref) === true;
+      if (isRequired) {
+        const prefName = TOR_USER_PREFERENCES[key].requires;
+        return EnigmailPrefs.getPref(prefName);
+      }
+      const prefName = TOR_USER_PREFERENCES[key].uses;
+      return  EnigmailPrefs.getPref(prefName);
     }
   }
-  return null;
-}
-
-function userWantsTor(actionFlags) {
-  for (let key in TOR_USER_PREFERENCES) {
-    if (TOR_USER_PREFERENCES[key].constant & actionFlags) {
-      const pref = TOR_USER_PREFERENCES[key].uses;
-      return EnigmailPrefs.getPref(pref) === true;
-    }
-  }
-  return null;
+  return false;
 }
 
 function buildRefreshRequests(keyId, tor, httpProxy) {
   const torProperties = tor.torProperties();
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  if (userRequiresTor(refreshAction)) {
+  if (getUserTorPrefs(refreshAction, true)) {
     if (!torProperties.torExists) {
       EnigmailLog.CONSOLE("Unable to refresh key because Tor is required but not available.\n");
       return [];
@@ -204,7 +197,7 @@ function buildRefreshRequests(keyId, tor, httpProxy) {
     return buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
   }
 
-  if (userWantsTor(refreshAction) && torProperties.torExists === true) {
+  if (getUserTorPrefs(refreshAction, false) && torProperties.torExists === true) {
     const torRequests = buildManyRequests(gpgRequestOverTor, keyId, torProperties, refreshAction);
     const regularRequests = buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
     return torRequests.concat(regularRequests);
