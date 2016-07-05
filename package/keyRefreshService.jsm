@@ -67,7 +67,7 @@ function startWith(timer, algorithm) {
 }
 
 /**
- * starts a continuous refresh service
+ * starts a process to continuously refresh keys on a random time interval
  *
  * this service does not keep state, it will restart each time Enigmail is initialized.
  */
