@@ -190,6 +190,9 @@ function stringContains(stringToCheck, substring) {
 }
 
 function executeRefresh(request, subproc) {
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
+
   let stdout = '';
   let stderr = '';
   let successful = false;
@@ -205,7 +208,7 @@ function executeRefresh(request, subproc) {
     stdout: function(data) {
       stdout += data;
     }
-  }
+  };
   const proc = execute(request, subproc, listener);
   proc.wait();
   return successful;
@@ -221,10 +224,6 @@ function convertRequestArgsToStrings(args) {
 }
 
 function execute(request, subproc, listener) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
-
-  
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
   let proc = subproc.call({
