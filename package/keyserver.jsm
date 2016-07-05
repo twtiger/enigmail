@@ -190,27 +190,27 @@ function stringContains(stringToCheck, substring) {
 }
 
 function executeRefresh(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n");
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
+  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n\n");
 
   let stdout = '';
   let stderr = '';
-  let successful = false;
 
   const listener = {
-    done: function(result) {
-      successful = stringContains(stderr, "IMPORT_OK");
-      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n\n");
+    done: function(exitCode) {
+      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
     },
     stderr: function(data) {
+      if (data !== "") { EnigmailLog.CONSOLE("stderr: " + data);}
       stderr += data;
     },
     stdout: function(data) {
+      if (data !== "") { EnigmailLog.CONSOLE("stdout: " + data);}
       stdout += data;
     }
   };
-  const proc = execute(request, subproc, listener);
+  const proc = execute(request, listener, subproc);
   proc.wait();
+  const successful = stringContains(stderr, "IMPORT_OK");
   return successful;
 }
 
@@ -223,28 +223,53 @@ function convertRequestArgsToStrings(args) {
   return args;
 }
 
-function execute(request, subproc, listener) {
+function execute(request, listener, subproc) {
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
+
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
-  let proc = subproc.call({
-    command: request.command,
-    arguments: convertRequestArgsToStrings(request.args),
-    environment: envVars,
-    charset: null,
-    stdin: null,
-    done: function(result) {
-      listener.done(result);
-    },
-    stdout: function(data) {
-      listener.stdout(data);
-      EnigmailLog.CONSOLE("stdout: "+ data);
-    },
-    stderr: function(data) {
-      listener.stderr(data);
-      EnigmailLog.CONSOLE("stderr: "+ data);
-    }
-  });
+  let exitCode = null;
+  let proc = null;
+  try {
+    proc = subproc.call({
+      command: request.command,
+      arguments: convertRequestArgsToStrings(request.args),
+      environment: envVars,
+      charset: null,
+      stdin: request.inputData,
+      done: function(result) {
+        try {
+          if (result.exitCode === 0 && request.isDownload) {
+            EnigmailKeyRing.clearCache();
+          }
+          if (exitCode === null) {
+            exitCode = result.exitCode;
+          }
+          listener.done(exitCode);
+        }
+        catch (ex) {
+          EnigmailLog.ERROR("keyserver.jsm: execute: subprocess.call failed at finish with '" + ex.toString() + "'\n");
+        }
+      },
+      stdout: function(data) {
+        listener.stdout(data);
+      },
+      stderr: function(data) {
+        if (data.search(/^\[GNUPG:\] ERROR/m) >= 0) {
+          exitCode = 4;
+        }
+        listener.stderr(data);
+      },
+      mergeStderr: false
+    });
+  } catch (ex) {
+    EnigmailLog.ERROR("keyserver.jsm: execute: subprocess.call failed with '" + ex.toString() + "'\n");
+    throw ex;
+  }
 
+  if (proc === null) {
+    EnigmailLog.ERROR("keyserver.jsm: execute: subprocess failed due to unknown reasons\n");
+  }
   return proc;
 }
 
@@ -263,7 +288,7 @@ function execute(request, subproc, listener) {
 function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
   const request = build(actionFlags, keyserver, searchTerms, errorMsgObj, EnigmailHttpProxy);
   if (request === null) return null;
-  return submit(request.args, request.inputData, listener, request.isDownload);
+  return execute(request, listener, subprocess);
 }
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
@@ -280,55 +305,6 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
   }
   const searchTermsList = searchTerms.split(" ");
   return buildRequest(gpgRequest, searchTermsList, httpProxy, actionFlags, keyserver.trim());
-}
-
-
-function submit(args, inputData, listener, isDownload) {
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(EnigmailGpgAgent.agentPath, args) + "\n");
-
-  let proc = null;
-  try {
-    let exitCode = null;
-    proc = subprocess.call(
-      {
-        command: EnigmailGpgAgent.agentPath,
-        arguments: args,
-        environment: EnigmailCore.getEnvList(),
-        charset: null,
-        stdin: inputData,
-        stdout: function(data) {
-          listener.stdout(data);
-        },
-        stderr: function(data) {
-          if (data.search(/^\[GNUPG:\] ERROR/m) >= 0) {
-            exitCode = 4;
-          }
-          listener.stderr(data);
-        },
-        done: function(result) {
-          try {
-            if (result.exitCode === 0 && isDownload) {
-              EnigmailKeyRing.clearCache();
-            }
-            if (exitCode === null) {
-              exitCode = result.exitCode;
-            }
-            listener.done(exitCode);
-          }
-          catch (ex) {}
-        },
-        mergeStderr: false
-      });
-  } catch (ex) {
-    EnigmailLog.ERROR("keyserver.jsm: access: subprocess.call failed with '" + ex.toString() + "'\n");
-    throw ex;
-  }
-
-  if (proc === null) {
-    EnigmailLog.ERROR("keyserver.jsm: access: subprocess failed due to unknown reasons\n");
-  }
-
-  return proc;
 }
 
 function refresh(keyId){
