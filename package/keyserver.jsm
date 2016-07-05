@@ -172,8 +172,8 @@ function buildRefreshRequests(keyId, tor, httpProxy) {
   return buildManyRequests(gpgRequest, keyId, httpProxy, refreshAction);
 }
 
-function contains(superSet, subSet) {
-  return superSet.indexOf(subSet) > -1;
+function stringContains(stringToCheck, substring) {
+  return stringToCheck.indexOf(substring) > -1;
 }
 
 function execute(request, subproc) {
@@ -202,7 +202,7 @@ function execute(request, subproc) {
     charset: null,
     stdin: null,
     done: function(result) {
-      successful = contains(stderr, "IMPORT_OK");
+      successful = stringContains(stderr, "IMPORT_OK");
       EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ result.exitCode +"\n\n");
     },
     stdout: function(data) {
