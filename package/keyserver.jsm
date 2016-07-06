@@ -58,7 +58,7 @@ function flatten(arrOfArr) {
     return arrOfArr.reduce(function(a, b) {
       return a.concat(b);
     }, []);
-};
+}
 
 function gpgRequest(keyId, uri, httpProxy, action) {
   const args = flatten([
