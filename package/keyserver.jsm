@@ -175,7 +175,7 @@ function convertRequestArgsToStrings(args) {
 }
 
 function execute(request, listener, subproc) {
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n");
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n\n");
 
   let envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
@@ -229,22 +229,21 @@ function executeRefresh(request, subproc) {
 
   let stdout = '';
   let stderr = '';
+  let successful = false;
 
   const listener = {
     done: function(exitCode) {
+      successful = stringContains(stderr, "IMPORT_OK");
       EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
     },
     stderr: function(data) {
-      if (data !== "") { EnigmailLog.CONSOLE("stderr: " + data);}
       stderr += data;
     },
     stdout: function(data) {
-      if (data !== "") { EnigmailLog.CONSOLE("stdout: " + data);}
       stdout += data;
     }
   };
   execute(request, listener, subproc).wait();
-  const successful = stringContains(stderr, "IMPORT_OK");
   return successful;
 }
 
