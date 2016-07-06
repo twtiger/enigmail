@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionOverOrEqual:false, gpgVersion: false, gpgVersionOverOrEqual: false*/
+testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionGreaterThanOrEqual:false, gpgVersion: false, gpgVersionOverOrEqual: false*/
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
@@ -26,12 +26,12 @@ const testExecutor = {
 
 test(function checkCurlVersionIsOver() {
   const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  Assert.equal(versionOverOrEqual('curl', minimumCurlVersion, testExecutor), true);
+  Assert.equal(versionGreaterThanOrEqual('curl', minimumCurlVersion, testExecutor), true);
 });
 
 test(function checkCurlVersionIsLess() {
   const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
-  Assert.equal(versionOverOrEqual('curl', absurdlyHighCurlRequirement, testExecutor), false);
+  Assert.equal(versionGreaterThanOrEqual('curl', absurdlyHighCurlRequirement, testExecutor), false);
 });
 
 test(function parseFullVersionResponse() {
@@ -57,12 +57,12 @@ test(function reportCurlDoesNotExist() {
   const executorFindsNoFile = {
     exists: function() { return false; }
   };
-  Assert.equal(versionOverOrEqual('curl', minimumCurlVersion, executorFindsNoFile), false);
+  Assert.equal(versionGreaterThanOrEqual('curl', minimumCurlVersion, executorFindsNoFile), false);
 });
 
 test(function gpgNotOverOrEqual() {
   const minimum = { major: 2, minor: 0, patch: 30 };
-  Assert.equal(versionOverOrEqual('gpg', minimum), false);
+  Assert.equal(versionGreaterThanOrEqual('gpg', minimum), false);
 });
 
 test(function evaluatleGpgWithEnigmailGpg() {

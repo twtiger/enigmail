@@ -64,7 +64,7 @@ function parseVersion(systemResponse) {
   };
 }
 
-function versionGreaterThanOrEqual(left, right) {
+function compareVersionParts(left, right) {
   if (left.major > right.major) {
     return true;
   } else if (left.major === right.major) {
@@ -90,12 +90,8 @@ const executor = {
   }
 };
 
-function gpgVersionOverOrEqual(agentVersion, minimumVersion) {
-  return versionGreaterThanOrEqual(parseVersion(agentVersion), minimumVersion);
-}
-
-function versionOverOrEqual(executable, minimumVersion) {
-  if (executable === 'gpg') return gpgVersionOverOrEqual(EnigmailGpg.agentVersion, minimumVersion);
+function versionGreaterThanOrEqual(executable, minimumVersion) {
+  if (executable === 'gpg') return compareVersionParts(parseVersion(EnigmailGpg.agentVersion), minimumVersion);
   if (!executor.exists(executable)) return false;
 
   const file = executor.findExecutable(executable);
@@ -108,11 +104,11 @@ function versionOverOrEqual(executable, minimumVersion) {
   const versionResponse = result.stdout.split(" ")[1];
   EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
 
-  return versionGreaterThanOrEqual(parseVersion(versionResponse), minimumVersion);
+  return compareVersionParts(parseVersion(versionResponse), minimumVersion);
 }
 
 const ExecutableEvaluator = {
-  versionOverOrEqual: versionOverOrEqual,
+  versionGreaterThanOrEqual: versionGreaterThanOrEqual,
   exists: executor.exists,
   findExecutable: executor.findExecutable
 };

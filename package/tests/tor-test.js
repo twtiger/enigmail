@@ -16,47 +16,47 @@ component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimumVersion) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimumVersion) {
       Assert.equal(executable, 'gpg');
       Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return false;
     }
   };
 
   Assert.equal(meetsOSConstraints("OS2", executableEvaluator), false);
-  Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
+  Assert.equal(executableEvaluator.versionGreaterThanOrEqualWasCalled, true, "versionGreaterThanOrEqual was not called");
 });
 
 test(function evaluateGpgVersionWhenOsIsWindows32() {
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimumVersion) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimumVersion) {
       Assert.equal(executable, 'gpg');
       Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return true;
     }
   };
 
   Assert.equal(meetsOSConstraints("WINNT", executableEvaluator), true);
-  Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
+  Assert.equal(executableEvaluator.versionGreaterThanOrEqualWasCalled, true, "versionGreaterThanOrEqual was not called");
 });
 
 test(function whenMeetsMinimumCurlSocksVersion() {
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimumVersion) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimumVersion) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return true;
     }
   };
 
   Assert.equal(meetsOSConstraints("Linux", executableEvaluator), true);
-  Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, "versionOverOrEqual was not called");
+  Assert.equal(executableEvaluator.versionGreaterThanOrEqualWasCalled, true, "versionGreaterThanOrEqual was not called");
 });
 
 test(withEnigmail(function createHelperArgsForTorsocks1(enigmail) {
@@ -99,11 +99,11 @@ test(function createGpgProxyArgs_forWindows() {
     }
   };
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimum) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return false;
     }
   };
@@ -131,11 +131,11 @@ test(function createGpgProxyArgs_forLinux() {
     }
   };
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimum) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return true;
     }
   };
@@ -163,11 +163,11 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
     }
   };
   const executableEvaluator = {
-    versionOverOrEqualWasCalled: false,
-    versionOverOrEqual: function(executable, minimum) {
+    versionGreaterThanOrEqualWasCalled: false,
+    versionGreaterThanOrEqual: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionOverOrEqualWasCalled = true;
+      executableEvaluator.versionGreaterThanOrEqualWasCalled = true;
       return false;
     }
   };
@@ -176,7 +176,7 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
 
   Assert.equal(args, 'socks5-hostname://'+username+':'+password+'@192.8.8.4:9150');
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
-  Assert.equal(executableEvaluator.versionOverOrEqualWasCalled, true, 'versionOverOrEqual was not called');
+  Assert.equal(executableEvaluator.versionGreaterThanOrEqualWasCalled, true, 'versionGreaterThanOrEqual was not called');
 });
 
 
@@ -282,7 +282,7 @@ const MockExecutableEvaluatorBuilder = {
     return this;
   },
   withVersion: function(isHigherVersion) {
-    this.e.versionOverOrEqual = function() { return isHigherVersion;};
+    this.e.versionGreaterThanOrEqual = function() { return isHigherVersion;};
     return this;
   },
   get: function() {return this.e;}

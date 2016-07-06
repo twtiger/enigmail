@@ -70,7 +70,7 @@ function isRequired(actionFlags) {
 function gpgProxyArgs(tor, system, executableEvaluator) {
   let proto = NEW_CURL_PROTOCOL;
   if (system.isDosLike() ||
-    !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+    !executableEvaluator.versionGreaterThanOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
     proto = OLD_CURL_PROTOCOL;
   }
   return proto + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
@@ -100,9 +100,9 @@ function torOnEither(browserBundlePortPref, servicePortPref) {
 
 function meetsOSConstraints(os, executableEvaluator) {
   if (['WINNT', 'OS2'].indexOf(os) > -1) {
-    return executableEvaluator.versionOverOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION);
+    return executableEvaluator.versionGreaterThanOrEqual('gpg', MINIMUM_WINDOWS_GPG_VERSION);
   } else {
-    return executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+    return executableEvaluator.versionGreaterThanOrEqual('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
 }
 
@@ -128,7 +128,7 @@ function buildEnvVars(helper) {
 
 function useAuthOverArgs(helper, executableEvaluator) {
   if (helper === 'torsocks') {
-    return executableEvaluator.versionOverOrEqual('torsocks', TORSOCKS_VERSION_2, ExecutableEvaluator.executor);
+    return executableEvaluator.versionGreaterThanOrEqual('torsocks', TORSOCKS_VERSION_2, ExecutableEvaluator.executor);
   }
   return true;
 }
