@@ -9,45 +9,33 @@
 "use strict";
 
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/randomNumber.jsm"); /* global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
-Components.utils.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
-Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /* global Socks5Proxy: false */
+Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+Components.utils.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
+Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
 Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
-var EXPORTED_SYMBOLS = ["EnigmailTor"];
+const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+function v(maj, min, pat) {
+  return {major: maj, minor: min, patch: pat};
+}
+
 // Minimum for using socks5h:// prefix
-const MINIMUM_CURL_SOCKS5H_VERSION = {
-  major: 7,
-  minor: 21,
-  patch: 7
-};
+const MINIMUM_CURL_SOCKS5H_VERSION = v(7, 21, 7);
 
 // Minimum for using socks5 proxies with curl
-const MINIMUM_CURL_SOCKS5_PROXY_VERSION = {
-  major: 7,
-  minor: 18,
-  patch: 0
-};
+const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
 
 // Stable and most used version according to gnupg.org
-const MINIMUM_WINDOWS_GPG_VERSION = {
-  major: 2,
-  minor: 0,
-  patch: 30
-};
+const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
 
-const TORSOCKS_VERSION_2 = {
-  major: 2,
-  minor: 0,
-  patch: 0
-};
+const TORSOCKS_VERSION_2 = v(2, 0, 0);
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
@@ -76,17 +64,16 @@ function isUsed(actionFlags) {
 }
 
 function isRequired(actionFlags) {
-  const action = getAction(actionFlags);
-  return EnigmailPrefs.getPref(action.requires);
+  return EnigmailPrefs.getPref(getAction(actionFlags).requires);
 }
 
 function gpgProxyArgs(tor, system, executableEvaluator) {
-  if (system.isDosLike() === true ||
+  let proto = NEW_CURL_PROTOCOL;
+  if (system.isDosLike() ||
     !executableEvaluator.versionOverOrEqual('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
-  } else {
-    return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+    proto = OLD_CURL_PROTOCOL;
   }
+  return proto + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
 }
 
 function torOnEither(browserBundlePortPref, servicePortPref) {
@@ -133,10 +120,10 @@ function createHelperArgs(helper, addAuth) {
 }
 
 function buildEnvVars(helper) {
-  let envVars = [];
-  envVars.push("TORSOCKS_USERNAME=" + createRandomCredential());
-  envVars.push("TORSOCKS_PASSWORD=" + createRandomCredential());
-  return envVars;
+  return [
+    "TORSOCKS_USERNAME=" + createRandomCredential(),
+    "TORSOCKS_PASSWORD=" + createRandomCredential()
+  ];
 }
 
 function useAuthOverArgs(helper, executableEvaluator) {
@@ -160,15 +147,15 @@ function findTorExecutableHelper(executableEvaluator) {
     }
   }
   return {
-    exists:false
+    exists: false
   };
 }
 
 function findTor() {
   const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
-  if (tor.found === false || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator))
+  if (!tor.found || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator)) {
     return { exists: false };
-  else
+  } else
     return {
       exists: true,
       ip: tor.ip,
@@ -181,22 +168,18 @@ function findTor() {
 const systemCaller = {
   findTor: findTor,
   findTorExecutableHelper: findTorExecutableHelper,
-  getOS: function() {
-    return EnigmailOS.getOS();
-  },
-  isDosLike: function() {
-    return EnigmailOS.isDosLike();
-  }
+  getOS: EnigmailOS.getOS,
+  isDosLike: EnigmailOS.isDosLike
 };
 
 function torProperties(system) {
   const failure = { torExists: false };
 
   const tor = system.findTor();
-  if (tor.exists !== true) return failure;
+  if (!tor.exists) return failure;
 
   const torHelper = system.findTorExecutableHelper(ExecutableEvaluator);
-  if (torHelper.exists === true) {
+  if (torHelper.exists) {
     return {
       torExists: tor.exists,
       command: torHelper.command,

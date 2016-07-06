@@ -1,4 +1,4 @@
-/* global Components:false */
+/*global Components:false */
 "use strict";
 
 var EXPORTED_SYMBOLS = ["EnigmailKeyServer"];
