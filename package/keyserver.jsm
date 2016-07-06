@@ -19,7 +19,7 @@ Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Cu.import("resource://enigmail/executableEvaluator.jsm"); /* global ExecutableEvaluator: false */
+Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
 function resolvePath(executable) {
@@ -129,7 +129,7 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
 }
 
 function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) {
-  let request = requestBuilder(keyId, keyserver, proxyInfo, actionFlags);
+  const request = requestBuilder(keyId, keyserver, proxyInfo, actionFlags);
   const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
   request.isDownload = isDownload;
   return request;
@@ -167,9 +167,7 @@ function stringContains(stringToCheck, substring) {
 
 function convertRequestArgsToStrings(args) {
   for (let i=0; i<args.length; i++) {
-    if (typeof args[i] !== 'string') {
-      args[i] = args[i].toString();
-    }
+    args[i] = args[i].toString();
   }
   return args;
 }
@@ -177,7 +175,7 @@ function convertRequestArgsToStrings(args) {
 function execute(request, listener, subproc) {
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(request.command, request.args) + "\n\n");
 
-  let envVars = request.envVars.concat(EnigmailCore.getEnvList());
+  const envVars = request.envVars.concat(EnigmailCore.getEnvList());
 
   let exitCode = null;
   let proc = null;
@@ -295,7 +293,7 @@ function refresh(keyId){
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
   for (let i=0; i<requests.length; i++) {
-    if (executeRefresh(requests[i], subprocess) === true) return;
+    if (executeRefresh(requests[i], subprocess)) return;
   }
 }
 
