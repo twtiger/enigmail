@@ -10,8 +10,8 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global asser
 
 testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
 
-component("enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
-component("enigmail/randomNumber.jsm"); /* global RandomNumberGenerator*/
+component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
@@ -187,21 +187,6 @@ test(function returnsFailure_whenSystemCannotFindTor() {
       system.findTorWasCalled = true;
       return {
         exists: false
-      };
-    }
-  };
-
-  Assert.deepEqual(torProperties(system), { torExists: false });
-  Assert.equal(system.findTorWasCalled, true);
-});
-
-test(function returnsFailure_whenFindTorReturnsBadThing() {
-  const system = {
-    findTorWasCalled : false,
-    findTor: function() {
-      system.findTorWasCalled = true;
-      return {
-        exists: {}
       };
     }
   };
