@@ -54,47 +54,19 @@ function buildStandardArgs(action) {
   return EnigmailGpg.getStandardArgs(true);
 }
 
-const requestArgsBuilder = {
-  init: function() {
-    this.args = [];
-    return this;
-  },
-  withStandardArgs: function(action) {
-    this.args = this.args.concat(buildStandardArgs(action));
-    return this;
-  },
-  withKeyserver: function(uri) {
-    this.args = this.args.concat(['--keyserver', uri]);
-    return this;
-  },
-  withHttpProxy: function(httpProxy, uri) {
-    this.args = this.args.concat(buildProxyInfo(httpProxy, uri));
-    return this;
-  },
-  withTorArgs: function(args) {
-    this.args = this.args.concat(args);
-    return this;
-  },
-  withTorProxy: function(proxyInfo) {
-    this.args = this.args.concat(["--keyserver-options", "http-proxy=" + proxyInfo]);
-    return this;
-  },
-  withAction: function(action, keys) {
-    this.args = this.args.concat(getRequestAction(action, keys));
-    return this;
-  },
-  get: function() {
-    return this.args;
-  }
+function flatten(arrOfArr) {
+    return arrOfArr.reduce(function(a, b) {
+      return a.concat(b);
+    }, []);
 };
 
 function gpgRequest(keyId, uri, httpProxy, action) {
-  const args = requestArgsBuilder.init()
-    .withStandardArgs(action)
-    .withHttpProxy(httpProxy, uri)
-    .withKeyserver(uri)
-    .withAction(action, keyId)
-    .get();
+  const args = flatten([
+    buildStandardArgs(action),
+    buildProxyInfo(httpProxy, uri),
+    ['--keyserver', uri],
+    getRequestAction(action, keyId)
+  ]);
 
   return {
     command: EnigmailGpgAgent.agentPath,
@@ -110,20 +82,20 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
-    result.args = requestArgsBuilder.init()
-      .withStandardArgs(action)
-      .withKeyserver(uri)
-      .withTorProxy(torProperties.args)
-      .withAction(action, keyId)
-      .get();
+    result.args = flatten([
+      buildStandardArgs(action),
+      ['--keyserver', uri],
+      ["--keyserver-options", "http-proxy=" + torProperties.args],
+      getRequestAction(action, keyId)
+    ]);
   } else {
     result.command = resolvePath(torProperties.command);
-    result.args = requestArgsBuilder.init()
-      .withTorArgs(torProperties.args)
-      .withStandardArgs(action)
-      .withKeyserver(uri)
-      .withAction(action, keyId)
-      .get();
+    result.args = flatten([
+      torProperties.args,
+      buildStandardArgs(action),
+      ['--keyserver', uri],
+      getRequestAction(action, keyId)
+    ]);
   }
   return result;
 }
