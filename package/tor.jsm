@@ -119,46 +119,23 @@ function meetsOSConstraints(os, executableEvaluator) {
   }
 }
 
+function createRandomCredential() {
+  return RandomNumberGenerator.getUint32().toString();
+}
+
 function createHelperArgs(helper, addAuth) {
   let args = [];
   if (addAuth) {
-    const username = RandomNumberGenerator.getUint32();
-    const password = RandomNumberGenerator.getUint32();
-    args.push('--user', username, '--pass', password);
+    args.push('--user', createRandomCredential(), '--pass', createRandomCredential());
   }
   args.push(EnigmailGpg.agentPath.path);
   return args;
 }
 
-const systemCaller = {
-  findTor: function() {
-    const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
-    if (tor.found === false || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator))
-      return { exists: false };
-    else
-      return {
-        exists: true,
-        ip: tor.ip,
-        port: tor.port,
-        username: RandomNumberGenerator.getUint32(),
-        password: RandomNumberGenerator.getUint32()
-      };
-  },
-  findTorExecutableHelper: findTorExecutableHelper,
-  getOS: function() {
-    return EnigmailOS.getOS();
-  },
-  isDosLike: function() {
-    return EnigmailOS.isDosLike();
-  }
-};
-
 function buildEnvVars(helper) {
   let envVars = [];
-  const username = RandomNumberGenerator.getUint32();
-  const password = RandomNumberGenerator.getUint32();
-  envVars.push("TORSOCKS_USERNAME=" + username);
-  envVars.push("TORSOCKS_PASSWORD=" + password);
+  envVars.push("TORSOCKS_USERNAME=" + createRandomCredential());
+  envVars.push("TORSOCKS_PASSWORD=" + createRandomCredential());
   return envVars;
 }
 
@@ -186,6 +163,31 @@ function findTorExecutableHelper(executableEvaluator) {
     exists:false
   };
 }
+
+function findTor() {
+  const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
+  if (tor.found === false || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator))
+    return { exists: false };
+  else
+    return {
+      exists: true,
+      ip: tor.ip,
+      port: tor.port,
+      username: createRandomCredential(),
+      password: createRandomCredential()
+    };
+}
+
+const systemCaller = {
+  findTor: findTor,
+  findTorExecutableHelper: findTorExecutableHelper,
+  getOS: function() {
+    return EnigmailOS.getOS();
+  },
+  isDosLike: function() {
+    return EnigmailOS.isDosLike();
+  }
+};
 
 function torProperties(system) {
   const failure = { torExists: false };
