@@ -20,14 +20,8 @@ const CONNECTION_FLAGS = 0;
 const SECONDS_TO_WAIT_FOR_CONNECTION = -1;
 
 function createCheckTorURIChannel() {
-  const loadingNode = null;
-  const loadingPrincipal = null;
-  const triggeringPrincipal = null;
-  const securityFlags = null;
-  const contentPolicy = null;
-  const baseUri = null;
   let ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  return ioservice.newChannel2(CHECK_TOR_URI, "UTF-8", baseUri, loadingNode, loadingPrincipal, triggeringPrincipal, securityFlags, contentPolicy);
+  return ioservice.newChannel2(CHECK_TOR_URI, "UTF-8", null, null, null, null, null, null);
 }
 
 function protocolProxyService() {
