@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionGreaterThanOrEqual:false, gpgVersion: false, gpgVersionOverOrEqual: false*/
+testing("executableEvaluator.jsm"); /*global ExecutableEvaluator: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
@@ -12,26 +12,14 @@ test(function constructVersionArguments() {
   Assert.deepEqual(requestAndResponse[1].arguments, ['--version']);
 });
 
-const testExecutor = {
-  callAndWait: function(request) {
-    const result = {
-      exitCode: 0,
-      stdout: "curl 7.47.0 (x86_64-pc-linux-gnu) libcurl/7.47.0 GnuTLS/3.4.10 zlib/1.2.8 libidn/1.32 librtmp/2.3"
-    };
-    request.done(result);
-  },
-  findExecutable: function() { return {}; },
-  exists: function() { return true; }
-};
-
 test(function checkCurlVersionIsOver() {
   const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  Assert.equal(versionGreaterThanOrEqual('curl', minimumCurlVersion, testExecutor), true);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', minimumCurlVersion), true);
 });
 
 test(function checkCurlVersionIsLess() {
   const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
-  Assert.equal(versionGreaterThanOrEqual('curl', absurdlyHighCurlRequirement, testExecutor), false);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', absurdlyHighCurlRequirement), false);
 });
 
 test(function parseFullVersionResponse() {
@@ -52,23 +40,7 @@ test(function parseMajorOnlyResponse() {
   Assert.deepEqual(parseVersion(response), expectedParsedVersion);
 });
 
-test(function reportCurlDoesNotExist() {
-  const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  const executorFindsNoFile = {
-    exists: function() { return false; }
-  };
-  Assert.equal(versionGreaterThanOrEqual('curl', minimumCurlVersion, executorFindsNoFile), false);
-});
-
 test(function gpgNotOverOrEqual() {
   const minimum = { major: 2, minor: 0, patch: 30 };
-  Assert.equal(versionGreaterThanOrEqual('gpg', minimum), false);
-});
-
-test(function evaluatleGpgWithEnigmailGpg() {
-  const executor = ExecutableEvaluator.executor;
-
-  const status = executor.gpgVersionOverOrEqual('2.1.12', { major: 2, minor: 0, patch: 30 });
-
-  Assert.equal(status, true);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired('gpg', minimum), false);
 });

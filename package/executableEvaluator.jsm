@@ -21,8 +21,6 @@ Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
-const VERSION_NUMERIC_BASE = 10;
-
 let env = null;
 function environment() {
   if (env === null) {
@@ -54,7 +52,7 @@ function parseVersion(systemResponse) {
   const versionParts = systemResponse.split(".");
   const parsedVersion = [0,0,0];
   for (let i=0; i < versionParts.length; i++) {
-    parsedVersion[i] = parseInt(versionParts[i], VERSION_NUMERIC_BASE);
+    parsedVersion[i] = parseInt(versionParts[i], 10);
   }
   return {
     // Defaults to major, minor, patch for consistency across many executables
@@ -90,7 +88,7 @@ const executor = {
   }
 };
 
-function versionGreaterThanOrEqual(executable, minimumVersion) {
+function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   if (executable === 'gpg') return compareVersionParts(parseVersion(EnigmailGpg.agentVersion), minimumVersion);
   if (!executor.exists(executable)) return false;
 
@@ -108,7 +106,7 @@ function versionGreaterThanOrEqual(executable, minimumVersion) {
 }
 
 const ExecutableEvaluator = {
-  versionGreaterThanOrEqual: versionGreaterThanOrEqual,
+  versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   exists: executor.exists,
   findExecutable: executor.findExecutable
 };
