@@ -218,7 +218,7 @@ function executeRefresh(request, subproc) {
 }
 
 function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
-  let args = EnigmailGpg.getStandardArgs(true);
+  const args = EnigmailGpg.getStandardArgs(true);
 
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
