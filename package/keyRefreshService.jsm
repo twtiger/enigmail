@@ -16,14 +16,14 @@ Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailK
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
-let t = null;
-function timer() {
-  if (t === null) t = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
-  return t;
+let timer = null;
+function createTimer() {
+  if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  return timer;
 }
 
 function getRandomKeyId(randomNumber) {
-  let maxIndex = EnigmailKeyRing.getAllKeys().keyList.length - 1;
+  const maxIndex = EnigmailKeyRing.getAllKeys().keyList.length;
 
   if (maxIndex === 0) return EnigmailKeyRing.getAllKeys().keyList[0].keyId;
   return EnigmailKeyRing.getAllKeys().keyList[randomNumber % maxIndex].keyId;
@@ -42,7 +42,7 @@ function refreshWith(keyserver, timer, algorithm, refreshFunction) {
 
 function refreshKey() {
   return function() {
-    refreshWith(EnigmailKeyServer, timer(), KeyRefreshAlgorithm, refreshKey);
+    refreshWith(EnigmailKeyServer, createTimer(), KeyRefreshAlgorithm, refreshKey);
   };
 }
 
@@ -73,7 +73,7 @@ function startWith(timer, algorithm) {
  */
 function start() {
   EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
-  startWith(timer(), KeyRefreshAlgorithm);
+  startWith(createTimer(), KeyRefreshAlgorithm);
 }
 
 const KeyRefreshService = {

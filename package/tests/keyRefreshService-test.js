@@ -47,6 +47,21 @@ function importOneKey() {
   return EnigmailKeyRing.getAllKeys().keyList[0].keyId;
 }
 
+test(withTestGpgHome(withEnigmail(withKeys(function shouldBeAbleToGetAllKeyIdsFromKeyList(){
+  importKeys();
+
+  const publicKeyId = "8439E17046977C46";
+  const anotherKeyId = "8A411E28A056E2A3";
+  const strikeKeyId = "781617319CE311C4";
+
+  Assert.equal(getRandomKeyId(0), publicKeyId);
+  Assert.equal(getRandomKeyId(1), anotherKeyId);
+  Assert.equal(getRandomKeyId(2), strikeKeyId);
+  Assert.equal(getRandomKeyId(3), publicKeyId);
+  Assert.equal(getRandomKeyId(4), anotherKeyId);
+
+}))));
+
 test(withTestGpgHome(withEnigmail(withKeys(function shouldGetDifferentRandomKeys() {
   importKeys();
 
@@ -56,7 +71,7 @@ test(withTestGpgHome(withEnigmail(withKeys(function shouldGetDifferentRandomKeys
 test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKey() {
   const expectedKeyId = importOneKey();
 
-  Assert.equal(getRandomKeyId(), expectedKeyId);
+  Assert.equal(getRandomKeyId(100), expectedKeyId);
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjectedHelpers(){
