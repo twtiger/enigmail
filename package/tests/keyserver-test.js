@@ -157,7 +157,7 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
   const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
   const tor = {
     torProperties: function() {
-      return null
+      return null;
     },
     isRequired: function() {return false;},
     isUsed: function() {return true;}
