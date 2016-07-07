@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, assertLogContains: false, */
 
-testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false */
+testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false, setupNextRefresh: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
@@ -108,6 +108,10 @@ test(withTestGpgHome(withEnigmail(withKeys(function shouldBeAbleToGetAllKeyIdsFr
 
 }))));
 
+test(withTestGpgHome(withEnigmail(withKeys(function shouldReturnNullIfNoKeysAvailable(){
+  Assert.equal(getRandomKeyId(100), null);
+}))));
+
 test(withTestGpgHome(withEnigmail(withKeys(function shouldGetDifferentRandomKeys() {
   importKeys();
 
@@ -120,17 +124,15 @@ test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKe
   Assert.equal(getRandomKeyId(100), expectedKeyId);
 }))));
 
-test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjectedHelpers(){
+test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_setUpRefreshTimer(){
   const expectedKeyId = importOneKey();
-  const expectedRandomTime = RandomNumberGenerator.getUint32();
   const timer = {
     initWithCallbackWasCalled: false,
     initWithCallback: function(f, timeUntilNextRefresh, timerType) {
-      Assert.equal(timeUntilNextRefresh, expectedRandomTime);
-      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
       timer.initWithCallbackWasCalled = true;
     }
   };
+
   const keyserver = {
     refreshWasCalled: false,
     refresh: function(keyId) {
@@ -139,14 +141,13 @@ test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjected
     }
   };
 
-  refreshWith(keyserver, timer, expectedRandomTime, emptyFunction);
+  refreshWith(keyserver, timer);
 
   Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 }))));
 
-test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_startRefreshService(){
-  const expectedNumberOfKeys = importKeys();
+test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_WithWaitTime(){
   const expectedRandomTime = RandomNumberGenerator.getUint32();
   const timer = {
     initWithCallbackWasCalled: false,
@@ -157,7 +158,7 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_startRefreshSe
     }
   };
 
-  startWith(timer, expectedRandomTime);
+  setupNextRefresh(timer, expectedRandomTime);
 
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 }))));
@@ -171,9 +172,10 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHo
       timer.initWithCallbackWasCalled = true;
     }
   };
-  const waitTime = 1234;
 
-  startWith(timer, waitTime);
+  const keyserver = {};
+
+  refreshWith(keyserver, timer);
 
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
   assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
@@ -189,9 +191,9 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
       timer.initWithCallbackWasCalled = true;
     }
   };
-  const waitTime = 1234;
+  const keyserver = {};
 
-  startWith(timer, waitTime);
+  refreshWith(keyserver, timer);
 
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
