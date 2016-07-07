@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, assertLogContains: false, */
 
-testing("keyRefreshService.jsm"); /*global startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false */
+testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
@@ -31,6 +31,52 @@ function withKeys(f) {
 }
 
 const emptyFunction = function() {};
+const HOURS_A_WEEK_ON_THUNDERBIRD = 40;
+
+test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
+  let totalKeys = 3;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
+});
+
+test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
+  let totalKeys = 2;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
+});
+
+test(function waitTimeShouldBeLessThanMax() {
+  let totalKeys = 4;
+  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(calculateWaitTimeInMilliseconds(totalKeys) <= maxTimeForRefresh);
+});
+
+test(function calculateNewTimeEachCall(){
+  let totalKeys = 3;
+  let firstTime = calculateWaitTimeInMilliseconds(totalKeys);
+  let secondTime = calculateWaitTimeInMilliseconds(totalKeys);
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  Assert.ok(firstTime != secondTime);
+});
+
+test(function calculateWaitTimeReturnsWholeNumber(){
+  const totalKeys = 11;
+  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+
+  const number = calculateWaitTimeInMilliseconds(totalKeys);
+
+  Assert.equal(number % 1, 0);
+});
 
 function importKeys() {
   const publicKey = do_get_file("resources/dev-tiger.asc", false);
@@ -77,14 +123,6 @@ test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKe
 test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjectedHelpers(){
   const expectedKeyId = importOneKey();
   const expectedRandomTime = RandomNumberGenerator.getUint32();
-  const algorithm = {
-    calculateWaitTimeInMillisecondsWasCalled: false,
-    calculateWaitTimeInMilliseconds: function(totalPublicKeys) {
-      Assert.equal(totalPublicKeys, 1);
-      algorithm.calculateWaitTimeInMillisecondsWasCalled = true;
-      return expectedRandomTime;
-    }
-  };
   const timer = {
     initWithCallbackWasCalled: false,
     initWithCallback: function(f, timeUntilNextRefresh, timerType) {
@@ -101,9 +139,8 @@ test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjected
     }
   };
 
-  refreshWith(keyserver, timer, algorithm, emptyFunction);
+  refreshWith(keyserver, timer, expectedRandomTime, emptyFunction);
 
-  Assert.equal(algorithm.calculateWaitTimeInMillisecondsWasCalled, true, "algorithm.calculateWaitTimeInMilliseconds was not called");
   Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 }))));
@@ -111,14 +148,6 @@ test(withTestGpgHome(withEnigmail(withKeys(function setupNextRefreshWithInjected
 test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_startRefreshService(){
   const expectedNumberOfKeys = importKeys();
   const expectedRandomTime = RandomNumberGenerator.getUint32();
-  const algorithm = {
-    calculateWaitTimeInMillisecondsWasCalled: false,
-    calculateWaitTimeInMilliseconds: function(totalPublicKeys) {
-      Assert.equal(totalPublicKeys, expectedNumberOfKeys);
-      algorithm.calculateWaitTimeInMillisecondsWasCalled = true;
-      return expectedRandomTime;
-    }
-  };
   const timer = {
     initWithCallbackWasCalled: false,
     initWithCallback: function(f, time, timerType) {
@@ -128,9 +157,8 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_startRefreshSe
     }
   };
 
-  startWith(timer, algorithm);
+  startWith(timer, expectedRandomTime);
 
-  Assert.equal(algorithm.calculateWaitTimeInMillisecondsWasCalled, true, "algorithm.calculateWaitTimeInMilliseconds was not called");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 }))));
 
@@ -143,8 +171,9 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHo
       timer.initWithCallbackWasCalled = true;
     }
   };
+  const waitTime = 1234;
 
-  startWith(timer);
+  startWith(timer, waitTime);
 
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
   assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
@@ -160,8 +189,9 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
       timer.initWithCallbackWasCalled = true;
     }
   };
+  const waitTime = 1234;
 
-  startWith(timer);
+  startWith(timer, waitTime);
 
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
