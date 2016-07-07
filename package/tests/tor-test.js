@@ -185,13 +185,11 @@ test(function returnsFailure_whenSystemCannotFindTor() {
     findTorWasCalled : false,
     findTor: function() {
       system.findTorWasCalled = true;
-      return {
-        exists: false
-      };
+      return null;
     }
   };
 
-  Assert.deepEqual(torProperties(system), { torExists: false });
+  Assert.equal(torProperties(system), null);
   Assert.equal(system.findTorWasCalled, true);
 });
 
@@ -204,7 +202,6 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
     findTor: function() {
       system.findTorWasCalled = true;
       return {
-        exists: true,
         ip: '127.0.0.1',
         port: 9050,
         username: username,
@@ -215,7 +212,6 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
     findTorExecutableHelper: function() {
       system.findTorExecutableHelperWasCalled = true;
       return {
-        exists: true,
         command: 'torsocks',
         args: torArgs
       };
@@ -224,7 +220,6 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
 
   const properties = torProperties(system);
 
-  Assert.equal(properties.torExists, true);
   Assert.equal(properties.command, 'torsocks');
   Assert.equal(properties.args, torArgs);
   Assert.equal(system.findTorWasCalled, true);
@@ -240,7 +235,6 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
     findTor: function() {
       system.findTorWasCalled = true;
       return {
-        exists: true,
         ip: '127.0.0.1',
         port: 9150,
         username: username,
@@ -250,9 +244,7 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
     findTorExecutableHelperWasCalled: false,
     findTorExecutableHelper: function() {
       system.findTorExecutableHelperWasCalled = true;
-      return {
-        exists: false,
-      };
+      return null;
     },
     isDosLikeWasCalled: false,
     isDosLike: function() {
@@ -263,7 +255,6 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
 
   const properties = torProperties(system);
 
-  Assert.equal(properties.torExists, true);
   Assert.equal(properties.command, 'gpg');
   Assert.deepEqual(properties.args, gpgArgs);
   Assert.equal(properties.envVars.length, 0);
@@ -297,7 +288,6 @@ test(function testUseTorSocks1WhenAvailable() {
 
   const result = findTorExecutableHelper(e);
 
-  Assert.equal(result.exists, true);
   Assert.equal(result.command, 'torsocks');
   Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
   Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
@@ -309,7 +299,7 @@ test(function testUseTorSocks2WhenAvailable() {
   const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
 
   const result = findTorExecutableHelper(e);
-  Assert.equal(result.exists, true);
+
   Assert.equal(result.command, 'torsocks');
 });
 
@@ -326,21 +316,21 @@ test(function testUseTorSocks2WhenAvailable() {
   const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
 
   const result = findTorExecutableHelper(executableEvaluator);
-  Assert.equal(result.exists, true);
+
   Assert.equal(result.command, 'torsocks2');
 });
 
 test(function testUseTorifyWhenAvailable() {
   const executableEvaluator = MockExecutableEvaluatorBuilder.build('torify').get();
+
   const result = findTorExecutableHelper(executableEvaluator);
-  Assert.equal(result.exists, true);
+
   Assert.equal(result.command, 'torify');
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
   const executableEvaluator = { exists: function() {return false;}};
-  const result = findTorExecutableHelper(executableEvaluator);
-  Assert.equal(result.exists, false);
+  Assert.equal(findTorExecutableHelper(executableEvaluator), null);
 });
 
 test(function creatingRandomCredential() {

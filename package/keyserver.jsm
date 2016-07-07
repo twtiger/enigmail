@@ -55,9 +55,9 @@ function buildStandardArgs(action) {
 }
 
 function flatten(arrOfArr) {
-    return arrOfArr.reduce(function(a, b) {
-      return a.concat(b);
-    }, []);
+  return arrOfArr.reduce(function(a, b) {
+    return a.concat(b);
+  }, []);
 }
 
 function gpgRequest(keyId, uri, httpProxy, action) {
@@ -113,12 +113,12 @@ function buildRequests(keyId, action, tor, httpProxy) {
   const uris = KeyserverURIs.prioritiseEncryption();
   let requests = [];
 
-  if (tor.isRequired(action) && !torProperties.torExists) {
-      EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
-      return [];
+  if (tor.isRequired(action) && !torProperties) {
+    EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
+    return [];
   }
 
-  if (tor.isUsed(action) && torProperties.torExists === true) {
+  if (torProperties && tor.isUsed(action)) {
     uris.forEach(function(uri) {
       requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties, action, uri));
     });

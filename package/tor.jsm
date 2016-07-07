@@ -68,34 +68,29 @@ function isRequired(actionFlags) {
 }
 
 function gpgProxyArgs(tor, system, executableEvaluator) {
-  let proto = NEW_CURL_PROTOCOL;
   if (system.isDosLike() ||
     !executableEvaluator.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    proto = OLD_CURL_PROTOCOL;
+    return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
   }
-  return proto + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+  return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
 }
 
 function torOnEither(browserBundlePortPref, servicePortPref) {
-  const success = {
-    found: true,
-    ip: Socks5Proxy.torIpAddr()
-  };
-
   const portPrefs = [browserBundlePortPref, servicePortPref];
   for (let i=0; i < portPrefs.length; i++) {
     if (Socks5Proxy.checkTorExists(portPrefs[i])) {
-      success.port = EnigmailPrefs.getPref(portPrefs[i]);
+      const port = EnigmailPrefs.getPref(portPrefs[i]);
 
-      EnigmailLog.CONSOLE("Tor found on IP: " + success.ip + ", port: " + success.port + "\n\n");
+      EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
 
-      return success;
+      return {
+        ip: Socks5Proxy.torIpAddr(),
+        port: port
+      };
     }
   }
 
-  return {
-    found: false
-  };
+  return null;
 }
 
 function meetsOSConstraints(os, executableEvaluator) {
@@ -139,25 +134,21 @@ function findTorExecutableHelper(executableEvaluator) {
     if (executableEvaluator.exists(torHelpers[i])) {
       const authOverArgs = useAuthOverArgs(torHelpers[i], executableEvaluator);
       return {
-        exists: true,
         envVars: (authOverArgs ? [] : buildEnvVars(torHelpers[i])),
         command: torHelpers[i],
         args: createHelperArgs(torHelpers[i], authOverArgs)
       };
     }
   }
-  return {
-    exists: false
-  };
+  return null;
 }
 
 function findTor() {
   const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
-  if (!tor.found || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator)) {
-    return { exists: false };
-  } else
+  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableEvaluator))
+    return null;
+  else
     return {
-      exists: true,
       ip: tor.ip,
       port: tor.port,
       username: createRandomCredential(),
@@ -173,30 +164,21 @@ const systemCaller = {
 };
 
 function torProperties(system) {
-  const failure = { torExists: false };
-
   const tor = system.findTor();
-  if (!tor.exists) return failure;
+  if (!tor) return null;
 
   const torHelper = system.findTorExecutableHelper(ExecutableEvaluator);
-  if (torHelper.exists) {
-    return {
-      torExists: tor.exists,
-      command: torHelper.command,
-      envVars: torHelper.envVars,
-      args: torHelper.args
-    };
+  if (torHelper) {
+    return torHelper;
   }
 
   return {
-    torExists: tor.exists,
     command: 'gpg',
     args: gpgProxyArgs(tor, system, ExecutableEvaluator),
     envVars: []
   };
 }
 
-const nsIEnigmail = Ci.nsIEnigmail;
 const EnigmailTor = {
   torProperties: function() {
     return torProperties(systemCaller);
