@@ -113,12 +113,12 @@ function buildRequests(keyId, action, tor, httpProxy) {
   const uris = KeyserverURIs.prioritiseEncryption();
   let requests = [];
 
-  if (tor.isRequired(action) && !torProperties) {
+  if (tor.isRequired(action) && torProperties === null) {
     EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
     return [];
   }
 
-  if (torProperties && tor.isUsed(action)) {
+  if (torProperties !== null && tor.isUsed(action)) {
     uris.forEach(function(uri) {
       requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties, action, uri));
     });
