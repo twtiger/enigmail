@@ -15,48 +15,48 @@ component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
       Assert.equal(executable, 'gpg');
       Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return false;
     }
   };
 
-  Assert.equal(meetsOSConstraints("OS2", executableEvaluator), false);
-  Assert.equal(executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+  Assert.equal(meetsOSConstraints("OS2", executableCheck), false);
+  Assert.equal(executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
 });
 
 test(function evaluateGpgVersionWhenOsIsWindows32() {
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
       Assert.equal(executable, 'gpg');
       Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return true;
     }
   };
 
-  Assert.equal(meetsOSConstraints("WINNT", executableEvaluator), true);
-  Assert.equal(executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+  Assert.equal(meetsOSConstraints("WINNT", executableCheck), true);
+  Assert.equal(executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
 });
 
 test(function whenMeetsMinimumCurlSocksVersion() {
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return true;
     }
   };
 
-  Assert.equal(meetsOSConstraints("Linux", executableEvaluator), true);
-  Assert.equal(executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+  Assert.equal(meetsOSConstraints("Linux", executableCheck), true);
+  Assert.equal(executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
 });
 
 test(withEnigmail(function createHelperArgsForTorsocks1(enigmail) {
@@ -98,17 +98,17 @@ test(function createGpgProxyArgs_forWindows() {
       return true;
     }
   };
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return false;
     }
   };
 
-  const args = gpgProxyArgs(tor, system, executableEvaluator);
+  const args = gpgProxyArgs(tor, system, executableCheck);
 
   Assert.deepEqual(args, 'socks5-hostname://'+username+':'+password+'@127.0.0.1:9050');
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
@@ -130,17 +130,17 @@ test(function createGpgProxyArgs_forLinux() {
       return false;
     }
   };
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return true;
     }
   };
 
-  const args = gpgProxyArgs(tor, system, executableEvaluator);
+  const args = gpgProxyArgs(tor, system, executableCheck);
 
   Assert.equal(args, 'socks5h://'+username+':'+password+'@192.8.8.4:9150');
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
@@ -162,21 +162,21 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
       return false;
     }
   };
-  const executableEvaluator = {
+  const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+      executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return false;
     }
   };
 
-  const args = gpgProxyArgs(tor, system, executableEvaluator);
+  const args = gpgProxyArgs(tor, system, executableCheck);
 
   Assert.equal(args, 'socks5-hostname://'+username+':'+password+'@192.8.8.4:9150');
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
-  Assert.equal(executableEvaluator.versionFoundMeetsMinimumVersionRequiredWasCalled, true, 'versionFoundMeetsMinimumVersionRequired was not called');
+  Assert.equal(executableCheck.versionFoundMeetsMinimumVersionRequiredWasCalled, true, 'versionFoundMeetsMinimumVersionRequired was not called');
 });
 
 
@@ -263,7 +263,7 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(system.isDosLikeWasCalled, true);
 });
 
-const MockExecutableEvaluatorBuilder = {
+const MockExecutableCheckBuilder = {
   build: function(x) {
     this.e = {
       exists: function(val) {
@@ -284,7 +284,7 @@ function contains(string, substring) {
 }
 
 test(function testUseTorSocks1WhenAvailable() {
-  const e = MockExecutableEvaluatorBuilder.build('torsocks').withVersion(false).get();
+  const e = MockExecutableCheckBuilder.build('torsocks').withVersion(false).get();
 
   const result = findTorExecutableHelper(e);
 
@@ -295,7 +295,7 @@ test(function testUseTorSocks1WhenAvailable() {
 });
 
 test(function testUseTorSocks2WhenAvailable() {
-  const e = MockExecutableEvaluatorBuilder.build('torsocks').withVersion(true).get();
+  const e = MockExecutableCheckBuilder.build('torsocks').withVersion(true).get();
   const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
 
   const result = findTorExecutableHelper(e);
@@ -312,25 +312,23 @@ test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
 });
 
 test(function testUseTorSocks2WhenAvailable() {
-  const executableEvaluator = MockExecutableEvaluatorBuilder.build('torsocks2').get();
+  const executableCheck = MockExecutableCheckBuilder.build('torsocks2').get();
   const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
 
-  const result = findTorExecutableHelper(executableEvaluator);
-
+  const result = findTorExecutableHelper(executableCheck);
   Assert.equal(result.command, 'torsocks2');
 });
 
 test(function testUseTorifyWhenAvailable() {
-  const executableEvaluator = MockExecutableEvaluatorBuilder.build('torify').get();
-
-  const result = findTorExecutableHelper(executableEvaluator);
-
+  const executableCheck = MockExecutableCheckBuilder.build('torify').get();
+  const result = findTorExecutableHelper(executableCheck);
   Assert.equal(result.command, 'torify');
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
-  const executableEvaluator = { exists: function() {return false;}};
-  Assert.equal(findTorExecutableHelper(executableEvaluator), null);
+  const executableCheck = { exists: function() {return false;}};
+  const result = findTorExecutableHelper(executableCheck);
+  Assert.equal(findTorExecutableHelper(executableCheck), null);
 });
 
 test(function creatingRandomCredential() {

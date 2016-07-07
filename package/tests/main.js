@@ -33,5 +33,5 @@ do_subtest("expiry-test.js");
 do_subtest("installGnuPG-test.js");
 do_subtest("keyRefreshService-test.js");
 do_subtest("tor-test.js");
-do_subtest("executableEvaluator-test.js");
+do_subtest("executableCheck-test.js");
 do_subtest("randomNumber-test.js");

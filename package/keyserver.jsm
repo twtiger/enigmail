@@ -19,11 +19,11 @@ Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Cu.import("resource://enigmail/executableEvaluator.jsm"); /*global ExecutableEvaluator: false */
+Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
 function resolvePath(executable) {
-  return ExecutableEvaluator.findExecutable(executable);
+  return ExecutableCheck.findExecutable(executable);
 }
 
 function getRequestAction(actionFlags, keys) {

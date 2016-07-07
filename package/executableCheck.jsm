@@ -9,7 +9,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["ExecutableEvaluator"];
+const EXPORTED_SYMBOLS = ["ExecutableCheck"];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
@@ -105,7 +105,7 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   return compareVersionParts(parseVersion(versionResponse), minimumVersion);
 }
 
-const ExecutableEvaluator = {
+const ExecutableCheck = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   exists: executor.exists,
   findExecutable: executor.findExecutable
