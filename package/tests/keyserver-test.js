@@ -119,14 +119,26 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+  const socksArgs = 'socks5-hostname://someUser:somePass@127.0.0.1:9050';
+
+  const socks5HkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--keyserver-options', 'http-proxy='+socksArgs, '--recv-keys', keyId]);
   const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+
+  const socks5HkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--keyserver-options', 'http-proxy='+socksArgs, '--recv-keys', keyId]);
   const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
   const tor = {
     torProperties: function() {
       return {
-        command: 'torsocks',
-        args: torArgs,
-        envVars: []
+        helper: {
+          command: 'torsocks',
+          args: torArgs,
+          envVars: []
+        },
+        socks:{
+          command: 'gpg',
+          args: socksArgs,
+          envVars: []
+        }
       };
     },
     isRequired: function(action) {return false;},
@@ -136,18 +148,25 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
 
-  Assert.equal(requests.length, 4);
+  Assert.equal(requests.length, 6);
 
   Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
   Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
 
-  Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
-  Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
+  Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[1].args, socks5HkpsArgs);
 
-  Assert.equal(requests[2].command.path, '/usr/bin/gpg2');
-  Assert.deepEqual(requests[2].args, hkpsArgs);
+  Assert.equal(requests[2].command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(requests[2].args, torArgs.concat(hkpArgs));
+
   Assert.equal(requests[3].command.path, '/usr/bin/gpg2');
-  Assert.deepEqual(requests[3].args, hkpArgs);
+  Assert.deepEqual(requests[3].args, socks5HkpArgs);
+
+  Assert.equal(requests[4].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[4].args, hkpsArgs);
+
+  Assert.equal(requests[5].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[5].args, hkpArgs);
 }));
 
 test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
@@ -167,14 +186,26 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
     setupKeyserverPrefs("keyserver.1", true);
     const keyId = '1234';
     const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
+    const socksArgs = 'socks5-hostname://someUser:somePass@127.0.0.1:9050';
+
+    const socks5HkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--keyserver-options', 'http-proxy='+socksArgs, '--recv-keys', keyId]);
     const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+
+    const socks5HkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--keyserver-options', 'http-proxy='+socksArgs, '--recv-keys', keyId]);
     const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
     const tor = {
       torProperties: function() {
         return {
+        helper: {
           command: 'torsocks',
           args: torArgs,
           envVars: []
+        },
+        socks: {
+          command: 'gpg',
+          args: socksArgs,
+          envVars: []
+        }
         };
       },
       isRequired: function(action) {return true;},
@@ -184,13 +215,19 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
     const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
     const requests = buildRequests(keyId, refreshAction, tor, buildMockHttpProxy(null));
 
-    Assert.equal(requests.length, 2);
+    Assert.equal(requests.length, 4);
 
     Assert.equal(requests[0].command.path, '/usr/bin/torsocks');
     Assert.deepEqual(requests[0].args, torArgs.concat(hkpsArgs));
 
-    Assert.equal(requests[1].command.path, '/usr/bin/torsocks');
-    Assert.deepEqual(requests[1].args, torArgs.concat(hkpArgs));
+    Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
+    Assert.deepEqual(requests[1].args, socks5HkpsArgs);
+
+    Assert.equal(requests[2].command.path, '/usr/bin/torsocks');
+    Assert.deepEqual(requests[2].args, torArgs.concat(hkpArgs));
+
+    Assert.equal(requests[3].command.path, '/usr/bin/gpg2');
+    Assert.deepEqual(requests[3].args, socks5HkpArgs);
   }));
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;

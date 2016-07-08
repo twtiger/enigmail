@@ -165,16 +165,18 @@ function torProperties(system) {
   const tor = system.findTor();
   if (!tor) return null;
 
+  let torRequests = {};
   const torHelper = system.findTorExecutableHelper(ExecutableCheck);
   if (torHelper) {
-    return torHelper;
+    torRequests.helper = torHelper;
   }
 
-  return {
+  torRequests.socks = {
     command: 'gpg',
     args: gpgProxyArgs(tor, system, ExecutableCheck),
     envVars: []
   };
+  return torRequests;
 }
 
 const EnigmailTor = {

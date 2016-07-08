@@ -197,8 +197,10 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
+  const gpgArgs = 'socks5h://'+username+':'+password+'@127.0.0.1:9050';
   const system = {
     findTorWasCalled: false,
+    isDosLike: function() {return false;},
     findTor: function() {
       system.findTorWasCalled = true;
       return {
@@ -219,14 +221,20 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
   };
 
   const properties = torProperties(system);
+  const socksProperties = properties.socks;
+  const helperProperties = properties.helper;
 
-  Assert.equal(properties.command, 'torsocks');
-  Assert.equal(properties.args, torArgs);
+  Assert.equal(helperProperties.command, 'torsocks');
+  Assert.equal(helperProperties.args, torArgs);
+
+  Assert.equal(socksProperties.command, 'gpg');
+  Assert.equal(socksProperties.args, gpgArgs);
+
   Assert.equal(system.findTorWasCalled, true);
   Assert.equal(system.findTorExecutableHelperWasCalled, true);
 });
 
-test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
+test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const gpgArgs = 'socks5h://'+username+':'+password+'@127.0.0.1:9150';
@@ -254,10 +262,13 @@ test(function returnsSuccesWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   };
 
   const properties = torProperties(system);
+  Assert.equal(properties.helper, null);
 
-  Assert.equal(properties.command, 'gpg');
-  Assert.deepEqual(properties.args, gpgArgs);
-  Assert.equal(properties.envVars.length, 0);
+  const socksProperties = properties.socks;
+
+  Assert.equal(socksProperties.command, 'gpg');
+  Assert.deepEqual(socksProperties.args, gpgArgs);
+  Assert.equal(socksProperties.envVars.length, 0);
   Assert.equal(system.findTorWasCalled, true);
   Assert.equal(system.findTorExecutableHelperWasCalled, true);
   Assert.equal(system.isDosLikeWasCalled, true);
