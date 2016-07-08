@@ -78,21 +78,17 @@ function gpgProxyArgs(tor, system, executableCheck) {
   return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
 }
 
-function torOnEither(browserBundlePortPref, servicePortPref) {
-  const portPrefs = [browserBundlePortPref, servicePortPref];
-  for (let i=0; i < portPrefs.length; i++) {
-    if (Socks5Proxy.checkTorExists(portPrefs[i])) {
-      const port = EnigmailPrefs.getPref(portPrefs[i]);
+function torOn(portPref) {
+  if (Socks5Proxy.checkTorExists(portPref)) {
+    const port = EnigmailPrefs.getPref(portPref);
 
-      EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
+    EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
 
-      return {
-        ip: Socks5Proxy.torIpAddr(),
-        port: port
-      };
-    }
+    return {
+      ip: Socks5Proxy.torIpAddr(),
+      port: port
+    };
   }
-
   return null;
 }
 
@@ -146,7 +142,7 @@ function findTorExecutableHelper(executableCheck) {
 }
 
 function findTor() {
-  const tor = torOnEither(TOR_BROWSER_BUNDLE_PORT_PREF, TOR_SERVICE_PORT_PREF);
+  const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
   if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableCheck))
     return null;
   else
