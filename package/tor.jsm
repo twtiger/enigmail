@@ -93,7 +93,7 @@ function torOn(portPref) {
 }
 
 function meetsOSConstraints(os, executableCheck) {
-  if (['WINNT', 'OS2'].indexOf(os) > -1) {
+  if (os === 'WINNT' || os === 'OS2') {
     return executableCheck.versionFoundMeetsMinimumVersionRequired('gpg', MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return executableCheck.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
