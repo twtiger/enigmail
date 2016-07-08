@@ -123,7 +123,7 @@ function buildRequests(keyId, action, tor, httpProxy) {
       if(torProperties.helper !== null) {
         requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.helper, action, uri));
       }
-        requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.socks, action, uri));
+      requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.socks, action, uri));
     });
   }
 
