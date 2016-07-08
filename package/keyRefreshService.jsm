@@ -62,11 +62,11 @@ function logMissingInformation(keyIdsExist, keyserversExist){
 }
 
 function getRandomKeyId(randomNumber) {
-  const maxIndex = EnigmailKeyRing.getAllKeys().keyList.length;
+  const keyRingLength = EnigmailKeyRing.getAllKeys().keyList.length;
 
-  if (maxIndex === 0) {return null;}
+  if (keyRingLength === 0) {return null;}
 
-  return EnigmailKeyRing.getAllKeys().keyList[randomNumber % maxIndex].keyId;
+  return EnigmailKeyRing.getAllKeys().keyList[randomNumber % keyRingLength].keyId;
 }
 
 function refreshWith(keyserver, timer) {
@@ -89,10 +89,12 @@ function refreshWith(keyserver, timer) {
  *
  * This service does not keep state, it will restart each time Enigmail is initialized.
  */
-function start() {
-  const timer = createTimer();
-  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
-  refreshWith(EnigmailKeyServer, timer);
+function start(keyserver) {
+  if (EnigmailPrefs.getPref("keyRefreshOn") === true){
+    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
+    const timer = createTimer();
+    refreshWith(keyserver, timer);
+  }
 }
 
 const KeyRefreshService = {

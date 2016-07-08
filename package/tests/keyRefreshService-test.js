@@ -85,10 +85,9 @@ function importKeys() {
   EnigmailKeyRing.importKeyFromFile(publicKey, {}, {});
   EnigmailKeyRing.importKeyFromFile(anotherKey, {}, {});
   EnigmailKeyRing.importKeyFromFile(strikeKey, {}, {});
-  return EnigmailKeyRing.getAllKeys().keyList.length;
 }
 
-function importOneKey() {
+function importAndReturnOneKey() {
   EnigmailKeyRing.importKeyFromFile(do_get_file("resources/dev-strike.asc", false), {}, {});
   return EnigmailKeyRing.getAllKeys().keyList[0].keyId;
 }
@@ -119,13 +118,13 @@ test(withTestGpgHome(withEnigmail(withKeys(function shouldGetDifferentRandomKeys
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKey() {
-  const expectedKeyId = importOneKey();
+  const expectedKeyId = importAndReturnOneKey();
 
   Assert.equal(getRandomKeyId(100), expectedKeyId);
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_setUpRefreshTimer(){
-  const expectedKeyId = importOneKey();
+  const expectedKeyId = importAndReturnOneKey();
   const timer = {
     initWithCallbackWasCalled: false,
     initWithCallback: function(f, timeUntilNextRefresh, timerType) {
@@ -198,3 +197,15 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 });
+
+test(withLogFiles(function keyRefreshServiceIsTurnedOffByDefault(){
+  const keyRefreshStartMessage = "[KEY REFRESH SERVICE]: Started";
+  const keyserver = {};
+
+  KeyRefreshService.start(keyserver);
+  assertLogDoesNotContain(keyRefreshStartMessage);
+
+  EnigmailPrefs.setPref("keyRefreshOn", true);
+  KeyRefreshService.start(keyserver);
+  assertLogContains(keyRefreshStartMessage);
+}));
