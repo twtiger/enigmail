@@ -33,6 +33,11 @@ function withKeys(f) {
 const emptyFunction = function() {};
 const HOURS_A_WEEK_ON_THUNDERBIRD = 40;
 
+function resetPreferences(){
+  EnigmailPrefs.setPref("keyRefreshOn", false);
+  EnigmailPrefs.setPref("keyserver", "pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu");
+}
+
 test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
   let totalKeys = 3;
   let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
@@ -196,6 +201,8 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
 
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+
+  resetPreferences();
 });
 
 test(withLogFiles(function keyRefreshServiceIsTurnedOffByDefault(){
@@ -208,4 +215,6 @@ test(withLogFiles(function keyRefreshServiceIsTurnedOffByDefault(){
   EnigmailPrefs.setPref("keyRefreshOn", true);
   KeyRefreshService.start(keyserver);
   assertLogContains(keyRefreshStartMessage);
+
+  resetPreferences();
 }));
