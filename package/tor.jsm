@@ -35,6 +35,8 @@ const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
 
+const TOR_HELPERS = ['torsocks2', 'torsocks', 'torify', 'usewithtor'];
+
 const TORSOCKS_VERSION_2 = v(2, 0, 0);
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
@@ -130,14 +132,13 @@ function useAuthOverArgs(helper, executableCheck) {
 }
 
 function findTorExecutableHelper(executableCheck) {
-  const torHelpers = ['torsocks', 'torsocks2', 'torify', 'usewithtor'];
-  for (let i=0; i<torHelpers.length; i++) {
-    if (executableCheck.exists(torHelpers[i])) {
-      const authOverArgs = useAuthOverArgs(torHelpers[i], executableCheck);
+  for (let i=0; i<TOR_HELPERS.length; i++) {
+    if (executableCheck.exists(TOR_HELPERS[i])) {
+      const authOverArgs = useAuthOverArgs(TOR_HELPERS[i], executableCheck);
       return {
-        envVars: (authOverArgs ? [] : buildEnvVars(torHelpers[i])),
-        command: torHelpers[i],
-        args: createHelperArgs(torHelpers[i], authOverArgs)
+        envVars: (authOverArgs ? [] : buildEnvVars(TOR_HELPERS[i])),
+        command: TOR_HELPERS[i],
+        args: createHelperArgs(TOR_HELPERS[i], authOverArgs)
       };
     }
   }
