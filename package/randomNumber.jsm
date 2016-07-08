@@ -1,4 +1,4 @@
-/* global Components: false */
+/*global Components: false */
 "use strict";
 
 const EXPORTED_SYMBOLS = ["RandomNumberGenerator"];

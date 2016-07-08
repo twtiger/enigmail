@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
-testing("randomNumber.jsm"); /* global RandomNumberGenerator: false, testing: false, Assert: false, bytesToUInt: false */
+testing("randomNumber.jsm"); /*global RandomNumberGenerator: false, testing: false, Assert: false, bytesToUInt: false */
 
 test(function testConversionFromByteObjectToUnsignedInteger(){
   // 1100 1110 0000 1001 1100 0111 1101 1111

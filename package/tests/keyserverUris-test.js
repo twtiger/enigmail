@@ -1,4 +1,4 @@
-/* global test:false, component: false, testing: false, Assert: false, do_load_module: false, do_get_cwd: false */
+/*global test:false, component: false, testing: false, Assert: false, do_load_module: false, do_get_cwd: false */
 "use strict";
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */

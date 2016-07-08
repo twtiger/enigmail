@@ -1,4 +1,4 @@
-/* global Components: false */
+/*global Components: false */
 
 "use strict";
 
@@ -6,7 +6,7 @@ var EXPORTED_SYMBOLS = ["Socks5Proxy"];
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /* global EnigmailPrefs: false */
+Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
 const CC = Components.Constructor;
 const Cc = Components.classes;

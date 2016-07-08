@@ -13,7 +13,7 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("rules.jsm");
-component("enigmail/keyRing.jsm"); /* global EnigmailKeyRing: false */
+component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 
 // getRulesFile
 test(function getRulesFileReturnsTheFile() {
