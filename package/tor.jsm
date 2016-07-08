@@ -107,7 +107,7 @@ function createRandomCredential() {
 function createHelperArgs(helper, addAuth) {
   let args = [];
   if (addAuth) {
-    args.push('--user', createRandomCredential(), '--pass', createRandomCredential());
+    args = ['--user', createRandomCredential(), '--pass', createRandomCredential()];
   }
   args.push(EnigmailGpg.agentPath.path);
   return args;
