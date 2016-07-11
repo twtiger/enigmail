@@ -31,10 +31,11 @@ function calculateWaitTimeInMilliseconds(totalPublicKeys) {
   const randomNumber = RandomNumberGenerator.getUint32();
   const maxTimeForRefresh = calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
 
+  EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Wait time = random number: "+ randomNumber + " % max time for refresh: " + maxTimeForRefresh + "\n");
 
   const millisec = randomNumber % maxTimeForRefresh;
 
-  EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ millisec + "\n");
+  EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ millisec + "\n");
 
   return millisec;
 }
@@ -58,10 +59,10 @@ function setupNextRefresh(timer, waitTime){
 
 function logMissingInformation(keyIdsExist, keyserversExist){
   if (!keyIdsExist){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.\n");
+    EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.\n");
   }
   if (!keyserversExist){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.\n");
+    EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.\n");
   }
 }
 
