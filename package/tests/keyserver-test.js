@@ -22,7 +22,7 @@ function buildMockHttpProxy(host) {
 test(function setupRequestWithTorHelper(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = {
-    command: 'torsocks',
+    command: { path: '/usr/bin/torsocks' },
     args: torArgs,
     envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_PASSWORD=def"]
   };
@@ -42,7 +42,7 @@ test(function setupRequestWithTorHelper(){
 test(function setupRequestWithTorHelperWithEnvVariables(){
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
   const torProperties = {
-    command: 'torsocks',
+    command: { path: '/usr/bin/torsocks' },
     args: torArgs,
     envVars: ["TORSOCKS_USERNAME=abc", "TORSOCKS_USERNAME=def"]
   };
@@ -130,7 +130,7 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExists(eni
     torProperties: function() {
       return {
         helper: {
-          command: 'torsocks',
+          command: { path: '/usr/bin/torsocks' },
           args: torArgs,
           envVars: []
         },
@@ -196,16 +196,16 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
     const tor = {
       torProperties: function() {
         return {
-        helper: {
-          command: 'torsocks',
-          args: torArgs,
-          envVars: []
-        },
-        socks: {
-          command: 'gpg',
-          args: socksArgs,
-          envVars: []
-        }
+          helper: {
+            command: { path: '/usr/bin/torsocks' },
+            args: torArgs,
+            envVars: []
+          },
+          socks: {
+            command: 'gpg',
+            args: socksArgs,
+            envVars: []
+          }
         };
       },
       isRequired: function(action) {return true;},
