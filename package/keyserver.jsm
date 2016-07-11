@@ -22,10 +22,6 @@ Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
-function resolvePath(executable) {
-  return ExecutableCheck.findExecutable(executable);
-}
-
 function getRequestAction(actionFlags, keys) {
   if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) { return ['--recv-keys'].concat(keys); }
   if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) { return ['--search-keys'].concat(keys); }
@@ -89,7 +85,7 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
       getRequestAction(action, keyId)
     ]);
   } else {
-    result.command = resolvePath(torProperties.command);
+    result.command = torProperties.command;
     result.args = flatten([
       torProperties.args,
       buildStandardArgs(action),
