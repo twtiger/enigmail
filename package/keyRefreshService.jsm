@@ -41,7 +41,7 @@ function calculateWaitTimeInMilliseconds(totalPublicKeys) {
 }
 
 function refreshKey() {
-  let timer = createTimer();
+  const timer = createTimer();
   refreshWith(EnigmailKeyServer, timer);
 }
 
