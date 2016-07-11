@@ -24,11 +24,15 @@ function createTimer() {
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
   const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME) * ONE_HOUR_IN_MILLISEC;
-  return millisecondsAvailableForRefresh / totalPublicKeys;
+  return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
-  const millisec = Math.floor(RandomNumberGenerator.getUint32() % calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys));
+  const randomNumber = RandomNumberGenerator.getUint32();
+  const maxTimeForRefresh = calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
+
+
+  const millisec = randomNumber % maxTimeForRefresh;
 
   EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Time until next refresh in milliseconds: "+ millisec + "\n");
 
