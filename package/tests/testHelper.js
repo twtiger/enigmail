@@ -135,6 +135,19 @@ function withTestGpgHome(f) {
   };
 }
 
+function withPreferences(func){
+  return function() {
+    const keyRefreshPrefs = EnigmailPrefs.getPref("keyRefreshOn");
+    const keyserverPrefs = EnigmailPrefs.getPref("keyserver");  
+    try {
+      func();
+    } finally {
+      EnigmailPrefs.setPref("keyRefreshOn", keyRefreshPrefs);
+      EnigmailPrefs.setPref("keyserver", keyserverPrefs);  
+    }
+  };
+}
+
 /**
  * Create a test account called Enigmail Unit Test with 3 identities:
  * - user1@enigmail-test.net - uses a specific key ID

@@ -8,7 +8,7 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
 
 testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false, setupNextRefresh: false */
 
@@ -32,11 +32,6 @@ function withKeys(f) {
 
 const emptyFunction = function() {};
 const HOURS_A_WEEK_ON_THUNDERBIRD = 40;
-
-function resetPreferences(){
-  EnigmailPrefs.setPref("keyRefreshOn", false);
-  EnigmailPrefs.setPref("keyserver", "pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu");
-}
 
 test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
   let totalKeys = 3;
@@ -185,7 +180,7 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHo
   assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
 }))));
 
-test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
+test(withPreferences(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
   EnigmailPrefs.setPref("keyserver", " ");
   const timer = {
     initWithCallbackWasCalled: false,
@@ -201,11 +196,9 @@ test(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
 
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+}));
 
-  resetPreferences();
-});
-
-test(withLogFiles(function keyRefreshServiceIsTurnedOffByDefault(){
+test(withLogFiles(withPreferences(function keyRefreshServiceIsTurnedOffByDefault(){
   const keyRefreshStartMessage = "[KEY REFRESH SERVICE]: Started";
   const keyserver = {};
 
@@ -215,6 +208,4 @@ test(withLogFiles(function keyRefreshServiceIsTurnedOffByDefault(){
   EnigmailPrefs.setPref("keyRefreshOn", true);
   KeyRefreshService.start(keyserver);
   assertLogContains(keyRefreshStartMessage);
-
-  resetPreferences();
-}));
+})));
