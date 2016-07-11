@@ -274,44 +274,53 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(system.isDosLikeWasCalled, true);
 });
 
-const MockExecutableCheckBuilder = {
-  build: function(x) {
-    this.e = {
-      exists: function(val) {
-        return val === x;
-      }
-    };
-    return this;
-  },
-  withVersion: function(isHigherVersion) {
-    this.e.versionFoundMeetsMinimumVersionRequired = function() { return isHigherVersion;};
-    return this;
-  },
-  get: function() {return this.e;}
-};
-
 function contains(string, substring) {
   return string.indexOf(substring) > -1;
 }
 
-test(function testUseTorSocks1WhenAvailable() {
-  const e = MockExecutableCheckBuilder.build('torsocks').withVersion(false).get();
+test(function testUsingTorsocksWithEnvironmentVariables() {
+  const executableCheck = {
+    findExecutable: function(executableName) {
+      if (executableName === 'torsocks') {
+        return { path: '/usr/bin/' + executableName };
+      } else {
+        return null;
+      }
+    },
+    versionFoundMeetsMinimumVersionRequired: function() {
+      return false;
+    }
+  };
 
-  const result = findTorExecutableHelper(e);
+  const result = findTorExecutableHelper(executableCheck);
 
-  Assert.equal(result.command, 'torsocks');
+  Assert.equal(result.command.path, '/usr/bin/torsocks');
   Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
   Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
   Assert.equal(result.args.length, 1);
 });
 
-test(function testUseTorSocks2WhenAvailable() {
-  const e = MockExecutableCheckBuilder.build('torsocks').withVersion(true).get();
-  const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
+test(function testUsingTorsocksWithCommandArguments() {
+  const executableCheck = {
+    findExecutable: function(executableName) {
+      if (executableName === 'torsocks') {
+        return { path: '/usr/bin/' + executableName };
+      } else {
+        return null;
+      }
+    },
+    versionFoundMeetsMinimumVersionRequired: function() {
+      return true;
+    }
+  };
 
-  const result = findTorExecutableHelper(e);
+  const result = findTorExecutableHelper(executableCheck);
 
-  Assert.equal(result.command, 'torsocks');
+  Assert.equal(result.command.path, '/usr/bin/torsocks');
+  Assert.equal(result.args.length, 5);
+  Assert.equal(result.args[0], '--user');
+  Assert.equal(result.args[2], '--pass');
+  Assert.equal(result.args[4], '/usr/bin/gpg');
 });
 
 test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
@@ -322,23 +331,15 @@ test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
   Assert.notEqual(commandOne[1], commandTwo[1]);
 });
 
-test(function testUseTorSocks2WhenAvailable() {
-  const executableCheck = MockExecutableCheckBuilder.build('torsocks2').get();
-  const expectedArgs = ['--user', '--pass', '/usr/bin/gpg2'];
-
-  const result = findTorExecutableHelper(executableCheck);
-  Assert.equal(result.command, 'torsocks2');
-});
-
-test(function testUseTorifyWhenAvailable() {
-  const executableCheck = MockExecutableCheckBuilder.build('torify').get();
-  const result = findTorExecutableHelper(executableCheck);
-  Assert.equal(result.command, 'torify');
-});
-
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
-  const executableCheck = { exists: function() {return false;}};
+  const executableCheck = {
+    findExecutable: function() {
+      return null;
+    }
+  };
+
   const result = findTorExecutableHelper(executableCheck);
+
   Assert.equal(findTorExecutableHelper(executableCheck), null);
 });
 

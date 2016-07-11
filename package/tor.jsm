@@ -121,24 +121,24 @@ function buildEnvVars(helper) {
 }
 
 function useAuthOverArgs(helper, executableCheck) {
-  if (helper === 'torsocks') {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
+  if (helper === 'torsocks2') {
+    return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
   }
-  return true;
+  return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
 }
 
 function findTorExecutableHelper(executableCheck) {
-  for (let i=0; i<TOR_HELPERS.length; i++) {
-    if (executableCheck.exists(TOR_HELPERS[i])) {
-      const authOverArgs = useAuthOverArgs(TOR_HELPERS[i], executableCheck);
-      return {
-        envVars: (authOverArgs ? [] : buildEnvVars(TOR_HELPERS[i])),
-        command: TOR_HELPERS[i],
-        args: createHelperArgs(TOR_HELPERS[i], authOverArgs)
-      };
-    }
+  const helper = executableCheck.findExecutable('torsocks2') || executableCheck.findExecutable('torsocks');
+  if (helper) {
+    const authOverArgs = useAuthOverArgs(helper, executableCheck);
+    return {
+      envVars: (authOverArgs ? [] : buildEnvVars()),
+      command: helper,
+      args: createHelperArgs(helper, authOverArgs)
+    };
+  } else {
+    return null;
   }
-  return null;
 }
 
 function findTor() {
