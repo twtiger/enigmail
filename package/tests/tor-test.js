@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false, buildEnvVars: false*/
+testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
@@ -321,14 +321,6 @@ test(function testUsingTorsocksWithCommandArguments() {
   Assert.equal(result.args[0], '--user');
   Assert.equal(result.args[2], '--pass');
   Assert.equal(result.args[4], '/usr/bin/gpg');
-});
-
-test(function buildEnvVarsReturnsRandomUserAndPassForTorsocks1() {
-  const commandOne = buildEnvVars('torsocks');
-  const commandTwo = buildEnvVars('torsocks');
-
-  Assert.notEqual(commandOne[0], commandTwo[0]);
-  Assert.notEqual(commandOne[1], commandTwo[1]);
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {

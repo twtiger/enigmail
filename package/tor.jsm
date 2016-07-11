@@ -113,7 +113,7 @@ function createHelperArgs(helper, addAuth) {
   return args;
 }
 
-function buildEnvVars(helper) {
+function buildEnvVars() {
   return [
     "TORSOCKS_USERNAME=" + createRandomCredential(),
     "TORSOCKS_PASSWORD=" + createRandomCredential()
