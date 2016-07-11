@@ -42,7 +42,7 @@ function calculateWaitTimeInMilliseconds(totalPublicKeys) {
 
 function refreshKey() {
   const timer = createTimer();
-  refreshWith(EnigmailKeyServer, timer);
+  refreshWith(EnigmailKeyServer, timer, true);
 }
 
 function restartTimerInOneHour(timer){
@@ -74,13 +74,19 @@ function getRandomKeyId(randomNumber) {
   return EnigmailKeyRing.getAllKeys().keyList[randomNumber % keyRingLength].keyId;
 }
 
-function refreshWith(keyserver, timer) {
+function refreshKeyIfReady(keyserver, readyToRefresh, keyId){
+  if (readyToRefresh) {
+    keyserver.refresh(keyId);
+  }
+}
+
+function refreshWith(keyserver, timer, readyToRefresh) {
   const keyId = getRandomKeyId(RandomNumberGenerator.getUint32());
   const keyIdsExist = keyId !== null;
   const keyserversExist = EnigmailPrefs.getPref("keyserver").trim() !== "";
 
   if (keyIdsExist && keyserversExist){
-    keyserver.refresh(keyId);
+    refreshKeyIfReady(keyserver, readyToRefresh, keyId);
     const waitTime = calculateWaitTimeInMilliseconds(EnigmailKeyRing.getAllKeys().keyList.length);
     setupNextRefresh(timer, waitTime);
   } else {
@@ -98,7 +104,7 @@ function start(keyserver) {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true){
     EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
     const timer = createTimer();
-    refreshWith(keyserver, timer);
+    refreshWith(keyserver, timer, false);
   }
 }
 

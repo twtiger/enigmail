@@ -123,7 +123,8 @@ test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKe
   Assert.equal(getRandomKeyId(100), expectedKeyId);
 }))));
 
-test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_setUpRefreshTimer(){
+test(withTestGpgHome(withEnigmail(withKeys(function refreshesKeyOnlyIfWaitTimeHasBeenSetup_AndRefreshIsReady(){
+  EnigmailPrefs.setPref("keyserver", "keyserver.1");
   const expectedKeyId = importAndReturnOneKey();
   const timer = {
     initWithCallbackWasCalled: false,
@@ -140,13 +141,18 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenKeysExist_setUpRefreshTi
     }
   };
 
-  refreshWith(keyserver, timer);
+  refreshWith(keyserver, timer, false);
+
+  Assert.equal(keyserver.refreshWasCalled, false, "keyserver.refresh was called and shouldn't have been");
+  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+
+  refreshWith(keyserver, timer, true);
 
   Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 }))));
 
-test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_WithWaitTime(){
+test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_withWaitTime(){
   const expectedRandomTime = RandomNumberGenerator.getUint32();
   const timer = {
     initWithCallbackWasCalled: false,
@@ -174,7 +180,7 @@ test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHo
 
   const keyserver = {};
 
-  refreshWith(keyserver, timer);
+  refreshWith(keyserver, timer, false);
 
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
   assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
@@ -192,7 +198,7 @@ test(withPreferences(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
   };
   const keyserver = {};
 
-  refreshWith(keyserver, timer);
+  refreshWith(keyserver, timer, false);
 
   assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
   Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
