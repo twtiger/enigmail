@@ -179,9 +179,11 @@ function torProperties(system) {
   const torHelper = system.findTorExecutableHelper(ExecutableCheck);
   if (torHelper) {
     torRequests.helper = torHelper;
+  } else {
+    torRequests.helper = null;
   }
 
-  if (!system.usesLibcurl()) { return torRequests.helper !== undefined ? torRequests : null; }
+  if (!system.usesLibcurl()) { return torRequests.helper !== null ? torRequests : null; }
 
   torRequests.socks = buildSocksProperties(tor, system);
   return torRequests;

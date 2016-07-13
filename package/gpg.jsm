@@ -45,18 +45,17 @@ function pushTrimmedStr(arr, str, splitStr) {
   return (str.length > 0);
 }
 
+const libcurlPaths = {
+  gnupg2: "lib/gnupg2/gpg2keys_curl",
+  gnupg: "lib/gnupg/gpgkeys_curl"
+};
 function getLibcurlDependencyPath(exePath) {
-  const paths = {
-    gnupg2: "lib/gnupg2/gpg2keys_curl",
-    gnupg: "lib/gnupg/gpgkeys_curl"
-  };
-
   const parentPath = /.+(\/)/;
   const parentDir = exePath.match(parentPath)[0];
   const type = exePath.split("/").pop();
-  const fullPath = parentDir + paths[type];
+  const fullPath = parentDir + libcurlPaths[type];
 
-  let fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+  const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
   fileObj.initWithPath(fullPath);
   return fileObj;
 }
@@ -315,8 +314,8 @@ const EnigmailGpg = {
     const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
     const args = ["--version"];
 
-    let exitCodeObj = {};
-    let errorMsgObj = {};
+    const exitCodeObj = {};
+    const errorMsgObj = {};
     const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
 
     if (errorMsgObj.value !== 0) { return false; }
