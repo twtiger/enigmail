@@ -34,8 +34,8 @@ function getInputData(actionFlags) {
   return null;
 }
 
-function buildProxyInfo(httpProxy, uri) {
-  const proxyHost = httpProxy.getHttpProxy(uri.keyserverName);
+function buildProxyInfo(uri) {
+  const proxyHost = getProxyModule().getHttpProxy(uri.keyserverName);
   if (proxyHost !== null) {
     return ["--keyserver-options", "http-proxy=" + proxyHost];
   }
@@ -55,10 +55,10 @@ function flatten(arrOfArr) {
   }, []);
 }
 
-function gpgRequest(keyId, uri, httpProxy, action) {
+function gpgRequest(keyId, uri, action) {
   const args = flatten([
     buildStandardArgs(action),
-    buildProxyInfo(httpProxy, uri),
+    buildProxyInfo(uri),
     ['--keyserver', uri],
     getRequestAction(action, keyId)
   ]);
@@ -102,7 +102,7 @@ function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) 
   return request;
 }
 
-function buildRequests(keyId, action, tor, httpProxy) {
+function buildRequests(keyId, action, tor) {
   const torProperties = tor.torProperties();
 
   const uris = KeyserverURIs.prioritiseEncryption();
@@ -124,7 +124,10 @@ function buildRequests(keyId, action, tor, httpProxy) {
 
   if (!tor.isRequired(action)){
     uris.forEach(function(uri) {
-      requests.push(buildRequest(gpgRequest, keyId, httpProxy, action, uri));
+      const request = gpgRequest(keyId, uri, action);
+      const isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+      request.isDownload = isDownload;
+      requests.push(request);
     });
   }
 
@@ -215,7 +218,7 @@ function executeRefresh(request, subproc) {
   return successful;
 }
 
-function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
+function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
   const args = EnigmailGpg.getStandardArgs(true);
 
   if (!keyserver) {
@@ -227,8 +230,12 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj, httpProxy) {
     errorMsgObj.value = EnigmailLocale.getString("failNoID");
     return null;
   }
+
   const searchTermsList = searchTerms.split(" ");
-  return buildRequest(gpgRequest, searchTermsList, httpProxy, actionFlags, keyserver.trim());
+  const request = gpgRequest(searchTermsList, keyserver.trim(), actionFlags);
+  const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+  request.isDownload = isDownload;
+  return request;
 }
 
 /**
@@ -265,6 +272,14 @@ function refresh(keyId){
   for (let i=0; i<requests.length; i++) {
     if (executeRefresh(requests[i], subprocess)) return;
   }
+}
+
+let currentProxyModule = null;
+function getProxyModule() {
+  if (currentProxyModule === null) {
+    currentProxyModule = EnigmailHttpProxy;
+  }
+  return currentProxyModule;
 }
 
 const EnigmailKeyServer= {
