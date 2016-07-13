@@ -13,8 +13,6 @@ Components.utils.import("resource://gre/modules/ctypes.jsm"); /* global ctypes: 
 Components.utils.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
 Components.utils.import("resource://enigmail/data.jsm"); /* global EnigmailData: false */
 Components.utils.import("resource://enigmail/subprocess.jsm"); /* global subprocess: false */
-Components.utils.import("resource://enigmail/execution.jsm"); /* global EnigmailExecution: false */
-Components.utils.import("resource://enigmail/executableCheck.jsm"); /* global ExecutableCheck: false */
 Components.utils.import("resource://enigmail/log.jsm"); /* global EnigmailLog: false */
 
 const Cc = Components.classes;
@@ -157,25 +155,6 @@ function getUnixCharset() {
 
 }
 
-function getLinuxDistribution(executableCheck, execution) {
-  const command = executableCheck.findExecutable("uname");
-  const args = ["-a"];
-  const exitCodeObj = {value: null};
-  const output = execution.simpleExecCmd(command, args, exitCodeObj, {});
-
-  if (exitCodeObj.value !== 0) {
-    return null;
-  }
-  return output;
-}
-
-function isUbuntu(executableCheck, execution) {
-  const distro = getLinuxDistribution(executableCheck, execution);
-  if (distro === null) {
-    return null;
-  }
-  return distro.indexOf("ubuntu") > -1;
-}
 
 function getKernel32Dll() {
   if (!gKernel32Dll) {
@@ -192,8 +171,6 @@ function getKernel32Dll() {
 
 
 var EnigmailSystem = {
-  isUbuntu: isUbuntu,
-
   determineSystemCharset: function() {
     EnigmailLog.DEBUG("system.jsm: determineSystemCharset\n");
 

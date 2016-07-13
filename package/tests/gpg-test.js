@@ -13,7 +13,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false,
   withTestGpgHome: false, osUtils: false, EnigmailFiles */
 
-testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false */
+testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false, isUbuntu: false */
 component("enigmail/log.jsm"); /*global EnigmailLog: false */
 
 test(function getLibcurlDependencyPathForGpg() {
@@ -32,4 +32,43 @@ test(function getLibcurlDependencyPathForGpg2() {
 
   const actualParentPath = getLibcurlDependencyPath(origPath);
   Assert.equal(actualParentPath.path, expectedParentPath);
+});
+
+test(function shouldReturnTrueIfSystemIsUbuntu() {
+  const executableCheck = {
+    findExecutable: function() {}
+  };
+  const execution = {
+    simpleExecCmd: function(cmd, args, exit, err) {
+      exit.value = 0;
+      return "ubuntu"; }
+  };
+  const output = isUbuntu(executableCheck, execution);
+  Assert.equal(output, true);
+});
+
+test(function shouldReturnFalseIfSystemIsNotUbuntu() {
+  const executableCheck = {
+    findExecutable: function() {}
+  };
+  const execution = {
+    simpleExecCmd: function(cmd, args, exit, err) {
+      exit.value = 0;
+      return "windows"; }
+  };
+  const output = isUbuntu(executableCheck, execution);
+  Assert.equal(output, false);
+});
+
+test(function shouldReturnNullIfIsUbuntuReturnsError() {
+  const executableCheck = {
+    findExecutable: function() {}
+  };
+  const execution = {
+    simpleExecCmd: function(cmd, args, exit, err) {
+      exit.value = 2;
+      return null; }
+  };
+  const output = isUbuntu(executableCheck, execution);
+  Assert.equal(output, null);
 });
