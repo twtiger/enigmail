@@ -23,6 +23,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -42,6 +43,22 @@ function pushTrimmedStr(arr, str, splitStr) {
     }
   }
   return (str.length > 0);
+}
+
+function getLibcurlDependencyPath(exePath) {
+  const paths = {
+    gnupg2: "lib/gpg2keys_curl",
+    gnupg: "lib/gpgkeys_curl"
+  };
+
+  const parentPath = /.+(\/)/;
+  const parentDir = exePath.match(parentPath)[0];
+  const type = exePath.split("/").pop();
+  const fullPath = parentDir + paths[type];
+
+  let fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+  fileObj.initWithPath(fullPath);
+  return fileObj;
 }
 
 const EnigmailGpg = {
@@ -286,5 +303,26 @@ const EnigmailGpg = {
       default:
         return EnigmailLocale.getString("unknownHashAlg", [parseInt(id, 10)]);
     }
+  },
+
+  /**
+   * Checks that the user's current version of gpg is built against libcurl, not curl-shim
+   *
+   * return value is true/false depending on whether libcurl is used
+   */
+  usesLibcurl: function() {
+    if (!EnigmailOS.isUbuntu()) {return true;}
+    const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
+    const args = ["--version"];
+
+    let exitCodeObj = {};
+    let errorMsgObj = {};
+    const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
+
+    if (exitCodeObj.value !== 0) {
+      EnigmailLog.CONSOLE("got some error boo" + errorMsgObj.value + " \n");
+      return false;
+    }
+    return output.indexOf("libcurl") > -1;
   }
 };

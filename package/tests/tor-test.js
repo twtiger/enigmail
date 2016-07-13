@@ -217,7 +217,8 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
         command: 'torsocks',
         args: torArgs
       };
-    }
+    },
+    usesLibcurl: function() { return true; }
   };
 
   const properties = torProperties(system);
@@ -258,7 +259,8 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
     isDosLike: function() {
       system.isDosLikeWasCalled = true;
       return false;
-    }
+    },
+    usesLibcurl: function() { return true; }
   };
 
   const properties = torProperties(system);
@@ -272,6 +274,38 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   Assert.equal(system.findTorWasCalled, true);
   Assert.equal(system.findTorExecutableHelperWasCalled, true);
   Assert.equal(system.isDosLikeWasCalled, true);
+});
+
+test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl() {
+  const username = RandomNumberGenerator.getUint32();
+  const password = RandomNumberGenerator.getUint32();
+  const gpgArgs = 'socks5h://'+username+':'+password+'@127.0.0.1:9150';
+  const system = {
+    findTorWasCalled: false,
+    findTor: function() {
+      system.findTorWasCalled = true;
+      return {
+        ip: '127.0.0.1',
+        port: 9150,
+        username: username,
+        password: password
+      };
+    },
+    findTorExecutableHelperWasCalled: false,
+    findTorExecutableHelper: function() {
+      system.findTorExecutableHelperWasCalled = true;
+      return null;
+    },
+    isDosLikeWasCalled: false,
+    isDosLike: function() {
+      system.isDosLikeWasCalled = true;
+      return false;
+    },
+    usesLibcurl: function() { return false; }
+  };
+
+  const properties = torProperties(system);
+  Assert.equal(properties, null);
 });
 
 function contains(string, substring) {

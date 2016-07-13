@@ -143,27 +143,29 @@ function findTorExecutableHelper(executableCheck) {
 
 function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableCheck))
+  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableCheck)) {
     return null;
-  else
+  } else {
     return {
       ip: tor.ip,
       port: tor.port,
       username: createRandomCredential(),
       password: createRandomCredential()
     };
+  }
 }
 
 const systemCaller = {
   findTor: findTor,
   findTorExecutableHelper: findTorExecutableHelper,
   getOS: EnigmailOS.getOS,
-  isDosLike: EnigmailOS.isDosLike
+  isDosLike: EnigmailOS.isDosLike,
+  usesLibcurl: EnigmailGpg.usesLibcurl
 };
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!tor) return null;
+  if (!tor) { return null; }
 
   let torRequests = {};
   const torHelper = system.findTorExecutableHelper(ExecutableCheck);
@@ -171,12 +173,16 @@ function torProperties(system) {
     torRequests.helper = torHelper;
   }
 
-  torRequests.socks = {
-    command: 'gpg',
-    args: gpgProxyArgs(tor, system, ExecutableCheck),
-    envVars: []
-  };
-  return torRequests;
+  if (system.usesLibcurl()) {
+    torRequests.socks = {
+      command: 'gpg',
+      args: gpgProxyArgs(tor, system, ExecutableCheck),
+      envVars: []
+    };
+    return torRequests;
+  } else {
+    return null;
+  }
 }
 
 const EnigmailTor = {
