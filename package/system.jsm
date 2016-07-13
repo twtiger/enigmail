@@ -157,20 +157,23 @@ function getUnixCharset() {
 
 }
 
-function getLinuxDistribution() {
-  const command = ExecutableCheck.findExecutable("uname");
+function getLinuxDistribution(executableCheck, execution) {
+  const command = executableCheck.findExecutable("uname");
   const args = ["-a"];
-  let exitCodeObj = {};
-  let errorMsgObj = {};
-  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
+  const exitCodeObj = {value: null};
+  const output = execution.simpleExecCmd(command, args, exitCodeObj, {});
 
-  if (exitCodeObj.value !== 0) { return null; }
+  if (exitCodeObj.value !== 0) {
+    return null;
+  }
   return output;
 }
 
-function isUbuntu() {
-  const distro = getLinuxDistribution();
-  if (distro === null) { return null; }
+function isUbuntu(executableCheck, execution) {
+  const distro = getLinuxDistribution(executableCheck, execution);
+  if (distro === null) {
+    return null;
+  }
   return distro.indexOf("ubuntu") > -1;
 }
 
