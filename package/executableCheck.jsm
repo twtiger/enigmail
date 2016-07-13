@@ -17,8 +17,9 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
-Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 let env = null;
 function environment() {
@@ -77,10 +78,10 @@ const executor = {
     subprocess.call(request).wait();
   },
   findExecutable: function(executable) {
-    if (EnigmailOS.getOS() === 'Darwin') {
-      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', EnigmailOS.isDosLike());
+    if (loadOS().getOS() === 'Darwin') {
+      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', loadOS().isDosLike());
     }
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
   },
   exists: function(executable) {
     return executor.findExecutable(executable) !== null;

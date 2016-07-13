@@ -14,7 +14,7 @@ const EnigmailLazy = {
   loader: function(component, name) {
     let holder = null;
     return function() {
-      if (!holder) {
+      if (holder === null) {
         const into = {};
         Components.utils.import("resource://" + component, into);
         holder = into[name];
