@@ -19,7 +19,6 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
-Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 
 let env = null;
 function environment() {
@@ -89,7 +88,6 @@ const executor = {
 };
 
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
-  if (executable === 'gpg') return compareVersionParts(parseVersion(EnigmailGpg.agentVersion), minimumVersion);
   if (!executor.exists(executable)) return false;
 
   const file = executor.findExecutable(executable);

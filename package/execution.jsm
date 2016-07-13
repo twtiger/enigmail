@@ -22,7 +22,6 @@ Cu.import("resource://enigmail/subprocess.jsm");
 Cu.import("resource://enigmail/errorHandling.jsm");
 Cu.import("resource://enigmail/core.jsm");
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Cu.import("resource://enigmail/system.jsm"); /*global EnigmailSystem: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
