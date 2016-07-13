@@ -20,15 +20,10 @@ function getOS() {
   return Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
 }
 
-function isUbuntu() {
-  return getOS() === "Ubuntu";
-}
-
 const EnigmailOS = {
   isWin32: (getOS() == "WINNT"),
 
   getOS: getOS,
-  isUbuntu: isUbuntu,
 
   isDosLike: function() {
     if (EnigmailOS.isDosLikeVal === undefined) {

@@ -23,7 +23,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
-Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/system.jsm"); /*global EnigmailSystem: false */
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -311,7 +311,7 @@ const EnigmailGpg = {
    * return value is true/false depending on whether libcurl is used
    */
   usesLibcurl: function() {
-    if (!EnigmailOS.isUbuntu()) {return true;}
+    if (!EnigmailSystem.isUbuntu()) {return true;}
     const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
     const args = ["--version"];
 
@@ -319,10 +319,7 @@ const EnigmailGpg = {
     let errorMsgObj = {};
     const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
 
-    if (exitCodeObj.value !== 0) {
-      EnigmailLog.CONSOLE("got some error boo" + errorMsgObj.value + " \n");
-      return false;
-    }
+    if (errorMsgObj.value !== 0) { return false; }
     return output.indexOf("libcurl") > -1;
   }
 };
