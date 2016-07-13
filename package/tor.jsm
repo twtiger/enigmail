@@ -163,6 +163,14 @@ const systemCaller = {
   usesLibcurl: EnigmailGpg.usesLibcurl
 };
 
+function buildSocksProperties(tor, system) {
+  return {
+    command: 'gpg',
+    args: gpgProxyArgs(tor, system, ExecutableCheck),
+    envVars: []
+  };
+}
+
 function torProperties(system) {
   const tor = system.findTor();
   if (!tor) { return null; }
@@ -173,16 +181,10 @@ function torProperties(system) {
     torRequests.helper = torHelper;
   }
 
-  if (system.usesLibcurl()) {
-    torRequests.socks = {
-      command: 'gpg',
-      args: gpgProxyArgs(tor, system, ExecutableCheck),
-      envVars: []
-    };
-    return torRequests;
-  } else {
-    return null;
-  }
+  if (!system.usesLibcurl()) { return torRequests.helper !== undefined ? torRequests : null; }
+
+  torRequests.socks = buildSocksProperties(tor, system);
+  return torRequests;
 }
 
 const EnigmailTor = {
