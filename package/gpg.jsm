@@ -46,8 +46,8 @@ function pushTrimmedStr(arr, str, splitStr) {
 }
 
 const libcurlPaths = {
-  gnupg2: "lib/gnupg2/gpg2keys_curl",
-  gnupg: "lib/gnupg/gpgkeys_curl"
+  gnupg2: "lib/gpg2/gpg2keys_curl",
+  gnupg: "lib/gpg/gpgkeys_curl"
 };
 function getLibcurlDependencyPath(exePath) {
   const parentPath = /.+(\/)/;

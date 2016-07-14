@@ -14,21 +14,18 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
   withTestGpgHome: false, osUtils: false, EnigmailFiles */
 
 testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false */
-component("enigmail/log.jsm"); /*global EnigmailLog: false */
 
 test(function getLibcurlDependencyPathForGpg() {
-  EnigmailLog.setLogLevel(8000);
   const origPath = "/start/middle/gnupg";
-  const expectedParentPath = "/start/middle/lib/gnupg/gpgkeys_curl";
+  const expectedParentPath = "/start/middle/lib/gpg/gpgkeys_curl";
 
   const actualParentPath = getLibcurlDependencyPath(origPath);
   Assert.equal(actualParentPath.path, expectedParentPath);
 });
 
 test(function getLibcurlDependencyPathForGpg2() {
-  EnigmailLog.setLogLevel(8000);
   const origPath = "/start/middle/gnupg2";
-  const expectedParentPath = "/start/middle/lib/gnupg2/gpg2keys_curl";
+  const expectedParentPath = "/start/middle/lib/gpg2/gpg2keys_curl";
 
   const actualParentPath = getLibcurlDependencyPath(origPath);
   Assert.equal(actualParentPath.path, expectedParentPath);
