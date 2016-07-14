@@ -314,10 +314,10 @@ const EnigmailGpg = {
     const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
     const args = ["--version"];
 
-    const errorMsgObj = {value: null};
-    const output = EnigmailExecution.simpleExecCmd(command, args, {}, errorMsgObj);
+    const exitCodeObj  = {value: null};
+    const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
 
-    if (errorMsgObj.value !== 0) {
+    if (exitCodeObj.value !== 0) {
       return false;
     }
 
