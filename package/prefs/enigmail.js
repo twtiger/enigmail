@@ -206,8 +206,8 @@ pref("extensions.enigmail.searchKeyWithTor", true);
 pref("extensions.enigmail.searchKeyRequireTor", false);
 pref("extensions.enigmail.uploadKeyWithTor", true);
 pref("extensions.enigmail.uploadKeyRequireTor", false);
-pref("extensions.enigmail.refreshKeyWithTor", true);
-pref("extensions.enigmail.refreshKeyRequireTor", false);
+pref("extensions.enigmail.refreshAllKeysWithTor", true);
+pref("extensions.enigmail.refreshAllKeysRequireTor", false);
 
 // Hours per week that Enigmail is available for refreshing keys
 // The smaller the hours available, the more often the refresh

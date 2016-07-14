@@ -48,7 +48,7 @@ const TOR_USER_PREFERENCES= {
   DOWNLOAD:{requires: "downloadKeyRequireTor", uses: "downloadKeyWithTor", constant: Ci.nsIEnigmail.DOWNLOAD_KEY},
   SEARCH: {requires: "searchKeyRequireTor", uses: "searchKeyWithTor", constant: Ci.nsIEnigmail.SEARCH_KEY},
   UPLOAD: {requires: "uploadKeyRequireTor", uses: "uploadKeyWithTor", constant: Ci.nsIEnigmail.UPLOAD_KEY},
-  REFRESH: {requires: "refreshKeyRequireTor", uses: "refreshKeyWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
+  REFRESH: {requires: "refreshAllKeysRequireTor", uses: "refreshAllKeysWithTor", constant: Ci.nsIEnigmail.REFRESH_KEY}
 };
 
 function getAction(actionFlags) {
