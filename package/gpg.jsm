@@ -46,13 +46,13 @@ function pushTrimmedStr(arr, str, splitStr) {
 }
 
 const libcurlPaths = {
-  gnupg2: "lib/gnupg2/gpg2keys_curl",
-  gnupg: "lib/gnupg/gpgkeys_curl"
+  gpg2: "/lib/gnupg2/gpg2keys_curl",
+  gpg: "/lib/gnupg/gpgkeys_curl"
 };
 function getLibcurlDependencyPath(exePath) {
-  const parentPath = /.+(\/)/;
-  const parentDir = exePath.match(parentPath)[0];
-  const type = exePath.split("/").pop();
+  const path = exePath.split("/");
+  const parentDir = path.slice(0, path.length-2).join("/");
+  const type = path.pop();
   const fullPath = parentDir + libcurlPaths[type];
 
   const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
