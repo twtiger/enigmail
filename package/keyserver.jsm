@@ -118,7 +118,9 @@ function buildRequests(keyId, action, tor) {
       if(torProperties.helper !== null) {
         requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.helper, action, uri));
       }
-      requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.socks, action, uri));
+      if (torProperties.socks !== null) {
+        requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.socks, action, uri));
+      }
     });
   }
 
