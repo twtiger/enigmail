@@ -21,9 +21,9 @@ Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
-Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck : false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -58,27 +58,6 @@ function getLibcurlDependencyPath(exePath) {
   const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
   fileObj.initWithPath(fullPath);
   return fileObj;
-}
-
-function getLinuxDistribution(executableCheck, execution) {
-  const command = executableCheck.findExecutable("uname");
-
-  const args = ["-a"];
-  const exitCodeObj = {value: null};
-  const output = execution.simpleExecCmd(command, args, exitCodeObj, {});
-
-  if (exitCodeObj.value !== 0) {
-    return null;
-  }
-  return output;
-}
-
-function isUbuntu(executableCheck, execution) {
-  const distro = getLinuxDistribution(executableCheck, execution);
-  if (distro === null) {
-    return null;
-  }
-  return distro.indexOf("ubuntu") > -1;
 }
 
 const EnigmailGpg = {
@@ -331,7 +310,7 @@ const EnigmailGpg = {
    * return value is true/false depending on whether libcurl is used
    */
   usesLibcurl: function() {
-    if (!isUbuntu(ExecutableCheck, EnigmailExecution)) {
+    if (!EnigmailOS.isUbuntu()) {
       return true;
     }
 

@@ -1,4 +1,4 @@
-/*global Components: false, EnigmailConsole: false, dump: false, EnigmailFiles: false, EnigmailOS: false */
+/*global Components: false, EnigmailConsole: false, dump: false, EnigmailFiles: false*/
 /*jshint -W097 */
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,7 +12,9 @@ var EXPORTED_SYMBOLS = ["EnigmailLog"];
 
 Components.utils.import("resource://enigmail/pipeConsole.jsm");
 Components.utils.import("resource://enigmail/files.jsm");
-Components.utils.import("resource://enigmail/os.jsm");
+Components.utils.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
+
+const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -36,7 +38,7 @@ const EnigmailLog = {
   },
 
   setLogDirectory: function(newLogDirectory) {
-    EnigmailLog.directory = newLogDirectory + (EnigmailOS.isDosLike() ? "\\" : "/");
+    EnigmailLog.directory = newLogDirectory + (loadOS().isDosLike() ? "\\" : "/");
     EnigmailLog.createLogFiles();
   },
 

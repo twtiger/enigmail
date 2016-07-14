@@ -14,16 +14,41 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
+Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
+
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
 function getOS() {
   return Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
 }
 
+function getLinuxDistribution() {
+  const command = ExecutableCheck.findExecutable("uname");
+  const args = ["-a"];
+  const exitCodeObj = {value: null};
+  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+
+  if (exitCodeObj.value !== 0) {
+    return null;
+  }
+  return output;
+}
+
+function isUbuntu() {
+  const distro = getLinuxDistribution();
+  if (distro === null) {
+    return null;
+  }
+  return distro.indexOf("ubuntu") > -1;
+}
+
 const EnigmailOS = {
   isWin32: (getOS() == "WINNT"),
 
   getOS: getOS,
+
+  isUbuntu: isUbuntu,
 
   isDosLike: function() {
     if (EnigmailOS.isDosLikeVal === undefined) {

@@ -1,4 +1,4 @@
-/*global Components: false, EnigmailLog: false, EnigmailOS: false, EnigmailData: false */
+/*global Components: false, EnigmailLog: false, EnigmailData: false */
 /*jshint -W097 */
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,8 +15,10 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://enigmail/os.jsm");
 Cu.import("resource://enigmail/data.jsm");
+Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
+
+const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const NS_FILE_CONTRACTID = "@mozilla.org/file/local;1";
 const NS_LOCAL_FILE_CONTRACTID = "@mozilla.org/file/local;1";
@@ -186,7 +188,7 @@ const EnigmailFiles = {
   },
 
   getFilePathDesc: function(nsFileObj) {
-    if (EnigmailOS.getOS() == "WINNT") {
+    if (loadOS().getOS() == "WINNT") {
       return nsFileObj.persistentDescriptor;
     }
     else {
@@ -199,12 +201,12 @@ const EnigmailFiles = {
   },
 
   getEscapedFilename: function(fileNameStr) {
-    if (EnigmailOS.isDosLike()) {
+    if (loadOS().isDosLike()) {
       // escape the backslashes and the " character (for Windows and OS/2)
       fileNameStr = fileNameStr.replace(/([\\\"])/g, "\\$1");
     }
 
-    if (EnigmailOS.getOS() == "WINNT") {
+    if (loadOS().getOS() == "WINNT") {
       // replace leading "\\" with "//"
       fileNameStr = fileNameStr.replace(/^\\\\*/, "//");
     }
@@ -227,7 +229,7 @@ const EnigmailFiles = {
     catch (ex) {
       // let's guess ...
       let tmpDirObj = Cc[NS_FILE_CONTRACTID].createInstance(Ci.nsIFile);
-      if (EnigmailOS.getOS() == "WINNT") {
+      if (loadOS().getOS() == "WINNT") {
         tmpDirObj.initWithPath("C:/TEMP");
       }
       else {
