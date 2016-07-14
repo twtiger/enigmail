@@ -218,7 +218,8 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
         args: torArgs
       };
     },
-    usesLibcurl: function() { return true; }
+    usesLibcurl: function() { return true; },
+    gpgUsesSocksArguments: function() { return true; }
   };
 
   const properties = torProperties(system);
@@ -260,7 +261,8 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
       system.isDosLikeWasCalled = true;
       return false;
     },
-    usesLibcurl: function() { return true; }
+    usesLibcurl: function() { return true; },
+    gpgUsesSocksArguments: function() { return true; }
   };
 
   const properties = torProperties(system);

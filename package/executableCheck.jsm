@@ -104,8 +104,13 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   return compareVersionParts(parseVersion(versionResponse), minimumVersion);
 }
 
+function compareVersions(versionString, minimum) {
+  return compareVersionParts(parseVersion(versionString), minimum);
+}
+
 const ExecutableCheck = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
+  compareVersions: compareVersions,
   exists: executor.exists,
-  findExecutable: executor.findExecutable
+  findExecutable: executor.findExecutable,
 };

@@ -35,6 +35,9 @@ const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
 
+// Socks5 arguments are no longer supported for this version of gpg and higher
+const MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED = v(2, 1, 0);
+
 const TOR_HELPERS = ['torsocks2', 'torsocks', 'torify', 'usewithtor'];
 
 const TORSOCKS_VERSION_2 = v(2, 0, 0);
@@ -155,12 +158,17 @@ function findTor() {
   }
 }
 
+function gpgUsesSocksArguments() {
+  return !ExecutableCheck.compareVersions(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+}
+
 const systemCaller = {
   findTor: findTor,
   findTorExecutableHelper: findTorExecutableHelper,
   getOS: EnigmailOS.getOS,
   isDosLike: EnigmailOS.isDosLike,
-  usesLibcurl: EnigmailGpg.usesLibcurl
+  usesLibcurl: EnigmailGpg.usesLibcurl,
+  gpgUsesSocksArguments: gpgUsesSocksArguments
 };
 
 function buildSocksProperties(tor, system) {
@@ -185,7 +193,12 @@ function torProperties(system) {
 
   if (!system.usesLibcurl()) { return torRequests.helper !== null ? torRequests : null; }
 
-  torRequests.socks = buildSocksProperties(tor, system);
+  if (system.gpgUsesSocksArguments()) {
+    torRequests.socks = buildSocksProperties(tor, system);
+  } else {
+    torRequests.socks = null;
+  }
+
   return torRequests;
 }
 
