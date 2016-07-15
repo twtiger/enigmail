@@ -172,6 +172,10 @@ const systemCaller = {
 };
 
 function buildSocksProperties(tor, system) {
+  if (!system.gpgUsesSocksArguments()) {
+    return null;
+  }
+
   return {
     command: 'gpg',
     args: gpgProxyArgs(tor, system, ExecutableCheck),
@@ -183,21 +187,14 @@ function torProperties(system) {
   const tor = system.findTor();
   if (!tor) { return null; }
 
-  let torRequests = {};
-  const torHelper = system.findTorExecutableHelper(ExecutableCheck);
-  if (torHelper) {
-    torRequests.helper = torHelper;
-  } else {
-    torRequests.helper = null;
+  const torRequests = {};
+  torRequests.helper = system.findTorExecutableHelper(ExecutableCheck);
+
+  if (!system.usesLibcurl() && torRequests.helper === null) {
+    return null;
   }
 
-  if (!system.usesLibcurl()) { return torRequests.helper !== null ? torRequests : null; }
-
-  if (system.gpgUsesSocksArguments()) {
-    torRequests.socks = buildSocksProperties(tor, system);
-  } else {
-    torRequests.socks = null;
-  }
+  torRequests.socks = buildSocksProperties(tor, system);
 
   return torRequests;
 }
