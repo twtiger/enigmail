@@ -98,10 +98,15 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
 
   executor.callAndWait(request);
 
-  const versionResponse = result.stdout.split(" ")[1];
-  EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
+  const m = result.stdout.match(/\b(\d+\.\d+\.\d+)\b/);
+  if (m) {
+    const versionResponse = m[1];
+    EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
 
-  return compareVersionParts(parseVersion(versionResponse), minimumVersion);
+    return compareVersionParts(parseVersion(versionResponse), minimumVersion);
+  }
+  EnigmailLog.DEBUG("couldn't find a version in the output from " + executable + " - total output: " + result.stdout + "\n");
+  return false;
 }
 
 function compareVersions(versionString, minimum) {
