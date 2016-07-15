@@ -159,7 +159,7 @@ function findTor() {
 }
 
 function gpgUsesSocksArguments() {
-  return !ExecutableCheck.compareVersions(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+  return (!ExecutableCheck.compareVersions(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
 }
 
 const systemCaller = {
@@ -182,22 +182,26 @@ function torProperties(system) {
   const tor = system.findTor();
   if (!tor) { return null; }
 
-  const torRequests = {};
-  torRequests.helper = system.findTorExecutableHelper(ExecutableCheck);
-
-  if (!EnigmailGpg.usesLibcurl() && torRequests.helper === null) {
-    return null;
-  }
+  const helper = system.findTorExecutableHelper(ExecutableCheck);
+  let socks;
+  let useNormal;
 
   if (system.gpgUsesSocksArguments()) {
-    torRequests.socks = buildSocksProperties(tor, system);
-    torRequests.useNormal = false;
+    socks = buildSocksProperties(tor, system);
+    useNormal = false;
   } else {
-    torRequests.socks = null;
-    torRequests.useNormal = EnigmailGpg.dirMngrWithTor();
+    socks = null;
+    useNormal = EnigmailGpg.dirMngrWithTor();
   }
 
-  return torRequests;
+  if (noProperties(helper, socks, useNormal)) {
+    return null;
+  }
+  return {helper: helper, socks: socks, useNormal: useNormal};
+}
+
+function noProperties(helper, socks, useNormal) {
+  return helper === null && socks === null && useNormal === false;
 }
 
 const EnigmailTor = {
