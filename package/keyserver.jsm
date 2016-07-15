@@ -68,7 +68,8 @@ function gpgRequest(keyId, uri, action) {
     usingTor: false,
     args: args,
     inputData: getInputData(action),
-    envVars: []
+    envVars: [],
+    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
   };
 }
 
@@ -92,14 +93,9 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
       getRequestAction(action, keyId)
     ]);
   }
-  return result;
-}
 
-function buildRequest(requestBuilder, keyId, proxyInfo, actionFlags, keyserver) {
-  const request = requestBuilder(keyId, keyserver, proxyInfo, actionFlags);
-  const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-  request.isDownload = isDownload;
-  return request;
+  result.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+  return result;
 }
 
 function buildRequests(keyId, action, tor) {
@@ -116,20 +112,17 @@ function buildRequests(keyId, action, tor) {
   if (torProperties !== null && tor.isUsed(action)) {
     uris.forEach(function(uri) {
       if(torProperties.helper !== null) {
-        requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.helper, action, uri));
+        requests.push(gpgRequestOverTor(keyId, uri, torProperties.helper, action));
       }
       if (torProperties.socks !== null) {
-        requests.push(buildRequest(gpgRequestOverTor, keyId, torProperties.socks, action, uri));
+        requests.push(gpgRequestOverTor(keyId, uri, torProperties.socks, action));
       }
     });
   }
 
   if (!tor.isRequired(action)){
     uris.forEach(function(uri) {
-      const request = gpgRequest(keyId, uri, action);
-      const isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-      request.isDownload = isDownload;
-      requests.push(request);
+      requests.push(gpgRequest(keyId, uri, action));
     });
   }
 
@@ -234,10 +227,8 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
   }
 
   const searchTermsList = searchTerms.split(" ");
-  const request = gpgRequest(searchTermsList, keyserver.trim(), actionFlags);
-  const isDownload = actionFlags & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-  request.isDownload = isDownload;
-  return request;
+
+  return gpgRequest(searchTermsList, keyserver.trim(), actionFlags);
 }
 
 /**
