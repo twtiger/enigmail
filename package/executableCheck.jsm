@@ -85,10 +85,7 @@ const executor = {
     subprocess.call(request).wait();
   },
   findExecutable: function(executable) {
-    if (loadOS().getOS() === 'Darwin') {
-      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', loadOS().isDosLike());
-    }
-    return EnigmailFiles.resolvePath(potentialWindowsExecutable(executable), environment().get("PATH"), loadOS().isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
   },
   exists: function(executable) {
     return executor.findExecutable(executable) !== null;

@@ -45,6 +45,13 @@ const lazyLog = (function() {
   };
 })();
 
+function addMacPaths(isDosLike, envPath) {
+  if (!isDosLike && loadOS().isMac()) {
+    return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
+  }
+  return envPath;
+}
+
 const EnigmailFiles = {
 
   isAbsolutePath: function(filePath, isDosLike) {
@@ -69,6 +76,7 @@ const EnigmailFiles = {
 
     var fileNames = filePath.split(";");
 
+    envPath = addMacPaths(isDosLike, envPath);
     var pathDirs = envPath.split(isDosLike ? ";" : ":");
 
     for (var i = 0; i < fileNames.length; i++) {
