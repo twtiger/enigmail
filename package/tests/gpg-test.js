@@ -13,7 +13,19 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false,
   withTestGpgHome: false, osUtils: false, EnigmailFiles */
 
-testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false */
+testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirMngrWithTor: false */
+component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
+component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
+
+function mockFunc(module, funcToReplace, replacement, f) {
+  const holder = module[funcToReplace];
+  try {
+    module[funcToReplace] = replacement;
+    f();
+  } finally {
+    module[funcToReplace] = holder;
+  }
+}
 
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";
@@ -23,3 +35,50 @@ test(function getLibcurlDependencyPathForGpg() {
   Assert.equal(actualParentPath.path, expectedParentPath);
 });
 
+test(function dirMngrWithTorReturnsTrueWhenConfiguredToUseTor() {
+  mockFunc(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+          exit.value = 0;
+          return "tor is configured";
+        }, function() {
+        const configuredWithTor = dirMngrWithTor();
+        Assert.equal(configuredWithTor, true);
+      });
+  });
+});
+
+test(function dirMngrWithTorReturnsFalseWhenNotConfiguredToUseTor() {
+  mockFunc(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+      exit.value = 0;
+      return "Tor mode is NOT enabled";
+    }, function() {
+      const configuredWithTor = dirMngrWithTor();
+      Assert.equal(configuredWithTor, false);
+    });
+  });
+});
+
+test(function dirMngrWithTorReturnsFalseWhenGpgConnectAgentPathIsNotFound() {
+  mockFunc(ExecutableCheck, "findPath", function() {return null;}, function() {
+    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+      exit.value = 0;
+      return "anything";
+    }, function() {
+      const configuredWithTor = dirMngrWithTor();
+      Assert.equal(configuredWithTor, false);
+    });
+  });
+});
+
+test(function dirMngrWithTorReturnsFalseWhenExitCodeIsNotZero() {
+  mockFunc(ExecutableCheck, "findPath", function() {return null;}, function() {
+    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+      exit.value = -1;
+      return "anything";
+    }, function() {
+      const configuredWithTor = dirMngrWithTor();
+      Assert.equal(configuredWithTor, false);
+    });
+  });
+});

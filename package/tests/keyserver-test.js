@@ -232,6 +232,30 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
   Assert.deepEqual(requests[1].args, hkpArgs);
 }));
 
+test(withEnigmail(function createsNormalRequests_whenTorUsesNormal(){
+  setupKeyserverPrefs("keyserver.1", true);
+  const keyId = '1234';
+  const hkpsArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', keyId]);
+  const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
+  const tor = {
+    torProperties: function() {
+      return {helper: null, socks: null, useNormal: true};
+    },
+    isRequired: function() {return false;},
+    isUsed: function() {return true;}
+  };
+  const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const requests = buildRequests(keyId, refreshAction, tor);
+
+  Assert.equal(requests.length, 2);
+
+  Assert.equal(requests[0].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[0].args, hkpsArgs);
+
+  Assert.equal(requests[1].command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(requests[1].args, hkpArgs);
+}));
+
 
 test(withEnigmail(function createsRequestsWithOnlyTor_whenTorIsRequired(enigmail){
   setupKeyserverPrefs("keyserver.1", true);

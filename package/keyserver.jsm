@@ -120,7 +120,7 @@ function buildRequests(keyId, action, tor) {
     });
   }
 
-  if (!tor.isRequired(action)){
+  if (!tor.isRequired(action) || tor.useNormal){
     uris.forEach(function(uri) {
       requests.push(gpgRequest(keyId, uri, action));
     });

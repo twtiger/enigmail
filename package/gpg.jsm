@@ -20,6 +20,7 @@ Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
@@ -55,6 +56,24 @@ function getLibcurlDependencyPath(exePath) {
   const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
   fileObj.initWithPath(fullPath);
   return fileObj;
+}
+
+function dirMngrWithTor() {
+  const command = ExecutableCheck.findPath("gpg-connect-agent");
+
+  if (command === null) {
+    return false;
+  }
+
+  const args = ["--dirmngr", "GETINFO tor", "bye", "\n"];
+
+  const exitCodeObj  = {value: null};
+  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+
+  if (exitCodeObj.value !== 0) {
+    return false;
+  }
+  return output.indexOf("Tor mode is NOT enabled") === -1;
 }
 
 const EnigmailGpg = {
@@ -322,5 +341,12 @@ const EnigmailGpg = {
     }
 
     return output.indexOf("libcurl") > -1;
-  }
+  },
+
+  /**
+   * For versions of GPG 2.1 and higher, checks to see if the dirmngr is configured to use Tor
+   *
+   * return value is true/false depending on whether Tor is used or not
+   */
+  dirMngrWithTor: dirMngrWithTor
 };
