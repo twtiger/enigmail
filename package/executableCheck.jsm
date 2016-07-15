@@ -96,7 +96,10 @@ const executor = {
 };
 
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
-  if (!executor.exists(executable)) return false;
+  if (!executor.exists(executable)) {
+    EnigmailLog.DEBUG("executable not found: " + executable + "\n");
+    return false;
+  }
 
   const file = executor.findExecutable(executable);
   const requestAndResult = createVersionRequest(file);

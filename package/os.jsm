@@ -25,6 +25,9 @@ function getOS() {
 
 function getLinuxDistribution() {
   const command = ExecutableCheck.findExecutable("uname");
+  if (command === null) {
+    return null;
+  }
   const args = ["-a"];
   const exitCodeObj = {value: null};
   const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});

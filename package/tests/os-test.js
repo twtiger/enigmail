@@ -16,10 +16,10 @@ component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
 test(function shouldReturnTrueIfSystemIsUbuntu() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
-      return "ubuntu";
+      return "Linux ubuntu 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux";
     }, function() {
       const output = isUbuntu();
       Assert.equal(output, true);
@@ -28,10 +28,10 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
 });
 
 test(function shouldReturnFalseIfSystemIsNotUbuntu() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
-      return "windows";
+      return "Linux arch 4.6.3-1-ARCH #1 SMP PREEMPT Fri Jun 24 21:19:13 CEST 2016 x86_64 GNU/Linux";
     }, function() {
       const output = isUbuntu();
       Assert.equal(output, false);
@@ -39,11 +39,19 @@ test(function shouldReturnFalseIfSystemIsNotUbuntu() {
   });
 });
 
-test(function shouldReturnNullIfIsUbuntuReturnsError() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+test(function shouldReturnNullIfIsSystemIsWindows() {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() {
+    return null;
+  }, function() {
+    const output = isUbuntu();
+    Assert.equal(output, null);
+  });
+});
+
+test(function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
-      exit.value = 2;
-      return null;
+      exit.value = -1;
     }, function() {
       const output = isUbuntu();
       Assert.equal(output, null);
