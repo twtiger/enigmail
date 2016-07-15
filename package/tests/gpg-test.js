@@ -17,16 +17,6 @@ testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: 
 component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
-function mockFunc(module, funcToReplace, replacement, f) {
-  const holder = module[funcToReplace];
-  try {
-    module[funcToReplace] = replacement;
-    f();
-  } finally {
-    module[funcToReplace] = holder;
-  }
-}
-
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";
   const expectedParentPath = "/start/lib/gnupg/gpgkeys_curl";
@@ -36,20 +26,20 @@ test(function getLibcurlDependencyPathForGpg() {
 });
 
 test(function dirMngrWithTorReturnsTrueWhenConfiguredToUseTor() {
-  mockFunc(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
-    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
-          exit.value = 0;
-          return "tor is configured";
-        }, function() {
-        const configuredWithTor = dirMngrWithTor();
-        Assert.equal(configuredWithTor, true);
-      });
+  TestHelper.resetting(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+      exit.value = 0;
+      return "tor is configured";
+    }, function() {
+      const configuredWithTor = dirMngrWithTor();
+      Assert.equal(configuredWithTor, true);
+    });
   });
 });
 
 test(function dirMngrWithTorReturnsFalseWhenNotConfiguredToUseTor() {
-  mockFunc(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
-    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "Tor mode is NOT enabled";
     }, function() {
@@ -60,8 +50,8 @@ test(function dirMngrWithTorReturnsFalseWhenNotConfiguredToUseTor() {
 });
 
 test(function dirMngrWithTorReturnsFalseWhenGpgConnectAgentPathIsNotFound() {
-  mockFunc(ExecutableCheck, "findPath", function() {return null;}, function() {
-    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(EnigmailFiles, "resolvePath", function() { return null; }, function() {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "anything";
     }, function() {
@@ -72,8 +62,8 @@ test(function dirMngrWithTorReturnsFalseWhenGpgConnectAgentPathIsNotFound() {
 });
 
 test(function dirMngrWithTorReturnsFalseWhenExitCodeIsNotZero() {
-  mockFunc(ExecutableCheck, "findPath", function() {return null;}, function() {
-    mockFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(ExecutableCheck, "findPath", function() {return null;}, function() {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = -1;
       return "anything";
     }, function() {

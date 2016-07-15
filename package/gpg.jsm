@@ -20,7 +20,6 @@ Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
 Cu.import("resource://enigmail/dialog.jsm"); /*global EnigmailDialog: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
@@ -59,8 +58,16 @@ function getLibcurlDependencyPath(exePath) {
   return fileObj;
 }
 
+let lazyEnv = null;
+function environment() {
+  if (lazyEnv === null) {
+    lazyEnv = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
+  }
+  return lazyEnv;
+}
+
 function dirMngrWithTor() {
-  const command = ExecutableCheck.findPath("gpg-connect-agent");
+  const command = EnigmailFiles.resolvePath("gpg-connect-agent", environment().get("PATH"), loadOS().isDosLike());
 
   if (command === null) {
     return false;
