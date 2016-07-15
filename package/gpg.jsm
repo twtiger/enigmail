@@ -24,7 +24,8 @@ Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: 
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
-Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
+const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -326,7 +327,7 @@ const EnigmailGpg = {
    * return value is true/false depending on whether libcurl is used
    */
   usesLibcurl: function() {
-    if (!EnigmailOS.isUbuntu()) {
+    if (!loadOS().isUbuntu()) {
       return true;
     }
 
