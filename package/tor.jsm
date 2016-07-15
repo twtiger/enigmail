@@ -194,7 +194,12 @@ function torProperties(system) {
   }
 
   torRequests.socks = buildSocksProperties(tor, system);
-  torRequests.useNormal = EnigmailGpg.dirMngrWithTor();
+
+  if (torRequests.socks !== null) {
+    torRequests.useNormal = false;
+  } else {
+    torRequests.useNormal = EnigmailGpg.dirMngrWithTor();
+  }
 
   return torRequests;
 }

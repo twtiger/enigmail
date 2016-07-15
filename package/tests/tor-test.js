@@ -313,6 +313,7 @@ test(withStandardGpg(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHe
     Assert.equal(socksProperties.command, 'gpg');
     Assert.deepEqual(socksProperties.args, gpgArgs);
     Assert.equal(socksProperties.envVars.length, 0);
+    Assert.equal(properties.useNormal, false);
   });
 }));
 
@@ -366,6 +367,7 @@ test(withStandardGpg(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthT
 
     const properties = torProperties(system);
     Assert.equal(properties.useNormal, true);
+    Assert.equal(properties.socks, null);
   });
 }));
 
