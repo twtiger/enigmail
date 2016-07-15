@@ -73,6 +73,13 @@ function compareVersionParts(left, right) {
   return false;
 }
 
+function potentialWindowsExecutable(execName) {
+  if (loadOS().isWin32) {
+    return execName + ".exe";
+  }
+  return execName;
+}
+
 const executor = {
   callAndWait: function(request) {
     subprocess.call(request).wait();
@@ -81,7 +88,7 @@ const executor = {
     if (loadOS().getOS() === 'Darwin') {
       return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', loadOS().isDosLike());
     }
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
+    return EnigmailFiles.resolvePath(potentialWindowsExecutable(executable), environment().get("PATH"), loadOS().isDosLike());
   },
   exists: function(executable) {
     return executor.findExecutable(executable) !== null;
