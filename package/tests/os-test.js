@@ -9,25 +9,15 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
 testing("os.jsm"); /*global EnigmailOS: false, isUbuntu: false */
 component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
-function tempWithFunc(mod, name, replaceF, f) {
-  const previous = mod[name];
-  try {
-    mod[name] = replaceF;
-    f();
-  } finally {
-    mod[name] = previous;
-  }
-}
-
 test(function shouldReturnTrueIfSystemIsUbuntu() {
-  tempWithFunc(ExecutableCheck, "findExecutable", function() { return null; }, function () {
-    tempWithFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "ubuntu";
     }, function() {
@@ -38,8 +28,8 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
 });
 
 test(function shouldReturnFalseIfSystemIsNotUbuntu() {
-  tempWithFunc(ExecutableCheck, "findExecutable", function() { return null; }, function () {
-    tempWithFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "windows";
     }, function() {
@@ -50,8 +40,8 @@ test(function shouldReturnFalseIfSystemIsNotUbuntu() {
 });
 
 test(function shouldReturnNullIfIsUbuntuReturnsError() {
-  tempWithFunc(ExecutableCheck, "findExecutable", function() { return null; }, function () {
-    tempWithFunc(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return null; }, function () {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 2;
       return null;
     }, function() {

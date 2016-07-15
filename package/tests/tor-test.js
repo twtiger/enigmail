@@ -6,22 +6,12 @@
  */
 
 "use strict";
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
 testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-
-function mockFunc(module, funcToReplace, replacement, f) {
-  const holder = module[funcToReplace];
-  try {
-    module[funcToReplace] = replacement;
-    f();
-  } finally {
-    module[funcToReplace] = holder;
-  }
-}
 
 function withStandardGpg(f) {
   return function() {
@@ -166,7 +156,7 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(withStandardGpg(function successfulRequestWillCallThroughToSystem() {
-  mockFunc(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
+  TestHelper.resetting(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
     const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
@@ -246,7 +236,7 @@ test(function returnsFailure_whenSystemCannotFindTor() {
 });
 
 test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
-  mockFunc(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
+  TestHelper.resetting(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
     const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
@@ -283,7 +273,7 @@ test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsock
 }));
 
 test(withStandardGpg(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
-  mockFunc(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
+  TestHelper.resetting(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
     const gpgArgs = 'socks5h://'+username+':'+password+'@127.0.0.1:9150';
@@ -318,7 +308,7 @@ test(withStandardGpg(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHe
 }));
 
 test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl() {
-  mockFunc(EnigmailGpg, "usesLibcurl", function() { return false; }, function() {
+  TestHelper.resetting(EnigmailGpg, "usesLibcurl", function() { return false; }, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
     const gpgArgs = 'socks5h://'+username+':'+password+'@127.0.0.1:9150';
@@ -346,7 +336,7 @@ test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl(
 });
 
 test(withStandardGpg(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
-  mockFunc(EnigmailGpg, "dirMngrWithTor", function() { return true; }, function() {
+  TestHelper.resetting(EnigmailGpg, "dirMngrWithTor", function() { return true; }, function() {
     const system = {
       findTor: function() {
         return {
