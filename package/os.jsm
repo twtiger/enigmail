@@ -19,8 +19,12 @@ Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: 
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
+let operatingSystem = null;
 function getOS() {
-  return Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
+  if (operatingSystem === null) {
+    operatingSystem = Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
+  }
+  return operatingSystem;
 }
 
 function getLinuxDistribution() {
@@ -56,6 +60,10 @@ function isDosLike() {
   return EnigmailOS.isDosLikeVal;
 }
 
+function isMac() {
+  return getOS() === "Darwin";
+}
+
 const EnigmailOS = {
   isWin32: (getOS() == "WINNT"),
 
@@ -64,6 +72,8 @@ const EnigmailOS = {
   isUbuntu: isUbuntu,
 
   isDosLike: isDosLike,
+
+  isMac: isMac,
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)

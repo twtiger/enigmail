@@ -11,7 +11,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("os.jsm"); /*global EnigmailOS: false, isUbuntu: false */
+testing("os.jsm"); /*global operatingSystem: true, isMac: false, EnigmailOS: false, isUbuntu: false */
 component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
@@ -70,3 +70,12 @@ test(function shouldReturnNullIfExecutableUnameIsNotFound() {
   });
 });
 
+test(function shouldReturnTrueWhenSystemIsMac() {
+  operatingSystem = 'Darwin';
+  Assert.equal(true, isMac());
+});
+
+test(function shouldReturnFalseWhenSystemIsLinux() {
+  operatingSystem = 'Linux';
+  Assert.equal(false, isMac());
+});
