@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global currentProxyModule: true, Ci, executeRefresh: false, buildRequests: false, gpgRequest: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global currentProxyModule: true, Ci, executeRefresh: false, gpgRequest: false, gpgRequestOverTor: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -103,7 +103,6 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
   Assert.equal(requests[0].usingTor, false);
-
   Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', expectedKeyId]));
 
   Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
@@ -111,7 +110,7 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
 }));
 
-test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOverHelperAndGpgArguments(enigmail){
+test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOverHelperAndSocksArguments(enigmail){
   setupKeyserverPrefs("keyserver.1", true);
   const keyId = '1234';
   const torArgs = ['--user', 'randomUser', '--pass', 'randomPassword', '/usr/bin/gpg2'];
