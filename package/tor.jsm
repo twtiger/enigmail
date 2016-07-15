@@ -171,10 +171,6 @@ const systemCaller = {
 };
 
 function buildSocksProperties(tor, system) {
-  if (!system.gpgUsesSocksArguments()) {
-    return null;
-  }
-
   return {
     command: 'gpg',
     args: gpgProxyArgs(tor, system, ExecutableCheck),
@@ -193,11 +189,11 @@ function torProperties(system) {
     return null;
   }
 
-  torRequests.socks = buildSocksProperties(tor, system);
-
-  if (torRequests.socks !== null) {
+  if (system.gpgUsesSocksArguments()) {
+    torRequests.socks = buildSocksProperties(tor, system);
     torRequests.useNormal = false;
   } else {
+    torRequests.socks = null;
     torRequests.useNormal = EnigmailGpg.dirMngrWithTor();
   }
 
