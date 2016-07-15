@@ -167,7 +167,6 @@ const systemCaller = {
   findTorExecutableHelper: findTorExecutableHelper,
   getOS: EnigmailOS.getOS,
   isDosLike: EnigmailOS.isDosLike,
-  usesLibcurl: EnigmailGpg.usesLibcurl,
   gpgUsesSocksArguments: gpgUsesSocksArguments
 };
 
@@ -190,7 +189,7 @@ function torProperties(system) {
   const torRequests = {};
   torRequests.helper = system.findTorExecutableHelper(ExecutableCheck);
 
-  if (!system.usesLibcurl() && torRequests.helper === null) {
+  if (!EnigmailGpg.usesLibcurl() && torRequests.helper === null) {
     return null;
   }
 

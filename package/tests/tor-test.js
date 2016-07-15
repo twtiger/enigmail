@@ -23,6 +23,16 @@ function mockFunc(module, funcToReplace, replacement, f) {
   }
 }
 
+function withStandardGpg(f) {
+  return function() {
+    EnigmailGpg.usesLibcurl = function() { return true; };
+    try {
+      f();
+    }
+    finally {}
+  };
+}
+
 test(function evaluateGpgVersionWhenOsIsWindows() {
   const executableCheck = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
@@ -202,7 +212,7 @@ test(function returnsFailure_whenSystemCannotFindTor() {
   Assert.equal(system.findTorWasCalled, true);
 });
 
-test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
+test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
   mockFunc(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
@@ -228,7 +238,6 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
           args: torArgs
         };
       },
-      usesLibcurl: function() { return true; },
       gpgUsesSocksArguments: function() { return true; }
     };
 
@@ -245,9 +254,9 @@ test(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
     Assert.equal(system.findTorWasCalled, true);
     Assert.equal(system.findTorExecutableHelperWasCalled, true);
   });
-});
+}));
 
-test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
+test(withStandardGpg(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
   mockFunc(EnigmailGpg, "dirMngrWithTor", function() {return false;}, function() {
     const username = RandomNumberGenerator.getUint32();
     const password = RandomNumberGenerator.getUint32();
@@ -273,7 +282,6 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
         system.isDosLikeWasCalled = true;
         return false;
       },
-      usesLibcurl: function() { return true; },
       gpgUsesSocksArguments: function() { return true; }
     };
 
@@ -289,7 +297,7 @@ test(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHelpers() {
     Assert.equal(system.findTorExecutableHelperWasCalled, true);
     Assert.equal(system.isDosLikeWasCalled, true);
   });
-});
+}));
 
 test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl() {
   mockFunc(EnigmailGpg, "usesLibcurl", function() { return false; }, function() {
@@ -317,7 +325,6 @@ test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl(
         system.isDosLikeWasCalled = true;
         return false;
       },
-      usesLibcurl: function() { return false; },
       gpgUsesSocksArguments: function() {return false;},
     };
 
@@ -326,7 +333,7 @@ test(function returnsNothingWith_whenAbleToFindTorButNotGnupgThatLinksToLibcurl(
   });
 });
 
-test(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
+test(withStandardGpg(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
   mockFunc(EnigmailGpg, "dirMngrWithTor", function() { return true; }, function() {
     const system = {
       findTor: function() {
@@ -343,14 +350,13 @@ test(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
       isDosLike: function() {
         return false;
       },
-      usesLibcurl: function() { return true; },
       gpgUsesSocksArguments: function() { return false; }
     };
 
     const properties = torProperties(system);
     Assert.equal(properties.useNormal, true);
   });
-});
+}));
 
 function contains(string, substring) {
   return string.indexOf(substring) > -1;
