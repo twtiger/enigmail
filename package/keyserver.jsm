@@ -213,18 +213,22 @@ function executeRefresh(request, subproc) {
   return successful;
 }
 
-function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
-  const args = EnigmailGpg.getStandardArgs(true);
-
+function badArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj) {
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
-    return null;
+    return true;
   }
 
   if (!searchTerms && !(actionFlags & Ci.nsIEnigmail.REFRESH_KEY)) {
     errorMsgObj.value = EnigmailLocale.getString("failNoID");
-    return null;
+    return true;
   }
+
+  return false;
+}
+
+function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
+  if (badArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj)) return null;
 
   const searchTermsList = searchTerms.split(" ");
 
