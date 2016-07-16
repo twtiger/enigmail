@@ -160,7 +160,7 @@ function findTor() {
 }
 
 function gpgUsesSocksArguments() {
-  return (!ExecutableCheck.compareVersions(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
+  return (!ExecutableCheck.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
 }
 
 const systemCaller = {

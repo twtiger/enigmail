@@ -86,11 +86,11 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   return false;
 }
 
-function compareVersions(versionString, minimum) {
+function versionMeetsMinimum(versionString, minimum) {
   return compareVersionParts(parseVersion(versionString), minimum);
 }
 
 const ExecutableCheck = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
-  compareVersions: compareVersions,
+  versionMeetsMinimum: versionMeetsMinimum,
 };

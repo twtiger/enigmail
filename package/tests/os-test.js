@@ -34,8 +34,7 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
       exit.value = 0;
       return ubuntuUnameOutput;
     }, function() {
-      const output = isUbuntu();
-      Assert.equal(output, true);
+      Assert.equal(isUbuntu(), true);
     });
   });
 });
@@ -48,8 +47,7 @@ test(function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
       exit.value = 0;
       return archLinuxUnameOutput;
     }, function() {
-      const output = isUbuntu();
-      Assert.equal(output, false);
+      Assert.equal(isUbuntu(), false);
     });
   });
 });
@@ -59,8 +57,7 @@ test(function shouldReturnFalseIfIsSystemIsWindows() {
     TestHelper.resetting(EnigmailOS, "isDosLike", function() {
       return true;
     }, function() {
-      const output = isUbuntu();
-      Assert.equal(output, false);
+      Assert.equal(isUbuntu(), false);
     });
   });
 });
@@ -70,8 +67,7 @@ test(function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = -1;
     }, function() {
-      const output = isUbuntu();
-      Assert.equal(output, null);
+      Assert.equal(isUbuntu(), null);
     });
   });
 });
@@ -80,17 +76,16 @@ test(function shouldReturnNullIfExecutableUnameIsNotFound() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() {
     return null;
   }, function () {
-    const output = isUbuntu();
-    Assert.equal(output, null);
+    Assert.equal(isUbuntu(), null);
   });
 });
 
 test(function shouldReturnTrueWhenSystemIsMac() {
   operatingSystem = 'Darwin';
-  Assert.equal(true, isMac());
+  Assert.equal(isMac(), true);
 });
 
 test(function shouldReturnFalseWhenSystemIsLinux() {
   operatingSystem = 'Linux';
-  Assert.equal(false, isMac());
+  Assert.equal(isMac(), false);
 });
