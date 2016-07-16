@@ -16,6 +16,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirMngrWithTor: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
+component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";
@@ -23,6 +24,29 @@ test(function getLibcurlDependencyPathForGpg() {
 
   const actualParentPath = getLibcurlDependencyPath(origPath);
   Assert.equal(actualParentPath.path, expectedParentPath);
+});
+
+test(function shouldUseResolvePathToCheckDirmngrConfiguration() {
+  const expectedPath = "/usr/bin:/usr/sbin";
+  lazyEnv = {
+    get: function(envVariable) {
+      Assert.equal(envVariable, "PATH");
+      return expectedPath;
+    }
+  };
+
+  const expectedIsDosLike = false;
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() { return expectedIsDosLike; }, function() {
+    TestHelper.resetting(EnigmailFiles, "resolvePath", function(executable, environmentPath, isDosLike) {
+      Assert.equal(executable, 'gpg-connect-agent');
+      Assert.equal(environmentPath, expectedPath);
+      Assert.equal(isDosLike, expectedIsDosLike);
+      return { path: "/usr/bin/gpg-connect-agent" };
+    }, function() {
+
+      dirMngrWithTor();
+    });
+  });
 });
 
 test(function dirMngrWithTorReturnsTrueWhenConfiguredToUseTor() {
