@@ -27,10 +27,12 @@ test(function shouldUseUnameToRetreiveSystemInfo() {
 });
 
 test(function shouldReturnTrueIfSystemIsUbuntu() {
+  const ubuntuUnameOutput = "Linux ubuntu 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux";
+
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
-      return "Linux ubuntu 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux";
+      return ubuntuUnameOutput;
     }, function() {
       const output = isUbuntu();
       Assert.equal(output, true);
@@ -39,10 +41,12 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
 });
 
 test(function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
+  const archLinuxUnameOutput = "Linux arch 4.6.3-1-ARCH #1 SMP PREEMPT Fri Jun 24 21:19:13 CEST 2016 x86_64 GNU/Linux";
+
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
-      return "Linux arch 4.6.3-1-ARCH #1 SMP PREEMPT Fri Jun 24 21:19:13 CEST 2016 x86_64 GNU/Linux";
+      return archLinuxUnameOutput;
     }, function() {
       const output = isUbuntu();
       Assert.equal(output, false);
