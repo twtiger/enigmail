@@ -81,8 +81,9 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
 
   const args = ["--version"];
   const exitCodeObj  = {value: null};
-  const errorMsgObj  = {value: null};
-  const stdout = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
+  const stdout = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+
+  if (exitCodeObj.value === -1) return false;
 
   const m = stdout.match(/\b(\d+\.\d+\.\d+)\b/);
   if (m) {
