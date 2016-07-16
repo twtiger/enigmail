@@ -52,6 +52,13 @@ function addMacPaths(isDosLike, envPath) {
   return envPath;
 }
 
+function potentialWindowsExecutable(execName) {
+  if (loadOS().isWin32) {
+    return execName + ".exe";
+  }
+  return execName;
+}
+
 const EnigmailFiles = {
 
   isAbsolutePath: function(filePath, isDosLike) {
@@ -66,6 +73,8 @@ const EnigmailFiles = {
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {
+    filePath = potentialWindowsExecutable(filePath);
+
     lazyLog().DEBUG("files.jsm: resolvePath: filePath=" + filePath + "\n");
 
     if (EnigmailFiles.isAbsolutePath(filePath, isDosLike))
