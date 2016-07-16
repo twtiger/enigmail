@@ -12,6 +12,7 @@ testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties,
 
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 function withStandardGpg(f) {
   return function() {
@@ -360,47 +361,48 @@ function contains(string, substring) {
 
 test(function testUsingTorsocksWithEnvironmentVariables() {
   const executableCheck = {
-    findExecutable: function(executableName) {
-      if (executableName === 'torsocks') {
-        return { path: '/usr/bin/' + executableName };
-      } else {
-        return null;
-      }
-    },
     versionFoundMeetsMinimumVersionRequired: function() {
       return false;
     }
   };
 
-  const result = findTorExecutableHelper(executableCheck);
-
-  Assert.equal(result.command.path, '/usr/bin/torsocks');
-  Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
-  Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
-  Assert.equal(result.args.length, 1);
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+    if(exe === 'torsocks') {
+      return {path:'/usr/bin/torsocks'};
+    } else {
+      return null;
+    }
+  }, function() {
+    const result = findTorExecutableHelper(executableCheck);
+    Assert.equal(result.command.path, '/usr/bin/torsocks');
+    Assert.ok(contains(result.envVars[0], 'TORSOCKS_USERNAME'));
+    Assert.ok(contains(result.envVars[1], 'TORSOCKS_PASSWORD'));
+    Assert.equal(result.args.length, 1);
+  });
 });
 
 test(function testUsingTorsocksWithCommandArguments() {
   const executableCheck = {
-    findExecutable: function(executableName) {
-      if (executableName === 'torsocks') {
-        return { path: '/usr/bin/' + executableName };
-      } else {
-        return null;
-      }
-    },
     versionFoundMeetsMinimumVersionRequired: function() {
       return true;
     }
   };
 
-  const result = findTorExecutableHelper(executableCheck);
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+    if(exe === 'torsocks') {
+      return {path:'/usr/bin/torsocks'};
+    } else {
+      return null;
+    }
+  }, function() {
+    const result = findTorExecutableHelper(executableCheck);
 
-  Assert.equal(result.command.path, '/usr/bin/torsocks');
-  Assert.equal(result.args.length, 5);
-  Assert.equal(result.args[0], '--user');
-  Assert.equal(result.args[2], '--pass');
-  Assert.equal(result.args[4], '/usr/bin/gpg');
+    Assert.equal(result.command.path, '/usr/bin/torsocks');
+    Assert.equal(result.args.length, 5);
+    Assert.equal(result.args[0], '--user');
+    Assert.equal(result.args[2], '--pass');
+    Assert.equal(result.args[4], '/usr/bin/gpg');
+  });
 });
 
 test(function testUseNothingIfNoTorHelpersAreAvailable() {
@@ -410,9 +412,10 @@ test(function testUseNothingIfNoTorHelpersAreAvailable() {
     }
   };
 
-  const result = findTorExecutableHelper(executableCheck);
-
-  Assert.equal(findTorExecutableHelper(executableCheck), null);
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return null; }, function() {
+    const result = findTorExecutableHelper(executableCheck);
+    Assert.equal(findTorExecutableHelper(executableCheck), null);
+  });
 });
 
 test(function creatingRandomCredential() {

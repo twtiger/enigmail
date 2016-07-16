@@ -15,7 +15,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
-Cu.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
+Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
@@ -28,7 +28,7 @@ function getOS() {
 }
 
 function getLinuxDistribution() {
-  const command = ExecutableCheck.findExecutable("uname");
+  const command = EnigmailFiles.simpleResolvePath("uname");
   if (command === null) {
     return null;
   }

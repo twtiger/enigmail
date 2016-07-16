@@ -14,9 +14,10 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestH
 testing("os.jsm"); /*global operatingSystem: true, isMac: false, EnigmailOS: false, isUbuntu: false */
 component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 test(function shouldReturnTrueIfSystemIsUbuntu() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "Linux ubuntu 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux";
@@ -28,7 +29,7 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
 });
 
 test(function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "Linux arch 4.6.3-1-ARCH #1 SMP PREEMPT Fri Jun 24 21:19:13 CEST 2016 x86_64 GNU/Linux";
@@ -40,7 +41,7 @@ test(function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
 });
 
 test(function shouldReturnFalseIfIsSystemIsWindows() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailOS, "isDosLike", function() {
       return true;
     }, function() {
@@ -51,7 +52,7 @@ test(function shouldReturnFalseIfIsSystemIsWindows() {
 });
 
 test(function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = -1;
     }, function() {
@@ -62,7 +63,7 @@ test(function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
 });
 
 test(function shouldReturnNullIfExecutableUnameIsNotFound() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() {
     return null;
   }, function () {
     const output = isUbuntu();

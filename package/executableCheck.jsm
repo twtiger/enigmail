@@ -62,14 +62,8 @@ function potentialWindowsExecutable(execName) {
   return execName;
 }
 
-const executor = {
-  findExecutable: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
-  },
-};
-
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
-  const command = executor.findExecutable(executable);
+  const command = EnigmailFiles.simpleResolvePath(executable);
   if (!command) {
     EnigmailLog.DEBUG("executable not found: " + executable + "\n");
     return false;
@@ -100,5 +94,4 @@ function compareVersions(versionString, minimum) {
 const ExecutableCheck = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   compareVersions: compareVersions,
-  findExecutable: executor.findExecutable,
 };

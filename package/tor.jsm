@@ -15,6 +15,7 @@ Components.utils.import("resource://enigmail/executableCheck.jsm"); /*global Exe
 Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
 Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+Components.utils.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -131,7 +132,7 @@ function useAuthOverArgs(helper, executableCheck) {
 }
 
 function findTorExecutableHelper(executableCheck) {
-  const helper = executableCheck.findExecutable('torsocks2') || executableCheck.findExecutable('torsocks');
+  const helper = EnigmailFiles.simpleResolvePath('torsocks2') || EnigmailFiles.simpleResolvePath('torsocks');
   if (helper) {
     const authOverArgs = useAuthOverArgs(helper, executableCheck);
     return {

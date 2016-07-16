@@ -52,6 +52,18 @@ function addMacPaths(isDosLike, envPath) {
   return envPath;
 }
 
+let lazyEnv = null;
+function environment() {
+  if (lazyEnv === null) {
+    lazyEnv = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
+  }
+  return lazyEnv;
+}
+
+function simpleResolvePath(executable) {
+  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
+}
+
 function potentialWindowsExecutable(execName) {
   if (loadOS().isWin32) {
     return execName + ".exe";
@@ -71,6 +83,8 @@ const EnigmailFiles = {
       return (filePath.search(/^\//) === 0);
     }
   },
+
+  simpleResolvePath: simpleResolvePath,
 
   resolvePath: function(filePath, envPath, isDosLike) {
     filePath = potentialWindowsExecutable(filePath);
