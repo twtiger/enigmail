@@ -9,7 +9,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["ExecutableCheck"];
+const EXPORTED_SYMBOLS = ["Versioning"];
 
 const Cu = Components.utils;
 const Cc = Components.classes;
@@ -19,15 +19,6 @@ Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
-
-let env = null;
-function environment() {
-  if (env === null) {
-    env = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
-  }
-  return env;
-}
 
 function parseVersion(systemResponse) {
   const versionParts = systemResponse.split(".");
@@ -54,11 +45,17 @@ function compareVersionParts(left, right) {
   return false;
 }
 
-function potentialWindowsExecutable(execName) {
-  if (loadOS().isWin32) {
-    return execName + ".exe";
+function getVersion(stdout, executable) {
+  const m = stdout.match(/\b(\d+\.\d+\.\d+)\b/);
+  if (m) {
+    const versionResponse = m[1];
+
+    EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
+
+    return parseVersion(versionResponse);
+  } else {
+    return null;
   }
-  return execName;
 }
 
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
@@ -69,28 +66,24 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   }
 
   const args = ["--version"];
-  const exitCodeObj  = {value: null};
+  const exitCodeObj = {value: null};
   const stdout = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
-
   if (exitCodeObj.value === -1) return false;
 
-  const m = stdout.match(/\b(\d+\.\d+\.\d+)\b/);
-  if (m) {
-    const versionResponse = m[1];
-    EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
-
-    return compareVersionParts(parseVersion(versionResponse), minimumVersion);
+  const version = getVersion(stdout, executable);
+  if (!version) {
+    EnigmailLog.DEBUG("couldn't find a version in the output from " + executable + " - total output: " + stdout + "\n");
+    return false;
   }
 
-  EnigmailLog.DEBUG("couldn't find a version in the output from " + executable + " - total output: " + stdout + "\n");
-  return false;
+  return compareVersionParts(version, minimumVersion);
 }
 
 function versionMeetsMinimum(versionString, minimum) {
   return compareVersionParts(parseVersion(versionString), minimum);
 }
 
-const ExecutableCheck = {
+const Versioning = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   versionMeetsMinimum: versionMeetsMinimum,
 };

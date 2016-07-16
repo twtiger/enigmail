@@ -11,7 +11,7 @@
 Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
 Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
+Components.utils.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
 Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
 Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -74,9 +74,9 @@ function isRequired(actionFlags) {
 }
 
 
-function gpgProxyArgs(tor, system, executableCheck) {
+function gpgProxyArgs(tor, system, versioning) {
   if (system.isDosLike() ||
-    !executableCheck.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+    !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
     return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
   }
   return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
@@ -96,11 +96,11 @@ function torOn(portPref) {
   return null;
 }
 
-function meetsOSConstraints(os, executableCheck) {
+function meetsOSConstraints(os, versioning) {
   if (os === 'WINNT' || os === 'OS2') {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('gpg', MINIMUM_WINDOWS_GPG_VERSION);
+    return versioning.versionFoundMeetsMinimumVersionRequired('gpg', MINIMUM_WINDOWS_GPG_VERSION);
   } else {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+    return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
 }
 
@@ -124,17 +124,17 @@ function buildEnvVars() {
   ];
 }
 
-function useAuthOverArgs(helper, executableCheck) {
+function useAuthOverArgs(helper, versioning) {
   if (helper === 'torsocks2') {
-    return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
+    return versioning.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
   }
-  return executableCheck.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
+  return versioning.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
 }
 
-function findTorExecutableHelper(executableCheck) {
+function findTorExecutableHelper(versioning) {
   const helper = EnigmailFiles.simpleResolvePath('torsocks2') || EnigmailFiles.simpleResolvePath('torsocks');
   if (helper) {
-    const authOverArgs = useAuthOverArgs(helper, executableCheck);
+    const authOverArgs = useAuthOverArgs(helper, versioning);
     return {
       envVars: (authOverArgs ? [] : buildEnvVars()),
       command: helper,
@@ -147,7 +147,7 @@ function findTorExecutableHelper(executableCheck) {
 
 function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), ExecutableCheck)) {
+  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), Versioning)) {
     return null;
   } else {
     return {
@@ -160,7 +160,7 @@ function findTor() {
 }
 
 function gpgUsesSocksArguments() {
-  return (!ExecutableCheck.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
+  return (!Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
 }
 
 const systemCaller = {
@@ -174,7 +174,7 @@ const systemCaller = {
 function buildSocksProperties(tor, system) {
   return {
     command: 'gpg',
-    args: gpgProxyArgs(tor, system, ExecutableCheck),
+    args: gpgProxyArgs(tor, system, Versioning),
     envVars: []
   };
 }
@@ -183,7 +183,7 @@ function torProperties(system) {
   const tor = system.findTor();
   if (!tor) { return null; }
 
-  const helper = system.findTorExecutableHelper(ExecutableCheck);
+  const helper = system.findTorExecutableHelper(Versioning);
   let socks;
   let useNormal;
 

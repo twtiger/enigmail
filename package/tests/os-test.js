@@ -12,7 +12,6 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
 testing("os.jsm"); /*global operatingSystem: true, isMac: false, EnigmailOS: false, isUbuntu: false */
-component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 

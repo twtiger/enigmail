@@ -35,7 +35,7 @@ MODFILES = \
            encryption.jsm \
            errorHandling.jsm \
            events.jsm \
-           executableCheck.jsm \
+           versioning.jsm \
            execution.jsm \
            expiry.jsm \
            funcs.jsm \
