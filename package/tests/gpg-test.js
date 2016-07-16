@@ -13,8 +13,8 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false,
   withTestGpgHome: false, osUtils: false, EnigmailFiles */
 
-testing("gpg.jsm"); /*global EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirMngrWithTor: false */
-component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
+testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirMngrWithTor: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
 test(function getLibcurlDependencyPathForGpg() {
@@ -26,7 +26,7 @@ test(function getLibcurlDependencyPathForGpg() {
 });
 
 test(function dirMngrWithTorReturnsTrueWhenConfiguredToUseTor() {
-  TestHelper.resetting(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+  TestHelper.resetting(EnigmailFiles, "resolvePath", function() {return { path: '/usr/local/bin/gpg-connect-agent' };}, function() {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "tor is configured";
@@ -38,7 +38,7 @@ test(function dirMngrWithTorReturnsTrueWhenConfiguredToUseTor() {
 });
 
 test(function dirMngrWithTorReturnsFalseWhenNotConfiguredToUseTor() {
-  TestHelper.resetting(ExecutableCheck, "findPath", function() {return "somePath";}, function() {
+  TestHelper.resetting(EnigmailFiles, "resolvePath", function() {return { path: '/usr/local/bin/gpg-connect-agent' }; }, function() {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
       return "Tor mode is NOT enabled";
@@ -62,7 +62,7 @@ test(function dirMngrWithTorReturnsFalseWhenGpgConnectAgentPathIsNotFound() {
 });
 
 test(function dirMngrWithTorReturnsFalseWhenExitCodeIsNotZero() {
-  TestHelper.resetting(ExecutableCheck, "findPath", function() {return null;}, function() {
+  TestHelper.resetting(EnigmailFiles, "resolvePath", function() { return null; }, function() {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = -1;
       return "anything";
