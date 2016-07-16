@@ -7,11 +7,6 @@ testing("executableCheck.jsm"); /*global ExecutableCheck: false, createVersionRe
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
-test(function constructVersionArguments() {
-  const requestAndResponse = createVersionRequest({});
-  Assert.deepEqual(requestAndResponse[1].arguments, ['--version']);
-});
-
 test(function checkCurlVersionIsOver() {
   const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
   Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', minimumCurlVersion), true);

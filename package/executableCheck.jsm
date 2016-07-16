@@ -19,6 +19,7 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 let env = null;
@@ -27,25 +28,6 @@ function environment() {
     env = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
   }
   return env;
-}
-
-function createVersionRequest(file) {
-  const args = ["--version"];
-  const r = {
-    stderr: "",
-    stdout: "",
-    exitCode: -1
-  };
-
-  return [r, {
-    command: file,
-    arguments: args,
-    done: function(result) {
-      r.exitCode = result.exitCode;
-      r.stdout = result.stdout;
-      r.stderr = result.stderr;
-    }
-  }];
 }
 
 function parseVersion(systemResponse) {
@@ -81,9 +63,6 @@ function potentialWindowsExecutable(execName) {
 }
 
 const executor = {
-  callAndWait: function(request) {
-    subprocess.call(request).wait();
-  },
   findExecutable: function(executable) {
     return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
   },
@@ -98,21 +77,22 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
     return false;
   }
 
-  const file = executor.findExecutable(executable);
-  const requestAndResult = createVersionRequest(file);
-  const result = requestAndResult[0];
-  const request = requestAndResult[1];
+  const command = executor.findExecutable(executable);
 
-  executor.callAndWait(request);
+  const args = ["--version"];
+  const exitCodeObj  = {value: null};
+  const errorMsgObj  = {value: null};
+  const stdout = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, errorMsgObj);
 
-  const m = result.stdout.match(/\b(\d+\.\d+\.\d+)\b/);
+  const m = stdout.match(/\b(\d+\.\d+\.\d+)\b/);
   if (m) {
     const versionResponse = m[1];
     EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
 
     return compareVersionParts(parseVersion(versionResponse), minimumVersion);
   }
-  EnigmailLog.DEBUG("couldn't find a version in the output from " + executable + " - total output: " + result.stdout + "\n");
+
+  EnigmailLog.DEBUG("couldn't find a version in the output from " + executable + " - total output: " + stdout + "\n");
   return false;
 }
 
