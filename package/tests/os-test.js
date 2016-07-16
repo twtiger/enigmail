@@ -27,7 +27,7 @@ test(function shouldReturnTrueIfSystemIsUbuntu() {
   });
 });
 
-test(function shouldReturnFalseIfSystemIsNotUbuntu() {
+test(function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
   TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
       exit.value = 0;
@@ -39,12 +39,14 @@ test(function shouldReturnFalseIfSystemIsNotUbuntu() {
   });
 });
 
-test(function shouldReturnNullIfIsSystemIsWindows() {
-  TestHelper.resetting(ExecutableCheck, "findExecutable", function() {
-    return null;
-  }, function() {
-    const output = isUbuntu();
-    Assert.equal(output, null);
+test(function shouldReturnFalseIfIsSystemIsWindows() {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() { return { path: '/usr/bin/uname'}; }, function () {
+    TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+      return true;
+    }, function() {
+      const output = isUbuntu();
+      Assert.equal(output, false);
+    });
   });
 });
 
@@ -56,6 +58,15 @@ test(function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
       const output = isUbuntu();
       Assert.equal(output, null);
     });
+  });
+});
+
+test(function shouldReturnNullIfExecutableUnameIsNotFound() {
+  TestHelper.resetting(ExecutableCheck, "findExecutable", function() {
+    return null;
+  }, function () {
+    const output = isUbuntu();
+    Assert.equal(output, null);
   });
 });
 

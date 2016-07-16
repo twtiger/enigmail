@@ -39,11 +39,21 @@ function getLinuxDistribution() {
 }
 
 function isUbuntu() {
+  if (EnigmailOS.isDosLike()) {
+    return false;
+  }
   const distro = getLinuxDistribution();
   if (distro === null) {
     return null;
   }
   return distro.indexOf("ubuntu") > -1;
+}
+
+function isDosLike() {
+  if (EnigmailOS.isDosLikeVal === undefined) {
+    EnigmailOS.isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
+  }
+  return EnigmailOS.isDosLikeVal;
 }
 
 const EnigmailOS = {
@@ -53,12 +63,7 @@ const EnigmailOS = {
 
   isUbuntu: isUbuntu,
 
-  isDosLike: function() {
-    if (EnigmailOS.isDosLikeVal === undefined) {
-      EnigmailOS.isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
-    }
-    return EnigmailOS.isDosLikeVal;
-  },
+  isDosLike: isDosLike,
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)
