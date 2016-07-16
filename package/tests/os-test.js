@@ -16,6 +16,16 @@ component("enigmail/executableCheck.jsm"); /*global ExecutableCheck: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 
+test(function shouldUseUnameToRetreiveSystemInfo() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath",
+    function(exe) {
+      Assert.equal('uname', exe);
+      return { path: '/usr/bin/uname'};
+    }, function () {
+      isUbuntu();
+    });
+});
+
 test(function shouldReturnTrueIfSystemIsUbuntu() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return { path: '/usr/bin/uname'}; }, function () {
     TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(cmd, args, exit, err) {
