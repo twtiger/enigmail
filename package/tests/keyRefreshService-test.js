@@ -10,12 +10,9 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
 
-testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, setupWith, KeyRefreshService: false, refreshKey: false, checkKeysAndRestart: false, getRandomKeyId: false, setupNextRefresh: false */
+testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, KeyRefreshService: false, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-component("enigmail/log.jsm"); /*global EnigmailLog: false */
-component("enigmail/files.jsm"); /*global EnigmailFiles: false */
-component("enigmail/core.jsm"); /*global EnigmailCore: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
 

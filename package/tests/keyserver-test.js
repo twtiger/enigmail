@@ -8,7 +8,6 @@ component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 component("enigmail/locale.jsm"); /*global EnigmailLocale: false */
-component("enigmail/log.jsm"); /*global EnigmailLog: false */
 
 function setupKeyserverPrefs(keyservers, autoOn) {
   EnigmailPrefs.setPref("keyserver", keyservers);

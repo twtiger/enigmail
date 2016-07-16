@@ -15,10 +15,10 @@ Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false 
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 Cu.import("resource://enigmail/httpProxy.jsm"); /*global EnigmailHttpProxy: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
+Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/locale.jsm"); /*global EnigmailLocale: false */
-Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
 
 function getRequestAction(actionFlags, keys) {
