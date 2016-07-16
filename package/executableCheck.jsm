@@ -66,18 +66,14 @@ const executor = {
   findExecutable: function(executable) {
     return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
   },
-  exists: function(executable) {
-    return executor.findExecutable(executable) !== null;
-  }
 };
 
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
-  if (!executor.exists(executable)) {
+  const command = executor.findExecutable(executable);
+  if (!command) {
     EnigmailLog.DEBUG("executable not found: " + executable + "\n");
     return false;
   }
-
-  const command = executor.findExecutable(executable);
 
   const args = ["--version"];
   const exitCodeObj  = {value: null};
@@ -104,6 +100,5 @@ function compareVersions(versionString, minimum) {
 const ExecutableCheck = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   compareVersions: compareVersions,
-  exists: executor.exists,
   findExecutable: executor.findExecutable,
 };
