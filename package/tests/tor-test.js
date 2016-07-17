@@ -26,33 +26,37 @@ function withStandardGpg(f) {
 }
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
-  const versioning = {
-    versionFoundMeetsMinimumVersionRequiredWasCalled: false,
-    versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
-      Assert.equal(executable, 'gpg');
-      Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
-      return false;
-    }
-  };
+  TestHelper.resetting(EnigmailGpg, "agentVersion", '1.4.0', function() {
+    const versioning = {
+      versionMeetsMinimumWasCalled: false,
+      versionMeetsMinimum: function(version, minimumVersion) {
+        Assert.equal(version, '1.4.0');
+        Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
+        versioning.versionMeetsMinimumWasCalled = true;
+        return false;
+      }
+    };
 
-  Assert.equal(meetsOSConstraints("OS2", versioning), false);
-  Assert.equal(versioning.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+    Assert.equal(meetsOSConstraints("OS2", versioning), false);
+    Assert.equal(versioning.versionMeetsMinimumWasCalled, true, "versionMeetsMinimum was not called");
+  });
 });
 
 test(function evaluateGpgVersionWhenOsIsWindows32() {
-  const versioning = {
-    versionFoundMeetsMinimumVersionRequiredWasCalled: false,
-    versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
-      Assert.equal(executable, 'gpg');
-      Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-      versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
-      return true;
-    }
-  };
+  TestHelper.resetting(EnigmailGpg, "agentVersion", '2.0.30', function() {
+    const versioning = {
+      versionFoundMeetsMinimumWasCalled: false,
+      versionMeetsMinimum: function(version, minimumVersion) {
+        Assert.equal(version, '2.0.30');
+        Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
+        versioning.versionMeetsMinimumWasCalled = true;
+        return true;
+      }
+    };
 
-  Assert.equal(meetsOSConstraints("WINNT", versioning), true);
-  Assert.equal(versioning.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+    Assert.equal(meetsOSConstraints("WINNT", versioning), true);
+    Assert.equal(versioning.versionMeetsMinimumWasCalled, true, "versionMeetsMinimum was not called");
+  });
 });
 
 test(function whenMeetsMinimumCurlSocksVersion() {

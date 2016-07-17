@@ -98,7 +98,7 @@ function torOn(portPref) {
 
 function meetsOSConstraints(os, versioning) {
   if (os === 'WINNT' || os === 'OS2') {
-    return versioning.versionFoundMeetsMinimumVersionRequired('gpg', MINIMUM_WINDOWS_GPG_VERSION);
+    return versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
