@@ -60,10 +60,6 @@ function environment() {
   return lazyEnv;
 }
 
-function simpleResolvePath(executable) {
-  return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
-}
-
 function potentialWindowsExecutable(execName) {
   if (loadOS().isWin32) {
     return execName + ".exe";
@@ -84,7 +80,9 @@ const EnigmailFiles = {
     }
   },
 
-  simpleResolvePath: simpleResolvePath,
+  simpleResolvePath: function(executable) {
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
+  },
 
   resolvePath: function(filePath, envPath, isDosLike) {
     filePath = potentialWindowsExecutable(filePath);
