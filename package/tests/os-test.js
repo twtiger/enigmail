@@ -79,12 +79,23 @@ test(function shouldReturnNullIfExecutableUnameIsNotFound() {
   });
 });
 
-test(function shouldReturnTrueWhenSystemIsMac() {
-  operatingSystem = 'Darwin';
-  Assert.equal(isMac(), true);
-});
+function withOS(os, f) {
+  return function() {
+    const oldOs = operatingSystem;
+    operatingSystem = os;
+    try {
+      f();
+    }
+    finally {
+      operatingSystem = oldOs;
+    }
+  };
+}
 
-test(function shouldReturnFalseWhenSystemIsLinux() {
-  operatingSystem = 'Linux';
+test(withOS('Darwin', function shouldReturnTrueWhenSystemIsMac() {
+  Assert.equal(isMac(), true);
+}));
+
+test(withOS('Linux', function shouldReturnFalseWhenSystemIsLinux() {
   Assert.equal(isMac(), false);
-});
+}));
