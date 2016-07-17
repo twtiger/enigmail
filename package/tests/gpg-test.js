@@ -15,7 +15,6 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirMngrWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
-component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";

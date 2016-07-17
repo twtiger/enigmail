@@ -23,8 +23,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
-Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -56,14 +55,6 @@ function getLibcurlDependencyPath(exePath) {
   const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
   fileObj.initWithPath(fullPath);
   return fileObj;
-}
-
-let lazyEnv = null;
-function environment() {
-  if (lazyEnv === null) {
-    lazyEnv = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
-  }
-  return lazyEnv;
 }
 
 function dirMngrWithTor() {
@@ -328,7 +319,7 @@ const EnigmailGpg = {
    * return value is true/false depending on whether libcurl is used
    */
   usesLibcurl: function() {
-    if (!loadOS().isUbuntu()) {
+    if (!EnigmailOS.isUbuntu()) {
       return true;
     }
 
