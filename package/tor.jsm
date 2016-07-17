@@ -192,7 +192,7 @@ function torProperties(system) {
     useNormal = false;
   } else {
     socks = null;
-    useNormal = EnigmailGpg.dirMngrWithTor();
+    useNormal = EnigmailGpg.dirmngrConfiguredWithTor();
   }
 
   if (noProperties(helper, socks, useNormal)) {

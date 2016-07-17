@@ -57,7 +57,7 @@ function getLibcurlDependencyPath(exePath) {
   return fileObj;
 }
 
-function dirMngrWithTor() {
+function dirmngrConfiguredWithTor() {
   const args = ["--dirmngr", "GETINFO tor", "bye", "\n"];
 
   const exitCodeObj  = {value: null};
@@ -341,5 +341,5 @@ const EnigmailGpg = {
    *
    * return value is true/false depending on whether Tor is used or not
    */
-  dirMngrWithTor: dirMngrWithTor
+  dirmngrConfiguredWithTor: dirmngrConfiguredWithTor
 };

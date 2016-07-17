@@ -17,7 +17,7 @@ component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 function withStandardGpg(f) {
   return function() {
     EnigmailGpg.usesLibcurl = function() { return true; };
-    EnigmailGpg.dirMngrWithTor = function() { return false; };
+    EnigmailGpg.dirmngrConfiguredWithTor = function() { return false; };
     try {
       f();
     }
@@ -329,8 +329,37 @@ test(function returnsNothing_whenAbleToFindTorButNotAbleToMakeSocksRequests() {
   Assert.equal(properties, null);
 });
 
+const torOn9150 = {
+  ip: '127.0.0.1',
+  port: 9150,
+  username: "",
+  password: ""
+};
+
+test(function shouldCheckDirmngrConfiguration() {
+  let dirmngrConfiguredWithTorFunctionWasCalled = false;
+  TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
+    dirmngrConfiguredWithTorFunctionWasCalled = true;
+    return true;
+  }, function() {
+    const system = {
+      findTor: function() {
+        return torOn9150;
+      },
+      findTorExecutableHelper: function() {
+        return null;
+      },
+      gpgUsesSocksArguments: function() { return false; }
+    };
+
+    torProperties(system);
+
+    Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, 'dirmngrConfiguredWithTor() was not called');
+  });
+});
+
 test(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
-  TestHelper.resetting(EnigmailGpg, "dirMngrWithTor", function() { return true; }, function() {
+  TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() { return true; }, function() {
     const system = {
       findTor: function() {
         return {
