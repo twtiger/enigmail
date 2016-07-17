@@ -62,7 +62,7 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
   const args = ["--version"];
   const exitCodeObj = {value: null};
   const stdout = EnigmailExecution.resolveAndSimpleExec(executable, args, exitCodeObj, {});
-  if (!stdout || exitCodeObj.value === -1) {
+  if (!stdout || exitCodeObj.value < 0) {
     EnigmailLog.DEBUG("executable not found: " + executable + "\n");
     return false;
   }

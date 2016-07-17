@@ -63,7 +63,7 @@ function dirmngrConfiguredWithTor() {
   const exitCodeObj  = {value: null};
   const output = EnigmailExecution.resolveAndSimpleExec("gpg-connect-agent", args, exitCodeObj, {});
 
-  if (output === null || exitCodeObj.value !== 0) {
+  if (output === null || exitCodeObj.value < 0) {
     return false;
   }
   return output.indexOf("Tor mode is NOT enabled") === -1;
@@ -329,7 +329,7 @@ const EnigmailGpg = {
     const exitCodeObj  = {value: null};
     const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
 
-    if (exitCodeObj.value !== 0) {
+    if (exitCodeObj.value < 0) {
       return false;
     }
 
