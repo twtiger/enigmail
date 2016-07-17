@@ -67,18 +67,12 @@ function environment() {
 }
 
 function dirMngrWithTor() {
-  const command = EnigmailFiles.resolvePath("gpg-connect-agent", environment().get("PATH"), loadOS().isDosLike());
-
-  if (command === null) {
-    return false;
-  }
-
   const args = ["--dirmngr", "GETINFO tor", "bye", "\n"];
 
   const exitCodeObj  = {value: null};
-  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+  const output = EnigmailExecution.resolveAndSimpleExec("gpg-connect-agent", args, exitCodeObj, {});
 
-  if (exitCodeObj.value !== 0) {
+  if (output === null || exitCodeObj.value !== 0) {
     return false;
   }
   return output.indexOf("Tor mode is NOT enabled") === -1;

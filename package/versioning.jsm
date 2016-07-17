@@ -59,16 +59,13 @@ function getVersion(stdout, executable) {
 }
 
 function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
-  const command = EnigmailFiles.simpleResolvePath(executable);
-  if (!command) {
+  const args = ["--version"];
+  const exitCodeObj = {value: null};
+  const stdout = EnigmailExecution.resolveAndSimpleExec(executable, args, exitCodeObj, {});
+  if (!stdout || exitCodeObj.value === -1) {
     EnigmailLog.DEBUG("executable not found: " + executable + "\n");
     return false;
   }
-
-  const args = ["--version"];
-  const exitCodeObj = {value: null};
-  const stdout = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
-  if (exitCodeObj.value === -1) return false;
 
   const version = getVersion(stdout, executable);
   if (!version) {

@@ -15,7 +15,6 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
-Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
@@ -28,15 +27,10 @@ function getOS() {
 }
 
 function getLinuxDistribution() {
-  const command = EnigmailFiles.simpleResolvePath("uname");
-  if (command === null) {
-    return null;
-  }
   const args = ["-a"];
   const exitCodeObj = {value: null};
-  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
-
-  if (exitCodeObj.value !== 0) {
+  const output = EnigmailExecution.resolveAndSimpleExec("uname", args, exitCodeObj, {});
+  if (!output || exitCodeObj.value !== 0) {
     return null;
   }
   return output;

@@ -145,6 +145,18 @@ const EnigmailExecution = {
   },
 
   /**
+   * Resolve the path to the command and execute it if available
+   * Returns output from simpleExecCmd
+   */
+  resolveAndSimpleExec: function(command, args, exitCodeObj, errorMsgObj) {
+    const resolvedCommand = EnigmailFiles.simpleResolvePath(command);
+    if (resolvedCommand === null) {
+      return null;
+    }
+    return EnigmailExecution.simpleExecCmd(resolvedCommand, args, exitCodeObj, errorMsgObj);
+  },
+
+  /**
    * Execute a command and return the output from stdout
    * No input and no statusFlags are returned.
    */
