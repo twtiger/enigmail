@@ -55,7 +55,7 @@ function flatten(arrOfArr) {
   }, []);
 }
 
-function gpgRequest(keyId, uri, action) {
+function gpgRequest(keyId, uri, action, usingTor) {
   const args = flatten([
     buildStandardArgs(action),
     buildProxyInfo(uri),
@@ -65,8 +65,8 @@ function gpgRequest(keyId, uri, action) {
 
   return {
     command: EnigmailGpgAgent.agentPath,
-    usingTor: false,
     args: args,
+    usingTor: usingTor,
     inputData: getInputData(action),
     envVars: [],
     isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
@@ -120,9 +120,14 @@ function buildRequests(keyId, action, tor) {
     });
   }
 
-  if (!tor.isRequired(action) || torProperties.useNormal){
+  let normalRequestOverTor = false;
+  if (torProperties !== null) {
+    normalRequestOverTor = torProperties.useNormal;
+  }
+
+  if (!tor.isRequired(action) || normalRequestOverTor){
     uris.forEach(function(uri) {
-      requests.push(gpgRequest(keyId, uri, action));
+      requests.push(gpgRequest(keyId, uri, action, normalRequestOverTor));
     });
   }
 
