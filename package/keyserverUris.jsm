@@ -39,12 +39,11 @@ const supportedProtocols = {
   "ldap": "389"
 };
 
-function pushHkpsUri(keyserver, uris) {
+function mapToHkpsName(keyserver) {
   if (keyserver === 'pool.sks-keyservers.net') {
-    uris.push({ protocol: "hkps", keyserverName: 'hkps.pool.sks-keyservers.net', port: supportedProtocols.hkps});
-  } else {
-    uris.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
+    return 'hkps.pool.sks-keyservers.net';
   }
+  return keyserver;
 }
 
 function buildProtocolAndKeyserver(keyserver){
@@ -54,33 +53,27 @@ function buildProtocolAndKeyserver(keyserver){
   const uris = [];
   if (protocolIncluded) {
     const protocol = protocolAndKeyserver[0];
-    const keyserverName = protocolAndKeyserver[1];
-    const port = supportedProtocols[protocol];
-
-    uris.push({ protocol: protocol, keyserverName: keyserverName, port: port});
+    uris.push({ protocol: protocol, keyserverName: protocolAndKeyserver[1], port: supportedProtocols[protocol]});
   }
   else {
-    pushHkpsUri(keyserver, uris);
+    const hkpsKeyserverName = mapToHkpsName(keyserver);
+    uris.push({ protocol: "hkps", keyserverName: hkpsKeyserverName, port: supportedProtocols.hkps});
     uris.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
   }
   return uris;
 }
 
 function prioritiseEncryption() {
-  let uris = [];
+  let urisInParts = [];
   getKeyservers().forEach(function(keyserver) {
-    uris = uris.concat(buildProtocolAndKeyserver(keyserver));
+    urisInParts = urisInParts.concat(buildProtocolAndKeyserver(keyserver));
   });
 
-  const addresses = [];
-  sortWithHkpsFirst(uris).forEach(function(uri) {
-    addresses.push(concatAddress(uri.protocol, uri.keyserverName, uri.port));
+  const completeURI = [];
+  sortWithHkpsFirst(urisInParts).forEach(function(uri) {
+    completeURI.push(uri.protocol + "://" + uri.keyserverName + ":" + uri.port);
   });
-  return addresses;
-}
-
-function concatAddress(protocol, keyserverName, port) {
-  return protocol + "://" + keyserverName + ":" + port;
+  return completeURI;
 }
 
 const KeyserverURIs = {
