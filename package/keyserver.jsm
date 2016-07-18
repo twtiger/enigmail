@@ -196,7 +196,7 @@ function execute(request, listener, subproc) {
 }
 
 function executeRefresh(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing over Tor: " + request.usingTor + " using: " + request.command.path + "\n\n");
+  EnigmailLog.CONSOLE("Refreshing key over Tor: " + request.usingTor + "\n\n");
 
   let stdout = '';
   let stderr = '';
