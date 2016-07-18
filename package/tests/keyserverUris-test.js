@@ -54,3 +54,13 @@ test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
 
   Assert.deepEqual(sortWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
 });
+
+test(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
+  setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
+
+  const keyserverUris = prioritiseEncryption();
+
+  Assert.equal(keyserverUris.length, 2);
+  Assert.equal(keyserverUris[0],'hkps://hkps.pool.sks-keyservers.net:443');
+  Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
+});

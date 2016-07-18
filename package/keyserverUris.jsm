@@ -33,13 +33,21 @@ function sortWithHkpsFirst(keyservers){
   });
 }
 
-function buildProtocolAndKeyserver(keyserver){
-  const supportedProtocols = {
-    "hkps": "443",
-    "hkp": "11371",
-    "ldap": "389"
-  };
+const supportedProtocols = {
+  "hkps": "443",
+  "hkp": "11371",
+  "ldap": "389"
+};
 
+function pushHkpsUri(keyserver, uris) {
+  if (keyserver === 'pool.sks-keyservers.net') {
+    uris.push({ protocol: "hkps", keyserverName: 'hkps.pool.sks-keyservers.net', port: supportedProtocols.hkps});
+  } else {
+    uris.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
+  }
+}
+
+function buildProtocolAndKeyserver(keyserver){
   const protocolAndKeyserver = keyserver.split("://");
   const protocolIncluded = protocolAndKeyserver.length === 2;
 
@@ -52,7 +60,7 @@ function buildProtocolAndKeyserver(keyserver){
     uris.push({ protocol: protocol, keyserverName: keyserverName, port: port});
   }
   else {
-    uris.push({ protocol: "hkps", keyserverName: keyserver, port: supportedProtocols.hkps});
+    pushHkpsUri(keyserver, uris);
     uris.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
   }
   return uris;
