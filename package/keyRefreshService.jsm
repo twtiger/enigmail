@@ -14,7 +14,7 @@ Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs
 Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
-const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "hoursAWeekOnThunderbird";
+const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "hoursPerWeekOfThunderbirdUsage";
 
 let timer = null;
 function createTimer() {
