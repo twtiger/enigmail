@@ -66,7 +66,7 @@ function dirmngrConfiguredWithTor() {
   if (output === null || exitCodeObj.value < 0) {
     return false;
   }
-  return output.indexOf("Tor mode is NOT enabled") === -1;
+  return output.match(/Tor mode is enabled/) !== null;
 }
 
 const EnigmailGpg = {
