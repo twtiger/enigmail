@@ -304,7 +304,7 @@ test(withStandardGpg(function returnsSuccessWithGpgArgs_whenAbleToFindTorButNoHe
   Assert.equal(socksProperties.command, 'gpg');
   Assert.deepEqual(socksProperties.args, gpgArgs);
   Assert.equal(socksProperties.envVars.length, 0);
-  Assert.equal(properties.useNormal, false);
+  Assert.equal(properties.useTorMode, false);
 }));
 
 const torOn9150 = {
@@ -354,7 +354,7 @@ test(function shouldCheckDirmngrConfiguration() {
   });
 });
 
-test(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
+test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
   TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() { return true; }, function() {
     const system = {
       findTor: function() {
@@ -370,7 +370,7 @@ test(function returnsUseNormalTrue_whenUserhasConfiguredDirAuthToUseTor() {
     };
 
     const properties = torProperties(system);
-    Assert.equal(properties.useNormal, true);
+    Assert.equal(properties.useTorMode, true);
     Assert.equal(properties.socks, null);
   });
 });

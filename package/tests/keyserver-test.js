@@ -253,7 +253,7 @@ test(withEnigmail(function createsNormalRequests_whenTorUsesNormal(){
   const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
   const tor = {
     torProperties: function() {
-      return {helper: null, socks: null, useNormal: true};
+      return {helper: null, socks: null, useTorMode: true};
     },
     isRequired: function() {return false;},
     isUsed: function() {return true;}
