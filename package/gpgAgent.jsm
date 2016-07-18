@@ -503,7 +503,7 @@ var EnigmailGpgAgent = {
     const command = agentPath;
     let args = [];
     if (agentType == "gpg") {
-      args = ["--version", "--version", "--batch", "--no-tty", "--charset", "utf-8", "--display-charset", "utf-8"];
+      args = ["--version"];
     }
 
     let exitCode = -1;
