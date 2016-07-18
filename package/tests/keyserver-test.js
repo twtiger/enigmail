@@ -8,7 +8,6 @@ component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 component("enigmail/locale.jsm"); /*global EnigmailLocale: false */
-component("enigmail/log.jsm"); /*global EnigmailLog: false */
 
 function setupKeyserverPrefs(keyservers, autoOn) {
   EnigmailPrefs.setPref("keyserver", keyservers);
@@ -90,7 +89,6 @@ test(function testBuildNormalRequestWithStandardArgs(){
 });
 
 test(function testBuildNormalRequestOverTorWithStandardArgs(){
-  EnigmailLog.setLogLevel(800);
   const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
   const protocol = 'hkps://keyserver.1:443';
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
