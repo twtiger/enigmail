@@ -34,8 +34,3 @@ test(function parseMajorOnlyResponse() {
   const expectedParsedVersion = { major: 6, minor: 0, patch: 0 };
   Assert.deepEqual(parseVersion(response), expectedParsedVersion);
 });
-
-test(function gpgNotOverOrEqual() {
-  const minimum = { major: 2, minor: 0, patch: 30 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('gpg', minimum), false);
-});
