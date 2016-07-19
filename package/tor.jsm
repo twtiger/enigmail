@@ -86,7 +86,7 @@ function torOn(portPref) {
   if (Socks5Proxy.checkTorExists(portPref)) {
     const port = EnigmailPrefs.getPref(portPref);
 
-    EnigmailLog.CONSOLE("\nTor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
+    EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
 
     return {
       ip: Socks5Proxy.torIpAddr(),
