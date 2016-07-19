@@ -257,6 +257,18 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
   return execute(request, listener, subprocess);
 }
 
+function buildGpgRequests(keyId, uris, action) {
+  const requests = [];
+  uris.forEach(function(uri) {
+    requests.push(gpgRequest(keyId, uri, action));
+  });
+  return requests;
+}
+
+function executeWithoutTorSuccessfully(request) {
+  return executeRefresh(request, subprocess);
+}
+
 /**
  * builds a list of gpg requests to try to refresh a key
  *
@@ -268,12 +280,19 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
 function refresh(keyId) {
   EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
-  const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
+  const uris = KeyserverURIs.prioritiseEncryption();
+  const gpgRequests = buildGpgRequests(keyId, uris, refreshAction);
 
-  for (let i=0; i<requests.length; i++) {
-    const successStatus = executeRefresh(requests[i], subprocess);
-    if (successStatus || i === requests.length-1) {
-      EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + requests[i].usingTor + ", refreshed successfully: " + successStatus + "\n\n");
+  if (EnigmailTor.executeRequestOverTorSuccessfully(gpgRequests)) {
+    return;
+  }
+
+  if (EnigmailTor.isRequired(refreshAction) || EnigmailGpg.dirmngrConfiguredWithTor()) {
+    return;
+  }
+
+  for (let i=0; i<gpgRequests.length; i++) {
+    if (executeWithoutTorSuccessfully(gpgRequests[i])) {
       return;
     }
   }

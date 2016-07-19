@@ -16,6 +16,8 @@ Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: fals
 Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
 Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 Components.utils.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
+Components.utils.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
+Components.utils.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 
 const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -204,10 +206,122 @@ function noProperties(helper, socks, useTorMode) {
   return helper === null && socks === null && useTorMode === false;
 }
 
+function successfulExecution(stderr) {
+  return stderr.indexOf("IMPORT_OK") > -1;
+}
+
+function flatten(arrOfArr) {
+  return arrOfArr.reduce(function(a, b) {
+    return a.concat(b);
+  }, []);
+}
+
+function standardArguments() {
+  return EnigmailGpg.getStandardArgs(true);
+}
+
+function combineRequestAndTorsocks(request, torsocks) {
+  return {
+    command: torsocks.command,
+    envVars: torsocks.envVars,
+    args: flatten([
+      torsocks.args,
+      request.args
+    ])
+  };
+}
+
+function executeOverTorsocksSuccessfully(requests, helper) {
+  const errorMsgObj = {value: ""};
+  for (let i=0; i<requests.length; i++) {
+    const torsocksRequest = combineRequestAndTorsocks(requests[i], helper);
+    // TODO use other type of command that lets us use specific env variables
+    EnigmailExecution.simpleExecCmd(torsocksRequest.command, torsocksRequest.args, {}, errorMsgObj);
+    if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+      return true;
+    }
+  }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+  return false;
+}
+
+function combineRequestAndSocksArguments(request, torHost) {
+  const keyserverOptionsIndex = request.args.indexOf('--keyserver-options');
+  const recvKeyCommandIndex = request.args.indexOf('--recv-keys');
+
+  let firstCutOffIndex;
+  if (keyserverOptionsIndex > -1) {
+    firstCutOffIndex = keyserverOptionsIndex;
+  }
+  else {
+    firstCutOffIndex = recvKeyCommandIndex;
+  }
+
+  return {
+    command: request.command,
+    args: flatten([
+      request.args.slice(0, firstCutOffIndex),
+      ['--keyserver-options', 'http-proxy='+ torHost],
+      request.args.slice(recvKeyCommandIndex)
+    ])
+  };
+}
+
+function executeWithSocksArgumentsSuccessfully(requests) {
+  const errorMsgObj = {value: ""};
+  for (let i=0; i<requests.length; i++) {
+    const gpgSocksRequest = combineRequestAndSocksArguments(requests[i], gpgProxyArgs());
+    EnigmailExecution.simpleExecCmd(gpgSocksRequest.command, gpgSocksRequest.args, {}, errorMsgObj);
+    if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+      return true;
+    }
+  }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+  return false;
+}
+
+function executeWithTorModeSuccessfully(requests) {
+  const errorMsgObj = {value: ""};
+  for (let i=0; i<requests.length; i++) {
+    EnigmailExecution.simpleExecCmd(requests[i].command, requests[i].args, {}, errorMsgObj);
+    if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+      return true;
+    }
+  }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
+  return true;
+}
+
+function executeRequestOverTorSuccessfully(requests) {
+  const tor = findTor();
+  if (!tor) return false;
+
+  const helper = findTorExecutableHelper(Versioning);
+  if (helper) {
+    if (executeOverTorsocksSuccessfully(requests, helper)) return true;
+  }
+
+  if (gpgUsesSocksArguments()) {
+    if (executeWithSocksArgumentsSuccessfully(requests)) return true;
+  }
+
+  if (EnigmailGpg.dirmngrConfiguredWithTor()) {
+    if (executeWithTorModeSuccessfully(requests)) return true;
+  }
+
+  return false;
+}
+
 const EnigmailTor = {
+  isPreferred: isPreferred,
+  isRequired: isRequired,
+  executeRequestOverTorSuccessfully: executeRequestOverTorSuccessfully,
+
+
   torProperties: function() {
     return torProperties(systemCaller);
-  },
-  isPreferred: isPreferred,
-  isRequired: isRequired
+  }
 };

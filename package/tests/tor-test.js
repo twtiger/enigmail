@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+testing("tor.jsm"); /*global combineRequestAndSocksArguments:false, resetEnvVars:false, addEnvironmentVariables:false, flatten:true, combineRequestAndTorsocks: false, createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -375,4 +375,112 @@ test(function creatingRandomCredential() {
   Assert.equal(typeof createRandomCredential(), 'string');
 
   Assert.notEqual(createRandomCredential(), createRandomCredential());
+});
+
+test(function combineGpgArgumentsWithTorsocksArgumentsWithNoEnvVariables() {
+  const keyId = 1234;
+  const gpgRequest = {
+    command: {
+      path:'/usr/bin/gpg2'
+    },
+    args: flatten([
+      EnigmailGpg.getStandardArgs(true),
+      ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+      ['--recv-keys', keyId]
+    ])
+  };
+  const torsocks = {
+    envVars: [],
+    command: {path: '/usr/bin/torsocks'},
+    args: ['--user', '1234', '--pass', '1234', '/usr/bin/gpg2']
+  };
+
+  const request = combineRequestAndTorsocks(gpgRequest, torsocks);
+
+  Assert.equal(request.command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(request.envVars, []);
+  Assert.equal(request.args[0], '--user');
+  Assert.equal(request.args[2], '--pass');
+  Assert.equal(request.args[4], '/usr/bin/gpg2');
+  Assert.deepEqual(request.args.slice(5), gpgRequest.args);
+});
+
+test(function combineGpgArgumentsWithTorsocksArgumentsWithEnvVariables() {
+  const keyId = 1234;
+  const gpgRequest = {
+    command: {
+      path:'/usr/bin/gpg2'
+    },
+    args: flatten([
+      EnigmailGpg.getStandardArgs(true),
+      ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+      ['--recv-keys', keyId]
+    ])
+  };
+  const credentials = ['TORSOCKS_USERNAME=1234', 'TORSOCKS_PASSWORD=1234'];
+  const torsocks = {
+    envVars: credentials,
+    command: {path: '/usr/bin/torsocks'},
+    args: ['/usr/bin/gpg2']
+  };
+
+  const request = combineRequestAndTorsocks(gpgRequest, torsocks);
+
+  Assert.equal(request.command.path, '/usr/bin/torsocks');
+  Assert.deepEqual(request.envVars, credentials);
+  Assert.equal(request.args[0], '/usr/bin/gpg2');
+  Assert.deepEqual(request.args.slice(1), gpgRequest.args);
+});
+
+test(function combineGpgArgumentsWithSocksArguments() {
+  const keyId = 1234;
+  const gpgRequest = {
+    command: {
+      path:'/usr/bin/gpg2'
+    },
+    args: flatten([
+      EnigmailGpg.getStandardArgs(true),
+      ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+      ['--recv-keys', keyId]
+    ])
+  };
+  const socksArgs = 'socks5-hostname://1234:1234@127.0.0.1:9150';
+
+  const request = combineRequestAndSocksArguments(gpgRequest, socksArgs);
+
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  const expectedArgs = flatten([
+    EnigmailGpg.getStandardArgs(true),
+    ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+    ['--keyserver-options', 'http-proxy='+ socksArgs],
+    ['--recv-keys', keyId]
+  ]);
+  Assert.deepEqual(request.args, expectedArgs);
+});
+
+test(function combineGpgArgumentsWithSocksArgumentsWhenGpgArgumentsHaveHttpProxy() {
+  const keyId = 1234;
+  const gpgRequest = {
+    command: {
+      path:'/usr/bin/gpg2'
+    },
+    args: flatten([
+      EnigmailGpg.getStandardArgs(true),
+      ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+      ['--keyserver-options', 'http-proxy=127.0.0.1:9000'],
+      ['--recv-keys', keyId]
+    ])
+  };
+  const socksArgs = 'socks5-hostname://1234:1234@127.0.0.1:9150';
+
+  const request = combineRequestAndSocksArguments(gpgRequest, socksArgs);
+
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  const expectedArgs = flatten([
+    EnigmailGpg.getStandardArgs(true),
+    ['--keyserver', 'hkps.pool.sks-keyservers.net'],
+    ['--keyserver-options', 'http-proxy='+ socksArgs],
+    ['--recv-keys', keyId]
+  ]);
+  Assert.deepEqual(request.args, expectedArgs);
 });
