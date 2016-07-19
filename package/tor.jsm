@@ -184,8 +184,8 @@ function torProperties(system) {
   if (!tor) { return null; }
 
   const helper = system.findTorExecutableHelper(Versioning);
-  let socks;
-  let useTorMode;
+  let socks = null;
+  let useTorMode = false;
 
   if (EnigmailGpg.hasDirmngr()) {
     useTorMode = EnigmailGpg.dirmngrConfiguredWithTor();
