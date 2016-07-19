@@ -260,12 +260,14 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
  * @return:     No return value; exits when either a key has been successfully refreshed, or if all possible attempts have failed
  */
 
-function refresh(keyId){
-  EnigmailLog.DEBUG("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
+function refresh(keyId) {
+  EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
   for (let i=0; i<requests.length; i++) {
-    if (executeRefresh(requests[i], subprocess)) return;
+    if (executeRefresh(requests[i], subprocess)) {
+      return;
+    }
   }
 }
 

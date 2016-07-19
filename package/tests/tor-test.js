@@ -42,7 +42,7 @@ test(function evaluateGpgVersionWhenOsIsWindows() {
   });
 });
 
-test(function evaluateGpgVersionWhenOsIsWindows32() {
+test(function evaluateGpgVersionWhenOSIsWindows32() {
   TestHelper.resetting(EnigmailGpg, "agentVersion", '2.0.30', function() {
     const versioning = {
       versionFoundMeetsMinimumWasCalled: false,
