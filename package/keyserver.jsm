@@ -108,7 +108,7 @@ function buildRequests(keyId, action, tor) {
     return [];
   }
 
-  if (torProperties !== null && tor.isUsed(action)) {
+  if (torProperties !== null && tor.isPreferred(action)) {
     uris.forEach(function(uri) {
       if(torProperties.helper !== null) {
         requests.push(gpgRequestOverTor(keyId, uri, torProperties.helper, action));
@@ -210,7 +210,7 @@ function executeRefresh(request, subproc) {
   return successful;
 }
 
-function badArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj) {
+function invalidArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj) {
   if (!keyserver) {
     errorMsgObj.value = EnigmailLocale.getString("failNoServer");
     return true;
@@ -223,9 +223,10 @@ function badArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj) {
 
   return false;
 }
-
 function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
-  if (badArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj)) return null;
+  if(invalidArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj)) {
+    return null;
+  }
 
   const searchTermsList = searchTerms.split(" ");
 

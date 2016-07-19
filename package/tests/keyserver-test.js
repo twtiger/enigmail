@@ -129,7 +129,7 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOver
       };
     },
     isRequired: function(action) {return false;},
-    isUsed: function(action) {return true;}
+    isPreferred: function(action) {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -177,7 +177,7 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOver
       };
     },
     isRequired: function(action) {return false;},
-    isUsed: function(action) {return true;}
+    isPreferred: function(action) {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -214,7 +214,7 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
       return null;
     },
     isRequired: function() {return false;},
-    isUsed: function() {return true;}
+    isPreferred: function() {return true;}
   };
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, tor);
@@ -238,7 +238,7 @@ test(withEnigmail(function createsNormalRequests_whenTorUsesNormal(){
       return {helper: null, socks: null, useTorMode: true};
     },
     isRequired: function() {return false;},
-    isUsed: function() {return true;}
+    isPreferred: function() {return true;}
   };
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, tor);
@@ -280,7 +280,7 @@ test(withEnigmail(function createsRequestsWithOnlyTor_whenTorIsRequired(enigmail
       };
     },
     isRequired: function(action) {return true;},
-    isUsed: function(action) {return true;}
+    isPreferred: function(action) {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
@@ -309,7 +309,7 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
       return null;
     },
     isRequired: function() {return true;},
-    isUsed: function() {return true;}
+    isPreferred: function() {return true;}
   };
 
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;

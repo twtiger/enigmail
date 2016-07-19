@@ -64,7 +64,7 @@ function getAction(actionFlags) {
   return null;
 }
 
-function isUsed(actionFlags) {
+function isPreferred(actionFlags) {
   const action = getAction(actionFlags);
   return EnigmailPrefs.getPref(action.requires) || EnigmailPrefs.getPref(action.uses);
 }
@@ -208,6 +208,6 @@ const EnigmailTor = {
   torProperties: function() {
     return torProperties(systemCaller);
   },
-  isUsed: isUsed,
+  isPreferred: isPreferred,
   isRequired: isRequired
 };
