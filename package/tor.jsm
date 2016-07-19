@@ -165,41 +165,12 @@ function gpgUsesSocksArguments() {
   return (!Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED)) && EnigmailGpg.usesLibcurl();
 }
 
-const systemCaller = {
-  findTor: findTor,
-  findTorExecutableHelper: findTorExecutableHelper,
-  getOS: EnigmailOS.getOS,
-  isDosLike: EnigmailOS.isDosLike,
-  gpgUsesSocksArguments: gpgUsesSocksArguments
-};
-
 function buildSocksProperties(tor, system) {
   return {
     command: 'gpg',
     args: gpgProxyArgs(tor, system, Versioning),
     envVars: []
   };
-}
-
-function torProperties(system) {
-  const tor = system.findTor();
-  if (!tor) { return null; }
-
-  const helper = system.findTorExecutableHelper(Versioning);
-  let socks = null;
-  let useTorMode = false;
-
-  if (EnigmailGpg.hasDirmngr()) {
-    useTorMode = EnigmailGpg.dirmngrConfiguredWithTor();
-  } else {
-    socks = buildSocksProperties(tor, system);
-  }
-
-  if (noProperties(helper, socks, useTorMode)) {
-    return null;
-  } else {
-    return {helper: helper, socks: socks, useTorMode: useTorMode};
-  }
 }
 
 function noProperties(helper, socks, useTorMode) {
@@ -319,9 +290,4 @@ const EnigmailTor = {
   isPreferred: isPreferred,
   isRequired: isRequired,
   executeRequestOverTorSuccessfully: executeRequestOverTorSuccessfully,
-
-
-  torProperties: function() {
-    return torProperties(systemCaller);
-  }
 };
