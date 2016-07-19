@@ -1,20 +1,32 @@
 /*global testing: false, do_load_module: false, do_get_cwd: false, test: false, Assert:false, component: false */
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper:false, withEnigmail: false, withTestGpgHome: false */
 
 testing("versioning.jsm"); /*global Versioning: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
-component("enigmail/files.jsm"); /*global EnigmailFiles:false */
+component("enigmail/execution.jsm"); /*global EnigmailExecution:false */
+
+const curlVersion7Stdout = "curl 7.47.0 (x86_64-pc-linux-gnu) libcurl/7.47.0 GnuTLS/3.4.10 zlib/1.2.8 libidn/1.32 librtmp/2.3\n" +
+  "Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtmp rtsp smb smbs smtp smtps telnet tftp\n" +
+  "Features: AsynchDNS IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP UnixSockets\n";
 
 test(function checkCurlVersionIsOver() {
-  const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', minimumCurlVersion), true);
+  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
+    return curlVersion7Stdout;
+  }, function() {
+    const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
+    Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', minimumCurlVersion), true);
+  });
 });
 
 test(function checkCurlVersionIsLess() {
-  const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', absurdlyHighCurlRequirement), false);
+  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
+    return curlVersion7Stdout;
+  }, function() {
+    const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
+    Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', absurdlyHighCurlRequirement), false);
+  });
 });
 
 test(function parseFullVersionResponse() {
