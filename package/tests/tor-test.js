@@ -162,24 +162,26 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(withStandardGpg(function testTorPropertiesSearchesForTor() {
-  const system = {
-    findTorWasCalled: false,
-    findTor: function() {
-      system.findTorWasCalled = true;
-      return torOn9150;
-    },
-    findTorExecutableHelper: function() {
-      system.findTorExecutableHelperWasCalled = true;
-      return {
-        command: 'torsocks',
-        args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
-      };
-    }
-  };
+  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() { return true; }, function() {
+    const system = {
+      findTorWasCalled: false,
+      findTor: function() {
+        system.findTorWasCalled = true;
+        return torOn9150;
+      },
+      findTorExecutableHelper: function() {
+        system.findTorExecutableHelperWasCalled = true;
+        return {
+          command: 'torsocks',
+          args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
+        };
+      }
+    };
 
-  torProperties(system);
+    torProperties(system);
 
-  Assert.equal(system.findTorWasCalled, true);
+    Assert.equal(system.findTorWasCalled, true);
+  });
 }));
 
 test(withStandardGpg(function testTorPropertiesSearchesForTorExecutable() {
