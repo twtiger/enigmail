@@ -41,8 +41,6 @@ const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
 // Socks5 arguments are no longer supported for this version of gpg and higher
 const MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED = v(2, 1, 0);
 
-const TOR_HELPERS = ['torsocks2', 'torsocks', 'torify', 'usewithtor'];
-
 const TORSOCKS_VERSION_2 = v(2, 0, 0);
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
