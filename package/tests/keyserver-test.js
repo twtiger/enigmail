@@ -75,25 +75,41 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
   Assert.deepEqual(request.args, expectedArgs);
 })));
 
-test(function testBuildingAGpgRequestWithoutTor() {
+test(function testBuildNormalRequestWithStandardArgs(){
   const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
   const protocol = 'hkps://keyserver.1:443';
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const useTor = false;
 
-  const request = gpgRequest('1234', protocol, action);
+  const request = gpgRequest('1234', protocol, action, useTor);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, refreshKeyArgs);
+  Assert.equal(request.usingTor, false);
 });
 
-test(withEnigmail(function testBuildingAGpgRequestWhenTorIsNotRequiredOrWanted() {
+test(function testBuildNormalRequestOverTorWithStandardArgs(){
+  const refreshKeyArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', '1234']);
+  const protocol = 'hkps://keyserver.1:443';
+  const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
+  const useTor = true;
+
+  const request = gpgRequest('1234', protocol, action, useTor);
+
+  Assert.equal(request.command.path, '/usr/bin/gpg2');
+  Assert.deepEqual(request.args, refreshKeyArgs);
+  Assert.equal(request.isDownload, Ci.nsIEnigmail.DOWNLOAD_KEY);
+  Assert.equal(request.usingTor, true);
+});
+
+test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   setupKeyserverPrefs("keyserver.1", true);
   const tor = {
     torProperties: function() {
       return null;
     },
     isRequired: function(){ return false;},
-    isPreferred: function(){ return false;}
+    isUsed: function(){ return false;}
   };
   const expectedKeyId = '1234';
 
@@ -101,9 +117,11 @@ test(withEnigmail(function testBuildingAGpgRequestWhenTorIsNotRequiredOrWanted()
   const requests = buildRequests(expectedKeyId, refreshAction, tor);
 
   Assert.equal(requests[0].command, EnigmailGpgAgent.agentPath);
+  Assert.equal(requests[0].usingTor, false);
   Assert.deepEqual(requests[0].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkps://keyserver.1:443', '--recv-keys', expectedKeyId]));
 
   Assert.equal(requests[1].command, EnigmailGpgAgent.agentPath);
+  Assert.equal(requests[1].usingTor, false);
   Assert.deepEqual(requests[1].args, EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', expectedKeyId]));
 }));
 
