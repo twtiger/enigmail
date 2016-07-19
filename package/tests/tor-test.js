@@ -162,73 +162,32 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(withStandardGpg(function testTorPropertiesSearchesForTor() {
-  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() { return true; }, function() {
+  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() { return false; }, function() {
     const system = {
       findTorWasCalled: false,
       findTor: function() {
         system.findTorWasCalled = true;
         return torOn9150;
       },
+      findTorExecutableHelperWasCalled: false,
       findTorExecutableHelper: function() {
         system.findTorExecutableHelperWasCalled = true;
         return {
           command: 'torsocks',
           args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
         };
-      }
-    };
-
-    torProperties(system);
-
-    Assert.equal(system.findTorWasCalled, true);
-  });
-}));
-
-test(withStandardGpg(function testTorPropertiesSearchesForTorExecutable() {
-  const system = {
-    findTor: function() {
-      return torOn9150;
-    },
-    findTorExecutableHelperWasCalled: false,
-    findTorExecutableHelper: function() {
-      system.findTorExecutableHelperWasCalled = true;
-      return {
-        command: 'torsocks',
-        args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
-      };
-    }
-  };
-
-  torProperties(system);
-
-  Assert.equal(system.findTorExecutableHelperWasCalled, true);
-}));
-
-test(withStandardGpg(function testTorPropertiesBuildsHelperArgsAndGpgProxyArguments() {
-  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() {
-    return false;
-  }, function() {
-    const system = {
+      },
       isDosLikeWasCalled: false,
       isDosLike: function() {
         system.isDosLikeWasCalled = true;
         return false;
       },
-      findTor: function() {
-        system.findTorWasCalled = true;
-        return torOn9150;
-      },
-      findTorExecutableHelper: function() {
-        system.findTorExecutableHelperWasCalled = true;
-        return {
-          command: 'torsocks',
-          args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
-        };
-      }
     };
 
     torProperties(system);
 
+    Assert.equal(system.findTorWasCalled, true);
+    Assert.equal(system.findTorExecutableHelperWasCalled, true);
     Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
   });
 }));
