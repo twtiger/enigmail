@@ -55,7 +55,7 @@ function flatten(arrOfArr) {
   }, []);
 }
 
-function gpgRequest(keyId, uri, action, usingTor) {
+function gpgRequest(keyId, uri, action) {
   const args = flatten([
     buildStandardArgs(action),
     buildProxyInfo(uri),
@@ -66,7 +66,6 @@ function gpgRequest(keyId, uri, action, usingTor) {
   return {
     command: EnigmailGpgAgent.agentPath,
     args: args,
-    usingTor: usingTor,
     inputData: getInputData(action),
     envVars: [],
     isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
@@ -74,7 +73,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
 }
 
 function gpgRequestOverTor(keyId, uri, torProperties, action) {
-  let result = { envVars: torProperties.envVars, usingTor: true };
+  let result = { envVars: torProperties.envVars };
 
   if (torProperties.command === 'gpg') {
     result.command =  EnigmailGpgAgent.agentPath;
@@ -191,8 +190,6 @@ function execute(request, listener, subproc) {
 }
 
 function executeRefresh(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing key over Tor: " + request.usingTor + "\n\n");
-
   let stdout = '';
   let stderr = '';
   let successful = false;
