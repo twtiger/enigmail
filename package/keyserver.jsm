@@ -196,8 +196,6 @@ function execute(request, listener, subproc) {
 }
 
 function executeRefresh(request, subproc) {
-  //EnigmailLog.CONSOLE("Refreshing key over Tor: " + request.usingTor + "\n\n");
-
   let stdout = '';
   let stderr = '';
   let successful = false;
@@ -205,7 +203,6 @@ function executeRefresh(request, subproc) {
   const listener = {
     done: function(exitCode) {
       successful = stringContains(stderr, "IMPORT_OK");
-      //EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
     },
     stderr: function(data) {
       stderr += data;
