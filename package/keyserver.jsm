@@ -247,11 +247,8 @@ function refresh(keyId) {
   const uris = KeyserverURIs.prioritiseEncryption();
   const gpgRequests = buildGpgRequests(keyId, uris, refreshAction);
 
-  if (EnigmailTor.executeRequestOverTorSuccessfully(gpgRequests, refreshAction)) {
-    return;
-  }
-
-  if (EnigmailTor.isRequired(refreshAction) || EnigmailGpg.dirmngrConfiguredWithTor()) {
+  if (EnigmailTor.executeRequestOverTorSuccessfully(gpgRequests, refreshAction) ||
+    EnigmailTor.isRequired(refreshAction) || EnigmailGpg.dirmngrConfiguredWithTor()) {
     return;
   }
 
