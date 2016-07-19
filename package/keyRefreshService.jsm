@@ -102,7 +102,7 @@ function refreshWith(keyserver, timer, readyToRefresh) {
  */
 function start(keyserver) {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true){
-    EnigmailLog.WRITE("[KEY REFRESH SERVICE]: Started\n");
+    EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Started\n");
     const timer = createTimer();
     refreshWith(keyserver, timer, false);
   }

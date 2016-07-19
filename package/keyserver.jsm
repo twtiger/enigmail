@@ -268,7 +268,7 @@ function access(actionFlags, keyserver, searchTerms, listener, errorMsgObj) {
  */
 
 function refresh(keyId){
-  EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
+  EnigmailLog.DEBUG("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
   for (let i=0; i<requests.length; i++) {
