@@ -10,10 +10,9 @@
 "use strict";
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
-/*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false,
-  withTestGpgHome: false, osUtils: false */
+/*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpgAgent: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
+testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, hasDirmngr: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
 test(function getLibcurlDependencyPathForGpg() {
@@ -72,5 +71,12 @@ test(function returnsFalseWhenExitCodeIndicatesErrorInExecution() {
   }, function() {
 
     Assert.equal(dirmngrConfiguredWithTor(), false);
+  });
+});
+
+test(function testIfVersionOfGpgHasDirmngr() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1.7", function() {
+    const hasDirmngr = EnigmailGpg.hasDirmngr();
+    Assert.equal(hasDirmngr, true);
   });
 });

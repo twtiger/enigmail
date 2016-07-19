@@ -120,14 +120,9 @@ function buildRequests(keyId, action, tor) {
     });
   }
 
-  let requestWithTorMode = false;
-  if (torProperties !== null) {
-    requestWithTorMode = torProperties.useTorMode;
-  }
-
-  if (!tor.isRequired(action) || requestWithTorMode) {
+  if (!tor.isRequired(action) || (torProperties !== null && torProperties.useTorMode)) {
     uris.forEach(function(uri) {
-      requests.push(gpgRequest(keyId, uri, action, requestWithTorMode));
+      requests.push(gpgRequest(keyId, uri, action));
     });
   }
 
