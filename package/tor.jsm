@@ -66,7 +66,7 @@ function getAction(actionFlags) {
   return null;
 }
 
-function isPreferred(actionFlags) {
+function isPreferredOverTor(actionFlags) {
   const action = getAction(actionFlags);
   return EnigmailPrefs.getPref(action.requires) || EnigmailPrefs.getPref(action.uses);
 }
@@ -266,7 +266,11 @@ function executeWithTorModeSuccessfully(requests) {
   return true;
 }
 
-function executeRequestOverTorSuccessfully(requests) {
+function executeRequestOverTorSuccessfully(requests, action) {
+  if (!isPreferredOverTor(action)) {
+    return false;
+  }
+
   const tor = findTor();
   if (!tor) return false;
 
@@ -287,7 +291,6 @@ function executeRequestOverTorSuccessfully(requests) {
 }
 
 const EnigmailTor = {
-  isPreferred: isPreferred,
   isRequired: isRequired,
   executeRequestOverTorSuccessfully: executeRequestOverTorSuccessfully,
 };
