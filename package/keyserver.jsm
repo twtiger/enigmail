@@ -273,7 +273,7 @@ function refresh(keyId) {
   for (let i=0; i<requests.length; i++) {
     const successStatus = executeRefresh(requests[i], subprocess);
     if (successStatus || i === requests.length-1) {
-      EnigmailLog.CONSOLE("Refreshed key over Tor: " + requests[i].usingTor + ", refreshed successfully: " + successStatus + "\n\n");
+      EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + requests[i].usingTor + ", refreshed successfully: " + successStatus + "\n\n");
       return;
     }
   }
