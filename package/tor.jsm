@@ -200,12 +200,17 @@ function combineRequestAndTorsocks(request, torsocks) {
   };
 }
 
+function getKeyIdFromArgs(args) {
+  return args[args.length-1];
+}
+
 function executeOverTorsocksSuccessfully(requests, helper) {
   const errorMsgObj = {value: ""};
   for (let i=0; i<requests.length; i++) {
     const torsocksRequest = combineRequestAndTorsocks(requests[i], helper);
     EnigmailExecution.simpleExecWithEnvVariables(torsocksRequest.command, torsocksRequest.envVars,  torsocksRequest.args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("\nRefreshed key " + getKeyIdFromArgs(torsocksRequest.args) + " successfully over Tor\n");
       return true;
     }
   }
@@ -240,6 +245,7 @@ function executeWithSocksArgumentsSuccessfully(requests) {
     const gpgSocksRequest = combineRequestAndSocksArguments(requests[i], gpgProxyArgs());
     EnigmailExecution.simpleExecCmd(gpgSocksRequest.command, gpgSocksRequest.args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("\nRefreshed key " + getKeyIdFromArgs(gpgSocksRequest.args) + " successfully over Tor\n");
       return true;
     }
   }
@@ -251,6 +257,7 @@ function executeWithTorModeSuccessfully(requests) {
   for (let i=0; i<requests.length; i++) {
     EnigmailExecution.simpleExecCmd(requests[i].command, requests[i].args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("\nRefreshed key " + getKeyIdFromArgs(requests[i].args) + " successfully over Tor\n");
       return true;
     }
   }

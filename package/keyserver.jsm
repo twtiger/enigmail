@@ -252,11 +252,16 @@ function refresh(keyId) {
     return;
   }
 
+  EnigmailLog.CONSOLE("\nUnable to refresh key over Tor.\n");
+
   for (let i=0; i<gpgRequests.length; i++) {
     if (executeWithoutTorSuccessfully(gpgRequests[i])) {
+      EnigmailLog.CONSOLE("\nRefreshed key " + keyId + " successfully WITHOUT Tor\n");
       return;
     }
   }
+
+  EnigmailLog.CONSOLE("\nFailed to refresh key " + keyId + "\n");
 }
 
 let currentProxyModule = null;
