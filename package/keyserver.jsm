@@ -120,9 +120,14 @@ function buildRequests(keyId, action, tor) {
     });
   }
 
+  let useTorMode = false;
+  if (torProperties !== null) {
+    useTorMode = torProperties.useTorMode;
+  }
+
   if (!tor.isRequired(action) || (torProperties !== null && torProperties.useTorMode)) {
     uris.forEach(function(uri) {
-      requests.push(gpgRequest(keyId, uri, action));
+      requests.push(gpgRequest(keyId, uri, action, useTorMode));
     });
   }
 
@@ -191,7 +196,7 @@ function execute(request, listener, subproc) {
 }
 
 function executeRefresh(request, subproc) {
-  EnigmailLog.CONSOLE("Refreshing key over Tor: " + request.usingTor + "\n\n");
+  //EnigmailLog.CONSOLE("Refreshing key over Tor: " + request.usingTor + "\n\n");
 
   let stdout = '';
   let stderr = '';
@@ -200,7 +205,7 @@ function executeRefresh(request, subproc) {
   const listener = {
     done: function(exitCode) {
       successful = stringContains(stderr, "IMPORT_OK");
-      EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
+      //EnigmailLog.CONSOLE("Refreshed successfully: " + successful + ", with Exit Code: "+ exitCode +"\n\n");
     },
     stderr: function(data) {
       stderr += data;
@@ -267,8 +272,11 @@ function refresh(keyId) {
   EnigmailLog.WRITE("[KEYSERVER]: Trying to refresh key: " + keyId + " at time: " + new Date().toUTCString()+ "\n");
   const refreshAction = Ci.nsIEnigmail.DOWNLOAD_KEY;
   const requests = buildRequests(keyId, refreshAction, EnigmailTor, EnigmailHttpProxy);
+
   for (let i=0; i<requests.length; i++) {
-    if (executeRefresh(requests[i], subprocess)) {
+    const successStatus = executeRefresh(requests[i], subprocess);
+    if (successStatus || i === requests.length-1) {
+      EnigmailLog.CONSOLE("Refreshed key over Tor: " + requests[i].usingTor + ", refreshed successfully: " + successStatus + "\n\n");
       return;
     }
   }
