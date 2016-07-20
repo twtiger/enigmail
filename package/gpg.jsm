@@ -105,12 +105,8 @@ function dirmngrConfiguredWithTor() {
   return output.match(/Tor mode is enabled/) !== null;
 }
 
-function v(maj, min, pat) {
-  return {major: maj, minor: min, patch: pat};
-}
-
 function hasDirmngr() {
-  return Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, v(2, 1, 0));
+  return Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, {major:2, minor:1, patch:0});
 }
 
 const EnigmailGpg = {
