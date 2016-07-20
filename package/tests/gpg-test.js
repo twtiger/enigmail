@@ -14,6 +14,8 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 
 testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, hasDirmngr: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
+component("enigmail/subprocess.jsm"); /*global subprocess: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";
@@ -23,60 +25,101 @@ test(function getLibcurlDependencyPathForGpg() {
   Assert.equal(actualParentPath.path, expectedParentPath);
 });
 
-test(function shouldUseResolveAndSimpleExecWhenCheckingDirmngrConfiguration() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
-    Assert.equal(executable, 'echo');
-    Assert.deepEqual(args, ["GETINFO tor", "|", "gpg-connect-agent", "--dirmngr"]);
-    Assert.deepEqual(exitCodeObj, {value:null});
-    return "OK - Tor mode is enabled\n OK closing connection\n";
+function withStubFormatCmdLine(f) {
+  return function() {
+    TestHelper.resetting(EnigmailFiles, "formatCmdLine", function(executable) {
+      return "";
+    }, function() {
+      f();
+    });
+  };
+}
+
+test(withStubFormatCmdLine(function shouldUseResolveAndSimpleExecWhenCheckingDirmngrConfiguration() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+    Assert.equal(executable, 'gpg-connect-agent');
+    return;
   }, function() {
-
-    dirmngrConfiguredWithTor();
+    TestHelper.resetting(subprocess, "call", function(subprocObj) {
+      return {
+        wait: function() {}
+      };
+    }, function() {
+      dirmngrConfiguredWithTor();
+    });
   });
-});
+}));
 
-test(function returnsTrueWhenConfiguredToUseTor() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
-    exitCodeObj.value = 0;
-    return "OK - Tor mode is enabled\n OK closing connection\n";
+test(withStubFormatCmdLine(function returnsTrueWhenConfiguredToUseTor() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+    return { path: '/usr/bin/gpg-connect-agent' };
   }, function() {
+    TestHelper.resetting(subprocess, "call", function(subprocObj) {
+      subprocObj.stdout("OK - Tor mode is enabled\n OK closing connection\n");
+      subprocObj.done({ exitCode: 0 });
+      return {
+        wait: function() {}
+      };
+    }, function() {
 
-    Assert.equal(dirmngrConfiguredWithTor(), true);
+      Assert.equal(dirmngrConfiguredWithTor(), true);
+    });
   });
-});
+}));
 
-test(function returnsFalseWhenNotConfiguredToUseTor() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
-    exitCodeObj.value = 0;
-    return "OK - Tor mode is NOT enabled\n OK closing connection\n";
+test(withStubFormatCmdLine(function returnsFalseWhenNotConfiguredToUseTor() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+    return { path: '/usr/bin/gpg-connect-agent' };
   }, function() {
+    TestHelper.resetting(subprocess, "call", function(subprocObj) {
+      subprocObj.stdout("OK - Tor mode is NOT enabled\n OK closing connection\n");
+      subprocObj.done({exitCode: 0});
+      return {
+        wait: function() {}
+      };
+    }, function() {
 
-    Assert.equal(dirmngrConfiguredWithTor(), false);
+      Assert.equal(dirmngrConfiguredWithTor(), false);
+    });
   });
-});
+}));
 
-test(function returnsFalseWhenGpgConnectAgentPathIsNotFound() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
+test(withStubFormatCmdLine(function returnsFalseWhenGpgConnectAgentPathIsNotFound() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
     return null;
   }, function() {
 
     Assert.equal(dirmngrConfiguredWithTor(), false);
   });
-});
+}));
 
-test(function returnsFalseWhenExitCodeIndicatesErrorInExecution() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
-    exitCodeObj.value = -1;
-    return "";
+test(withStubFormatCmdLine(function returnsFalseWhenExitCodeIndicatesErrorInExecution() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+    return { path: '/usr/bin/gpg-connect-agent' };
   }, function() {
+    TestHelper.resetting(subprocess, "call", function(subprocObj) {
+      subprocObj.stdout("");
+      subprocObj.done();
+      return {
+        wait: function() {}
+      };
+    }, function() {
 
-    Assert.equal(dirmngrConfiguredWithTor(), false);
+      Assert.equal(dirmngrConfiguredWithTor(), false);
+    });
   });
-});
+}));
 
 test(function testIfVersionOfGpgHasDirmngr() {
   TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1.7", function() {
     const hasDirmngr = EnigmailGpg.hasDirmngr();
     Assert.equal(hasDirmngr, true);
+  });
+});
+
+test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.30", function() {
+    const hasDirmngr = EnigmailGpg.hasDirmngr();
+    Assert.equal(hasDirmngr, false);
   });
 });

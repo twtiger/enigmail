@@ -59,25 +59,45 @@ function getLibcurlDependencyPath(exePath) {
   return fileObj;
 }
 
-// Echo escapes the pipe in Mac
-// We use echo in other operating systems so the process will exit without hanging
-function getDirmngrConf() {
-  let command = "";
-  let args = [];
-  if (EnigmailOS.isMac()) {
-    command = "gpg-connect-agent";
-    args = ["--dirmngr", "GETINFO tor", "bye", "\n"];
-  } else {
-    command = "echo";
-    args = ["GETINFO tor", "|", "gpg-connect-agent", "--dirmngr"];
+function getDirmngrTorStatus(exitCodeObj) {
+  const command = EnigmailFiles.simpleResolvePath("gpg-connect-agent");
+  if (command === null) {
+    return null;
   }
-  return {command: command, args: args};
+
+  const args = ["--dirmngr"];
+
+  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(command, args) + "\n");
+
+  let stdout = '';
+  try {
+    subprocess.call({
+      command: command,
+      arguments: args,
+      environment: EnigmailCore.getEnvList(),
+      done: function(result) {
+        exitCodeObj.value = result.exitCode;
+      },
+      stdin: function(stdin) {
+        stdin.write("GETINFO tor\r\n");
+        stdin.write("bye\r\n");
+        stdin.write("\r\n");
+        stdin.close();
+      },
+      stdout: function(data) {
+        stdout += data;
+      }
+    }).wait();
+  } catch (ex) {
+    EnigmailLog.DEBUG("enigmail> DONE with FAILURE\n");
+  }
+
+  return stdout;
 }
 
 function dirmngrConfiguredWithTor() {
-  const dirmngrConf = getDirmngrConf();
-  const exitCodeObj  = {value: null};
-  const output = EnigmailExecution.resolveAndSimpleExec(dirmngrConf.command, dirmngrConf.args, exitCodeObj, {});
+  const exitCodeObj  = {value: -1};
+  const output = getDirmngrTorStatus(exitCodeObj);
 
   if (output === null || exitCodeObj.value < 0) {
     return false;
