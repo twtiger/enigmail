@@ -275,10 +275,19 @@ function executeRequestOverTorSuccessfully(requests, action) {
   if (!tor) return false;
 
   const helper = findTorExecutableHelper(Versioning);
+  if (helper) {
+    if (executeOverTorsocksSuccessfully(requests, helper)) return true;
+  }
 
-  return (helper && executeOverTorsocksSuccessfully(requests, helper)) ||
-    ((gpgUsesSocksArguments() && executeWithSocksArgumentsSuccessfully(requests)) ||
-      (EnigmailGpg.dirmngrConfiguredWithTor() && executeWithTorModeSuccessfully(requests)));
+  if (gpgUsesSocksArguments()) {
+    if (executeWithSocksArgumentsSuccessfully(requests)) return true;
+  }
+
+  if (EnigmailGpg.dirmngrConfiguredWithTor()) {
+    if (executeWithTorModeSuccessfully(requests)) return true;
+  }
+
+  return false;
 }
 
 const EnigmailTor = {
