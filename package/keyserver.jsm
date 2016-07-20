@@ -125,7 +125,7 @@ function buildRequests(keyId, action, tor) {
     useTorMode = torProperties.useTorMode;
   }
 
-  if (!tor.isRequired(action) || (torProperties !== null && torProperties.useTorMode)) {
+  if (!tor.isRequired(action) || useTorMode) {
     uris.forEach(function(uri) {
       requests.push(gpgRequest(keyId, uri, action, useTorMode));
     });
