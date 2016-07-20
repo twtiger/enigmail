@@ -206,9 +206,11 @@ function executeOverTorsocksSuccessfully(requests, helper) {
     const torsocksRequest = combineRequestAndTorsocks(requests[i], helper);
     EnigmailExecution.simpleExecWithEnvVariables(torsocksRequest.command, torsocksRequest.envVars,  torsocksRequest.args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
       return true;
     }
   }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
   return false;
 }
 
@@ -240,9 +242,11 @@ function executeWithSocksArgumentsSuccessfully(requests) {
     const gpgSocksRequest = combineRequestAndSocksArguments(requests[i], gpgProxyArgs());
     EnigmailExecution.simpleExecCmd(gpgSocksRequest.command, gpgSocksRequest.args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
       return true;
     }
   }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
   return false;
 }
 
@@ -251,9 +255,11 @@ function executeWithTorModeSuccessfully(requests) {
   for (let i=0; i<requests.length; i++) {
     EnigmailExecution.simpleExecCmd(requests[i].command, requests[i].args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
+      EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
       return true;
     }
   }
+  EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
   return true;
 }
 
