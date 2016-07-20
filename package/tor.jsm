@@ -206,7 +206,8 @@ function executeOverTorsocksSuccessfully(requests, helper) {
   const errorMsgObj = {value: ""};
   for (let i=0; i<requests.length; i++) {
     const torsocksRequest = combineRequestAndTorsocks(requests[i], helper);
-    EnigmailExecution.simpleExecWithEnvVariables(torsocksRequest.command, torsocksRequest.envVars,  torsocksRequest.args, {}, errorMsgObj);
+    // TODO use other type of command that lets us use specific env variables
+    EnigmailExecution.simpleExecCmd(torsocksRequest.command, torsocksRequest.args, {}, errorMsgObj);
     if (successfulExecution(errorMsgObj.value)) {
       EnigmailLog.CONSOLE("stderr: " + errorMsgObj.value);
       return true;

@@ -26,45 +26,6 @@ const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
-function simpleExecute(command, envVariables, args, exitCodeObj, errorMsgObj) {
-  EnigmailLog.WRITE("execution.jsm: EnigmailExecution.simpleExecCmd: command = " + command + " " + args.join(" ") + "\n");
-
-  var outputData = "";
-  var errOutput = "";
-
-  EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(command, args) + "\n");
-
-  try {
-    subprocess.call({
-      command: command,
-      arguments: args,
-      charset: null,
-      environment: envVariables.concat(EnigmailCore.getEnvList()),
-      done: function(result) {
-        exitCodeObj.value = result.exitCode;
-        outputData = result.stdout;
-        errOutput = result.stderr;
-      },
-      mergeStderr: false
-    }).wait();
-  }
-  catch (ex) {
-    EnigmailLog.ERROR("execution.jsm: EnigmailExecution.simpleExecCmd: " + command.path + " failed\n");
-    EnigmailLog.DEBUG("  enigmail> DONE with FAILURE\n");
-    exitCodeObj.value = -1;
-  }
-  EnigmailLog.DEBUG("  enigmail> DONE\n");
-
-  if (errOutput) {
-    errorMsgObj.value = errOutput;
-  }
-
-  EnigmailLog.DEBUG("execution.jsm: EnigmailExecution.simpleExecCmd: exitCode = " + exitCodeObj.value + "\n");
-  EnigmailLog.DEBUG("execution.jsm: EnigmailExecution.simpleExecCmd: errOutput = " + errOutput + "\n");
-
-  return outputData;
-}
-
 const EnigmailExecution = {
   agentType: "",
 
@@ -195,16 +156,47 @@ const EnigmailExecution = {
     return EnigmailExecution.simpleExecCmd(resolvedCommand, args, exitCodeObj, errorMsgObj);
   },
 
-  simpleExecWithEnvVariables: function(command, envVariables, args, exitCodeObj, errorMsgObj) {
-    return simpleExecute(command, envVariables, args, exitCodeObj, errorMsgObj);
-  },
-
   /**
    * Execute a command and return the output from stdout
    * No input and no statusFlags are returned.
    */
   simpleExecCmd: function(command, args, exitCodeObj, errorMsgObj) {
-    return simpleExecute(command, [], args, exitCodeObj, errorMsgObj);
+    EnigmailLog.WRITE("execution.jsm: EnigmailExecution.simpleExecCmd: command = " + command + " " + args.join(" ") + "\n");
+
+    var outputData = "";
+    var errOutput = "";
+
+    EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(command, args) + "\n");
+
+    try {
+      subprocess.call({
+        command: command,
+        arguments: args,
+        charset: null,
+        environment: EnigmailCore.getEnvList(),
+        done: function(result) {
+          exitCodeObj.value = result.exitCode;
+          outputData = result.stdout;
+          errOutput = result.stderr;
+        },
+        mergeStderr: false
+      }).wait();
+    }
+    catch (ex) {
+      EnigmailLog.ERROR("execution.jsm: EnigmailExecution.simpleExecCmd: " + command.path + " failed\n");
+      EnigmailLog.DEBUG("  enigmail> DONE with FAILURE\n");
+      exitCodeObj.value = -1;
+    }
+    EnigmailLog.DEBUG("  enigmail> DONE\n");
+
+    if (errOutput) {
+      errorMsgObj.value = errOutput;
+    }
+
+    EnigmailLog.DEBUG("execution.jsm: EnigmailExecution.simpleExecCmd: exitCode = " + exitCodeObj.value + "\n");
+    EnigmailLog.DEBUG("execution.jsm: EnigmailExecution.simpleExecCmd: errOutput = " + errOutput + "\n");
+
+    return outputData;
   },
 
   /**
