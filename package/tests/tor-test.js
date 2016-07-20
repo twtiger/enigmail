@@ -229,7 +229,10 @@ test(function returnsFailure_whenSystemCannotFindTor() {
       return null;
     }
   };
-  Assert.equal(torProperties(system), null);
+  const properties = torProperties(system);
+  Assert.equal(properties.socks, null);
+  Assert.equal(properties.helper, null);
+  Assert.equal(properties.useTorMode, false);
 });
 
 test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {

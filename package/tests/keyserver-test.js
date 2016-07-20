@@ -106,10 +106,10 @@ test(withEnigmail(function createsRegularRequests_whenUserDoesNotWantTor() {
   setupKeyserverPrefs("keyserver.1", true);
   const tor = {
     torProperties: function() {
-      return null;
+      return {helper: null, socks: null, useTorMode: false, isAvailable: false};
     },
     isRequired: function(){ return false;},
-    isUsed: function(){ return false;}
+    isPreferred: function(){ return false;}
   };
   const expectedKeyId = '1234';
 
@@ -143,7 +143,8 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOver
           args: torArgs,
           envVars: []
         },
-        socks: null
+        socks: null,
+        isAvailable: true
       };
     },
     isRequired: function(action) {return false;},
@@ -191,7 +192,8 @@ test(withEnigmail(function createsRequestsWithTorAndWithoutTor_whenTorExistsOver
           command: 'gpg',
           args: socksArgs,
           envVars: []
-        }
+        },
+        isAvailable: true
       };
     },
     isRequired: function(action) {return false;},
@@ -229,7 +231,7 @@ test(withEnigmail(function createsNormalRequests_whenTorDoesntExist(){
   const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
   const tor = {
     torProperties: function() {
-      return null;
+      return {helper: null, socks: null, useTorMode: false, isAvailable: false};
     },
     isRequired: function() {return false;},
     isPreferred: function() {return true;}
@@ -253,7 +255,7 @@ test(withEnigmail(function createsNormalRequests_whenTorUsesNormal(){
   const hkpArgs = EnigmailGpg.getStandardArgs(true).concat(['--keyserver', 'hkp://keyserver.1:11371', '--recv-keys', keyId]);
   const tor = {
     torProperties: function() {
-      return {helper: null, socks: null, useTorMode: true};
+      return {helper: null, socks: null, useTorMode: true, isAvailable: true};
     },
     isRequired: function() {return false;},
     isPreferred: function() {return true;}
@@ -294,7 +296,9 @@ test(withEnigmail(function createsRequestsWithOnlyTor_whenTorIsRequired(enigmail
           command: 'gpg',
           args: socksArgs,
           envVars: []
-        }
+        },
+        isAvailable: true,
+        useTorMode: false
       };
     },
     isRequired: function(action) {return true;},
@@ -324,7 +328,7 @@ test(withEnigmail(function returnNoRequests_whenTorIsRequiredButNotAvailable() {
   EnigmailPrefs.setPref("downloadKeyRequireTor", true);
   const tor = {
     torProperties: function() {
-      return null;
+      return {socks: null, helper: null, isAvailable: false, useTorMode: false};
     },
     isRequired: function() {return true;},
     isPreferred: function() {return true;}

@@ -104,12 +104,12 @@ function buildRequests(keyId, action, tor) {
   const uris = KeyserverURIs.prioritiseEncryption();
   let requests = [];
 
-  if (tor.isRequired(action) && torProperties === null) {
+  if (tor.isRequired(action) && !torProperties.isAvailable) {
     EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
     return [];
   }
 
-  if (torProperties !== null && tor.isPreferred(action)) {
+  if (tor.isPreferred(action)) {
     uris.forEach(function(uri) {
       if(torProperties.helper !== null) {
         requests.push(gpgRequestOverTor(keyId, uri, torProperties.helper, action));
@@ -120,14 +120,9 @@ function buildRequests(keyId, action, tor) {
     });
   }
 
-  let useTorMode = false;
-  if (torProperties !== null) {
-    useTorMode = torProperties.useTorMode;
-  }
-
-  if (!tor.isRequired(action) || useTorMode) {
+  if (!tor.isRequired(action) || torProperties.useTorMode) {
     uris.forEach(function(uri) {
-      requests.push(gpgRequest(keyId, uri, action, useTorMode));
+      requests.push(gpgRequest(keyId, uri, action, torProperties.useTorMode));
     });
   }
 

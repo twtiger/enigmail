@@ -181,7 +181,9 @@ function buildSocksProperties(tor, system) {
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!tor) { return null; }
+  if (!tor) {
+    return {isAvailable: false, useTorMode: false, socks: null, helper: null};
+  }
 
   const helper = system.findTorExecutableHelper(Versioning);
   let socks = null;
@@ -193,15 +195,7 @@ function torProperties(system) {
     socks = buildSocksProperties(tor, system);
   }
 
-  if (noProperties(helper, socks, useTorMode)) {
-    return null;
-  } else {
-    return {helper: helper, socks: socks, useTorMode: useTorMode};
-  }
-}
-
-function noProperties(helper, socks, useTorMode) {
-  return helper === null && socks === null && useTorMode === false;
+  return {isAvailable: true, useTorMode: useTorMode, socks: socks, helper: helper};
 }
 
 const EnigmailTor = {
