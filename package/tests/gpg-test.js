@@ -25,8 +25,8 @@ test(function getLibcurlDependencyPathForGpg() {
 
 test(function shouldUseResolveAndSimpleExecWhenCheckingDirmngrConfiguration() {
   TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(executable, args, exitCodeObj, errorMsgObj) {
-    Assert.equal(executable, 'gpg-connect-agent');
-    Assert.deepEqual(args, ["--dirmngr", "GETINFO tor", "bye", "\n"]);
+    Assert.equal(executable, 'echo');
+    Assert.deepEqual(args, ["GETINFO tor", "|", "gpg-connect-agent", "--dirmngr"]);
     Assert.deepEqual(exitCodeObj, {value:null});
     return "OK - Tor mode is enabled\n OK closing connection\n";
   }, function() {

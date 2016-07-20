@@ -60,10 +60,10 @@ function getLibcurlDependencyPath(exePath) {
 }
 
 function dirmngrConfiguredWithTor() {
-  const args = ["--dirmngr", "GETINFO tor", "bye", "\n"];
+  const args = ["GETINFO tor", "|", "gpg-connect-agent", "--dirmngr"];
 
   const exitCodeObj  = {value: null};
-  const output = EnigmailExecution.resolveAndSimpleExec("gpg-connect-agent", args, exitCodeObj, {});
+  const output = EnigmailExecution.resolveAndSimpleExec("echo", args, exitCodeObj, {});
 
   if (output === null || exitCodeObj.value < 0) {
     return false;
