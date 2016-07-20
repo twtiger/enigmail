@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global combineRequestAndSocksArguments:false, resetEnvVars:false, addEnvironmentVariables:false, flatten:true, combineRequestAndTorsocks: false, createRandomCredential, EnigmailTor, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+testing("tor.jsm"); /*global combineRequestAndSocksArguments:false, resetEnvVars:false, addEnvironmentVariables:false, flatten:true, combineRequestAndTorsocks: false, createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -161,6 +161,37 @@ test(function createGpgProxyArgs_forLinux() {
   Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
 });
 
+test(withStandardGpg(function testTorPropertiesSearchesForTor() {
+  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() { return false; }, function() {
+    const system = {
+      findTorWasCalled: false,
+      findTor: function() {
+        system.findTorWasCalled = true;
+        return torOn9150;
+      },
+      findTorExecutableHelperWasCalled: false,
+      findTorExecutableHelper: function() {
+        system.findTorExecutableHelperWasCalled = true;
+        return {
+          command: 'torsocks',
+          args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
+        };
+      },
+      isDosLikeWasCalled: false,
+      isDosLike: function() {
+        system.isDosLikeWasCalled = true;
+        return false;
+      },
+    };
+
+    torProperties(system);
+
+    Assert.equal(system.findTorWasCalled, true);
+    Assert.equal(system.findTorExecutableHelperWasCalled, true);
+    Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
+  });
+}));
+
 test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
@@ -191,12 +222,91 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
   Assert.equal(versioning.versionFoundMeetsMinimumVersionRequiredWasCalled, true, 'versionFoundMeetsMinimumVersionRequired was not called');
 });
 
+
+test(function returnsFailure_whenSystemCannotFindTor() {
+  const system = {
+    findTor: function() {
+      return null;
+    }
+  };
+  Assert.equal(torProperties(system), null);
+});
+
+test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
+  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() {
+    return false;
+  }, function() {
+    const username = RandomNumberGenerator.getUint32();
+    const password = RandomNumberGenerator.getUint32();
+    const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
+    const gpgArgs = 'socks5h://' + username + ':' + password + '@127.0.0.1:9050';
+    const system = {
+      isDosLike: function() {
+        return false;
+      },
+      findTor: function() {
+        return {
+          ip: '127.0.0.1',
+          port: 9050,
+          username: username,
+          password: password
+        };
+      },
+      findTorExecutableHelper: function() {
+        return {
+          command: 'torsocks',
+          args: torArgs
+        };
+      },
+    };
+
+    const properties = torProperties(system);
+    const socksProperties = properties.socks;
+    const helperProperties = properties.helper;
+
+    Assert.equal(helperProperties.command, 'torsocks');
+    Assert.equal(helperProperties.args, torArgs);
+
+    Assert.equal(socksProperties.command, 'gpg');
+    Assert.equal(socksProperties.args, gpgArgs);
+  });
+}));
+
 const torOn9150 = {
   ip: '127.0.0.1',
   port: 9150,
   username: RandomNumberGenerator.getUint32(),
   password: RandomNumberGenerator.getUint32()
 };
+
+test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
+  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() {
+    return true;
+  }, function() {
+    let dirmngrConfiguredWithTorFunctionWasCalled = false;
+    TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
+      return true;
+    }, function() {
+      dirmngrConfiguredWithTorFunctionWasCalled = true;
+      const system = {
+        findTor: function() {
+          return torOn9150;
+        },
+        findTorExecutableHelper: function() {
+          return null;
+        },
+        isDosLike: function() {
+          return false;
+        },
+      };
+
+      const properties = torProperties(system);
+      Assert.equal(properties.useTorMode, true);
+      Assert.equal(properties.socks, null);
+      Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, 'dirmngrConfiguredWithTor() was not called');
+    });
+  });
+});
 
 function contains(string, substring) {
   return string.indexOf(substring) > -1;

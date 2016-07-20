@@ -98,6 +98,42 @@ function gpgRequestOverTor(keyId, uri, torProperties, action) {
   return result;
 }
 
+function buildRequests(keyId, action, tor) {
+  const torProperties = tor.torProperties();
+
+  const uris = KeyserverURIs.prioritiseEncryption();
+  let requests = [];
+
+  if (tor.isRequired(action) && torProperties === null) {
+    EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
+    return [];
+  }
+
+  if (torProperties !== null && tor.isPreferred(action)) {
+    uris.forEach(function(uri) {
+      if(torProperties.helper !== null) {
+        requests.push(gpgRequestOverTor(keyId, uri, torProperties.helper, action));
+      }
+      if (torProperties.socks !== null) {
+        requests.push(gpgRequestOverTor(keyId, uri, torProperties.socks, action));
+      }
+    });
+  }
+
+  let useTorMode = false;
+  if (torProperties !== null) {
+    useTorMode = torProperties.useTorMode;
+  }
+
+  if (!tor.isRequired(action) || (torProperties !== null && torProperties.useTorMode)) {
+    uris.forEach(function(uri) {
+      requests.push(gpgRequest(keyId, uri, action, useTorMode));
+    });
+  }
+
+  return requests;
+}
+
 function stringContains(stringToCheck, substring) {
   return stringToCheck.indexOf(substring) > -1;
 }
