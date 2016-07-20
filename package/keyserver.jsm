@@ -247,7 +247,7 @@ function refresh(keyId) {
   const uris = KeyserverURIs.prioritiseEncryption();
   const gpgRequests = buildGpgRequests(keyId, uris, refreshAction);
 
-  if (EnigmailTor.executeRequestOverTorSuccessfully(gpgRequests, refreshAction)) {
+  if (EnigmailTor.executeRequestOverTorSuccessfully(gpgRequests)) {
     return;
   }
 
