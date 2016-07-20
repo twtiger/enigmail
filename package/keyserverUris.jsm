@@ -63,6 +63,17 @@ function buildProtocolAndKeyserver(keyserver){
   return uris;
 }
 
+function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
+  // Returns hkps.pool.sks-keyservers.net only because
+  // GnuPG version 2.1.14 in Windows does not parse
+  // hkps://hkps.pool.sks-keyservers.net:443 correctly
+  if (keyserverName === 'hkps.pool.sks-keyservers.net') {
+    return keyserverName;
+  } else {
+    return protocol + "://" + keyserverName + ":" + port;
+  }
+}
+
 function prioritiseEncryption() {
   let urisInParts = [];
   getKeyservers().forEach(function(keyserver) {
@@ -71,7 +82,7 @@ function prioritiseEncryption() {
 
   const completeURI = [];
   sortWithHkpsFirst(urisInParts).forEach(function(uri) {
-    completeURI.push(uri.protocol + "://" + uri.keyserverName + ":" + uri.port);
+    completeURI.push(concatProtocolKeyserverNamePort(uri.protocol, uri.keyserverName, uri.port));
   });
   return completeURI;
 }

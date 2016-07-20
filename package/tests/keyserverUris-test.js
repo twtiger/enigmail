@@ -61,6 +61,6 @@ test(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
   const keyserverUris = prioritiseEncryption();
 
   Assert.equal(keyserverUris.length, 2);
-  Assert.equal(keyserverUris[0],'hkps://hkps.pool.sks-keyservers.net:443');
+  Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
   Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
 });
