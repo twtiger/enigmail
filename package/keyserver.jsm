@@ -74,7 +74,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
 }
 
 function requestOverTorWithSocks(keyId, uri, torProperties, action) {
-  let request = { envVars: torProperties.envVars, usingTor: true };
+  let request = { usingTor: true };
   request.command =  EnigmailGpgAgent.agentPath;
   request.args = flatten([
     buildStandardArgs(action),
