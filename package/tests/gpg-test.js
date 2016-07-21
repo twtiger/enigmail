@@ -12,10 +12,12 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, usesDirmngr: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
+testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, usesDirmngr: false, getLibcurlDependencyPath: false, usesLibcurl: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/subprocess.jsm"); /*global subprocess: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
+component("enigmail/os.jsm"); /*global EnigmailOS: false */
+component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 
 test(function getLibcurlDependencyPathForGpg() {
   const origPath = "/start/middle/gpg";
@@ -128,3 +130,66 @@ test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
     Assert.equal(usesDirmngr, false);
   });
 });
+
+test(function usesLibcurlReturnsTrueForNonUbuntuSystems() {
+  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+    return false;
+  }, function() {
+    const output = usesLibcurl();
+    Assert.equal(output, true);
+  });
+});
+
+function withGpgPath(f) {
+  return function() {
+    const path = EnigmailGpg.agentPath;
+    EnigmailGpg.setAgentPath({path: '/usr/bin/gpg2'});
+    try {
+      f();
+    } finally {
+    EnigmailGpg.setAgentPath({path: path});
+    }
+  };
+}
+
+test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcurl() {
+  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+      exitCodeObj.value = 0;
+      return 'version: libcurl';
+    }, function() {
+      const output = usesLibcurl();
+      Assert.equal(output, true);
+    });
+  });
+}));
+
+test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSupportLibcurl() {
+  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+      exitCodeObj.value = 0;
+      return 'version: curl shim';
+    }, function() {
+      const output = usesLibcurl();
+      Assert.equal(output, false);
+    });
+  });
+}));
+
+test(withGpgPath(function usesLibcurlReturnsFalseWhenError() {
+  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+      exitCodeObj.value = -1;
+      return {};
+    }, function() {
+      const output = usesLibcurl();
+      Assert.equal(output, false);
+    });
+  });
+}));
