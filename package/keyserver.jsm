@@ -277,9 +277,17 @@ function refresh(keyId) {
   for (let i=0; i<requests.length; i++) {
     const successStatus = executeRefresh(requests[i], subprocess);
     if (successStatus || i === requests.length-1) {
-      EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + requests[i].usingTor + ", refreshed successfully: " + successStatus + "\n\n");
+      logRefreshAction(successStatus, requests[i].usingTor, keyId);
       return;
     }
+  }
+}
+
+function logRefreshAction(successStatus, usingTor, keyId) {
+  if (successStatus) {
+    EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + usingTor + ", successfully: " + successStatus + "\n\n");
+  } else {
+    EnigmailLog.CONSOLE("Unsuccessfully refreshed key " + keyId + "\n\n");
   }
 }
 
