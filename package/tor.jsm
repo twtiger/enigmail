@@ -75,11 +75,13 @@ function isRequired(actionFlags) {
 
 
 function gpgProxyArgs(tor, versioning) {
-  if (EnigmailOS.isDosLike() ||
-    !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+  let args = "";
+  if (EnigmailOS.isDosLike() || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+    args += OLD_CURL_PROTOCOL;
+  } else {
+    args += NEW_CURL_PROTOCOL;
   }
-  return NEW_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+  return args + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
 }
 
 function torOn(portPref) {
