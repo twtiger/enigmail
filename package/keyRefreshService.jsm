@@ -14,16 +14,15 @@ Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs
 Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
-const HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME = "hoursPerWeekOfThunderbirdUsage";
-
 let timer = null;
 function createTimer() {
   if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
   return timer;
 }
+const HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF = "hoursPerWeekEnigmailIsOn";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
-  const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME) * ONE_HOUR_IN_MILLISEC;
+  const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF) * ONE_HOUR_IN_MILLISEC;
   return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
 }
 

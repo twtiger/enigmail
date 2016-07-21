@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
 
-testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, KeyRefreshService: false, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
+testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, KeyRefreshService: false, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
@@ -28,31 +28,31 @@ function withKeys(f) {
 }
 
 const emptyFunction = function() {};
-const HOURS_A_WEEK_ON_THUNDERBIRD = 40;
+const HOURS_PER_WEEK_ENIGMAIL_IS_ON = 40;
 
 test(function calculateMaxTimeForRefreshForFortyHoursAWeek() {
   let totalKeys = 3;
-  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let millisecondsAvailableForRefresh = HOURS_PER_WEEK_ENIGMAIL_IS_ON * 60 * 60 * 1000;
   let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
-  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+  EnigmailPrefs.setPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, 40);
 
   Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
 });
 
 test(function calculateMaxTimeForRefreshForTenHoursAWeek() {
   let totalKeys = 2;
-  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let millisecondsAvailableForRefresh = HOURS_PER_WEEK_ENIGMAIL_IS_ON * 60 * 60 * 1000;
   let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
-  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+  EnigmailPrefs.setPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, 40);
 
   Assert.ok(calculateMaxTimeForRefreshInMilliseconds(totalKeys) == maxTimeForRefresh);
 });
 
 test(function waitTimeShouldBeLessThanMax() {
   let totalKeys = 4;
-  let millisecondsAvailableForRefresh = HOURS_A_WEEK_ON_THUNDERBIRD * 60 * 60 * 1000;
+  let millisecondsAvailableForRefresh = HOURS_PER_WEEK_ENIGMAIL_IS_ON * 60 * 60 * 1000;
   let maxTimeForRefresh = millisecondsAvailableForRefresh / totalKeys;
-  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+  EnigmailPrefs.setPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, 40);
 
   Assert.ok(calculateWaitTimeInMilliseconds(totalKeys) <= maxTimeForRefresh);
 });
@@ -61,14 +61,14 @@ test(function calculateNewTimeEachCall(){
   let totalKeys = 3;
   let firstTime = calculateWaitTimeInMilliseconds(totalKeys);
   let secondTime = calculateWaitTimeInMilliseconds(totalKeys);
-  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+  EnigmailPrefs.setPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, 40);
 
   Assert.ok(firstTime != secondTime);
 });
 
 test(function calculateWaitTimeReturnsWholeNumber(){
   const totalKeys = 11;
-  EnigmailPrefs.setPref(HOURS_A_WEEK_ON_THUNDERBIRD_PREF_NAME, 40);
+  EnigmailPrefs.setPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, 40);
 
   const number = calculateWaitTimeInMilliseconds(totalKeys);
 

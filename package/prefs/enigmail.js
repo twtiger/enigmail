@@ -212,7 +212,7 @@ pref("extensions.enigmail.refreshAllKeysRequireTor", false);
 // Hours per week that Enigmail is available for refreshing keys
 // The smaller the hours available, the more often the refresh
 // will happen to accommodate.
-pref("extensions.enigmail.hoursPerWeekOfThunderbirdUsage", 40);
+pref("extensions.enigmail.hoursPerWeekEnigmailIsOn", 40);
 
 // Toggle to have user keys continuously refreshed
 pref("extensions.enigmail.keyRefreshOn", false);
