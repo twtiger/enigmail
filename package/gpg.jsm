@@ -121,7 +121,30 @@ function usesDirmngr() {
 }
 
 function usesSocksArguments() {
-  return !usesDirmngr() && EnigmailGpg.usesLibcurl();
+  return !usesDirmngr() && usesLibcurl();
+}
+
+/**
+  * Checks that the user's current version of gpg is built against libcurl, not curl-shim
+  *
+  * return value is true/false depending on whether libcurl is used
+*/
+function usesLibcurl() {
+  if (!EnigmailOS.isUbuntu()) {
+    return true;
+  }
+
+  const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
+  const args = ["--version"];
+
+  const exitCodeObj  = {value: null};
+  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
+
+  if (exitCodeObj.value < 0) {
+    return false;
+  }
+
+  return output.indexOf("libcurl") > -1;
 }
 
 const EnigmailGpg = {
@@ -369,36 +392,23 @@ const EnigmailGpg = {
   },
 
   /**
-   * Checks that the user's current version of gpg is built against libcurl, not curl-shim
-   *
-   * return value is true/false depending on whether libcurl is used
-   */
-  usesLibcurl: function() {
-    if (!EnigmailOS.isUbuntu()) {
-      return true;
-    }
-
-    const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
-    const args = ["--version"];
-
-    const exitCodeObj  = {value: null};
-    const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
-
-    if (exitCodeObj.value < 0) {
-      return false;
-    }
-
-    return output.indexOf("libcurl") > -1;
-  },
-
-  /**
    * For versions of GPG 2.1 and higher, checks to see if the dirmngr is configured to use Tor
    *
    * return value is true/false depending on whether Tor is used or not
    */
   dirmngrConfiguredWithTor: dirmngrConfiguredWithTor,
 
+  /**
+    * Checks that the user's current version of gpg supports dirmngr
+    *
+    * return value is true/false depending on whether dirmngr can be used
+  */
   usesDirmngr: usesDirmngr,
 
+  /**
+    * Checks that the user's current version of gpg supports socks5 arguments
+    *
+    * return value is true/false depending on whether socks5 arguments can be used
+  */
   usesSocksArguments: usesSocksArguments
 };
