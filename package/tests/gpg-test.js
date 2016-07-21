@@ -12,7 +12,7 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, hasDirmngr: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
+testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, usesDirmngr: false, getLibcurlDependencyPath: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/subprocess.jsm"); /*global subprocess: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
@@ -117,14 +117,14 @@ test(withStubFormatCmdLine(function returnsFalseWhenExitCodeIndicatesErrorInExec
 
 test(function testIfVersionOfGpgHasDirmngr() {
   TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1.7", function() {
-    const hasDirmngr = EnigmailGpg.hasDirmngr();
-    Assert.equal(hasDirmngr, true);
+    const usesDirmngr = EnigmailGpg.usesDirmngr();
+    Assert.equal(usesDirmngr, true);
   });
 });
 
 test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
   TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.30", function() {
-    const hasDirmngr = EnigmailGpg.hasDirmngr();
-    Assert.equal(hasDirmngr, false);
+    const usesDirmngr = EnigmailGpg.usesDirmngr();
+    Assert.equal(usesDirmngr, false);
   });
 });

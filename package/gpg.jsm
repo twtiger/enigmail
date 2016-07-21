@@ -26,6 +26,12 @@ Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
 
+function v(maj, min, pat) {
+  return {major: maj, minor: min, patch: pat};
+}
+
+// Socks5 arguments are no longer supported for this version of gpg and higher
+const MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED = v(2, 1, 0);
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -110,8 +116,12 @@ function dirmngrConfiguredWithTor() {
   return output.match(/Tor mode is enabled/) !== null;
 }
 
-function hasDirmngr() {
-  return Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, {major:2, minor:1, patch:0});
+function usesDirmngr() {
+  return Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+}
+
+function usesSocksArguments() {
+  return !usesDirmngr() && EnigmailGpg.usesLibcurl();
 }
 
 const EnigmailGpg = {
@@ -388,5 +398,7 @@ const EnigmailGpg = {
    */
   dirmngrConfiguredWithTor: dirmngrConfiguredWithTor,
 
-  hasDirmngr: hasDirmngr,
+  usesDirmngr: usesDirmngr,
+
+  usesSocksArguments: usesSocksArguments
 };

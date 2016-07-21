@@ -8,7 +8,7 @@
 "use strict";
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, assertContains: false, withEnigmail: false, withTestGpgHome: false, withEnvironment: false, resetting: false */
 
-testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION , createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
+testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -149,7 +149,7 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(withStandardGpg(function testTorPropertiesSearchesForTor() {
-  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() { return false; }, function() {
+  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() { return false; }, function() {
     const system = {
       findTorWasCalled: false,
       findTor: function() {
@@ -215,8 +215,8 @@ test(function returnsFailure_whenSystemCannotFindTor() {
 });
 
 test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
-  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() {
-    return false;
+  TestHelper.resetting(EnigmailGpg, "usesSocksArguments", function() {
+    return true;
   }, function() {
     TestHelper.resetting(RandomNumberGenerator, "getUint32", function() {
       return "dummyData";
@@ -239,6 +239,8 @@ test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsock
       };
 
       const properties = torProperties(system);
+      Assert.equal(properties.useTorMode, false);
+
       const socksProperties = properties.socks;
       const helperProperties = properties.helper;
 
@@ -257,7 +259,7 @@ const torOn9150 = {
 };
 
 test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
-  TestHelper.resetting(EnigmailGpg, "hasDirmngr", function() {
+  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
     return true;
   }, function() {
     let dirmngrConfiguredWithTorFunctionWasCalled = false;
