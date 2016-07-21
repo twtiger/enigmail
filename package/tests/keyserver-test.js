@@ -418,10 +418,10 @@ test(function testBasicNormalQueryWithHTTPPRoxy() {
   currentProxyModule = {getHttpProxy: function() {return "someHttpProxy";}};
 
   const expectedArgs = EnigmailGpg.getStandardArgs(true)
-                        .concat("--keyserver-options")
-                        .concat("http-proxy=someHttpProxy")
                         .concat("--keyserver")
                         .concat("keyserver0005")
+                        .concat("--keyserver-options")
+                        .concat("http-proxy=someHttpProxy")
                         .concat("--refresh-keys");
 
   const keyRequest = build(actionflags, keyserver, searchterms, errormsgobj);

@@ -34,8 +34,7 @@ function getInputData(actionFlags) {
   return null;
 }
 
-function buildProxyInfo(uri) {
-  const proxyHost = getProxyModule().getHttpProxy(uri.keyserverName);
+function buildProxyInfo(uri, proxyHost) {
   if (proxyHost !== null) {
     return ["--keyserver-options", "http-proxy=" + proxyHost];
   }
@@ -56,10 +55,11 @@ function flatten(arrOfArr) {
 }
 
 function gpgRequest(keyId, uri, action, usingTor) {
+  const proxyHost = getProxyModule().getHttpProxy(uri.keyserverName);
   const args = flatten([
     buildStandardArgs(action),
-    buildProxyInfo(uri),
     ['--keyserver', uri],
+    buildProxyInfo(uri, proxyHost),
     getRequestAction(action, keyId)
   ]);
 
@@ -79,7 +79,7 @@ function requestOverTorWithSocks(keyId, uri, torProperties, action) {
   request.args = flatten([
     buildStandardArgs(action),
     ['--keyserver', uri],
-    ["--keyserver-options", "http-proxy=" + torProperties.args],
+    buildProxyInfo(uri, torProperties.args),
     getRequestAction(action, keyId)
   ]);
   request.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
