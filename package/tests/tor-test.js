@@ -111,11 +111,9 @@ test(function createGpgProxyArgs_forWindows() {
       password: password
     };
     const versioning = {
-      versionFoundMeetsMinimumVersionRequiredWasCalled: false,
       versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
         Assert.equal(executable, 'curl');
         Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-        versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
         return false;
       }
     };
@@ -138,11 +136,9 @@ test(function createGpgProxyArgs_forLinux() {
     password: password
   };
   const versioning = {
-    versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
       return true;
     }
   };
