@@ -82,5 +82,5 @@ function versionMeetsMinimum(versionString, minimum) {
 
 const Versioning = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
-  versionMeetsMinimum: versionMeetsMinimum,
+  versionMeetsMinimum: versionMeetsMinimum
 };
