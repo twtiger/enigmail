@@ -93,6 +93,7 @@ function getDirmngrTorStatus(exitCodeObj) {
       }
     }).wait();
   } catch (ex) {
+    exitCodeObj.value = -1;
     EnigmailLog.DEBUG("enigmail> DONE with FAILURE\n");
   }
 
@@ -100,7 +101,7 @@ function getDirmngrTorStatus(exitCodeObj) {
 }
 
 function dirmngrConfiguredWithTor() {
-  const exitCodeObj  = {value: -1};
+  const exitCodeObj  = {value: null};
   const output = getDirmngrTorStatus(exitCodeObj);
 
   if (output === null || exitCodeObj.value < 0) {
