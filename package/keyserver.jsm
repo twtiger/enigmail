@@ -73,29 +73,30 @@ function gpgRequest(keyId, uri, action, usingTor) {
   };
 }
 
-function gpgRequestOverTor(keyId, uri, torProperties, action) {
-  let result = { envVars: torProperties.envVars, usingTor: true };
+function requestOverTorWithSocks(keyId, uri, torProperties, action) {
+  let request = { envVars: torProperties.envVars, usingTor: true };
+  request.command =  EnigmailGpgAgent.agentPath;
+  request.args = flatten([
+    buildStandardArgs(action),
+    ['--keyserver', uri],
+    ["--keyserver-options", "http-proxy=" + torProperties.args],
+    getRequestAction(action, keyId)
+  ]);
+  request.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+  return request;
+}
 
-  if (torProperties.command === 'gpg') {
-    result.command =  EnigmailGpgAgent.agentPath;
-    result.args = flatten([
-      buildStandardArgs(action),
-      ['--keyserver', uri],
-      ["--keyserver-options", "http-proxy=" + torProperties.args],
-      getRequestAction(action, keyId)
-    ]);
-  } else {
-    result.command = torProperties.command;
-    result.args = flatten([
-      torProperties.args,
-      buildStandardArgs(action),
-      ['--keyserver', uri],
-      getRequestAction(action, keyId)
-    ]);
-  }
-
-  result.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-  return result;
+function requestOverTorWithHelper(keyId, uri, torProperties, action) {
+  let request = { envVars: torProperties.envVars, usingTor: true };
+  request.command = torProperties.command;
+  request.args = flatten([
+    torProperties.args,
+    buildStandardArgs(action),
+    ['--keyserver', uri],
+    getRequestAction(action, keyId)
+  ]);
+  request.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
+  return request;
 }
 
 function buildRequests(keyId, action, tor) {
@@ -112,10 +113,10 @@ function buildRequests(keyId, action, tor) {
   if (tor.isPreferred(action)) {
     uris.forEach(function(uri) {
       if(torProperties.helper !== null) {
-        requests.push(gpgRequestOverTor(keyId, uri, torProperties.helper, action));
+        requests.push(requestOverTorWithHelper(keyId, uri, torProperties.helper, action));
       }
       if (torProperties.socks !== null) {
-        requests.push(gpgRequestOverTor(keyId, uri, torProperties.socks, action));
+        requests.push(requestOverTorWithSocks(keyId, uri, torProperties.socks, action));
       }
     });
   }

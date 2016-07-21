@@ -3,7 +3,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global currentProxyModule: true, Ci, executeRefresh: false, gpgRequest: false, gpgRequestOverTor: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global currentProxyModule: true, Ci, executeRefresh: false, gpgRequest: false, requestOverTorWithSocks: false, requestOverTorWithHelper: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -27,7 +27,7 @@ test(function setupRequestWithTorHelper(){
     .concat(['--recv-keys', '1234']);
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties, action);
+  const request = requestOverTorWithHelper('1234', 'hkps://keyserver.1:443', torProperties, action);
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   Assert.deepEqual(request.args, expectedArgs);
@@ -48,7 +48,7 @@ test(function setupRequestWithTorHelperWithEnvVariables(){
     .concat(['--recv-keys', '1234']);
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties, action);
+  const request = requestOverTorWithHelper('1234', 'hkps://keyserver.1:443', torProperties, action);
 
   Assert.equal(request.command.path, '/usr/bin/torsocks');
   Assert.deepEqual(request.args, expectedArgs);
@@ -69,7 +69,7 @@ test(withTestGpgHome(withEnigmail(function setupRequestWithTorGpgProxyArguments(
     .concat(['--recv-keys', '1234']);
   const action = Ci.nsIEnigmail.DOWNLOAD_KEY;
 
-  const request = gpgRequestOverTor('1234', 'hkps://keyserver.1:443', torProperties, action);
+  const request = requestOverTorWithSocks('1234', 'hkps://keyserver.1:443', torProperties, action);
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, expectedArgs);
