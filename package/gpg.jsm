@@ -50,6 +50,10 @@ function pushTrimmedStr(arr, str, splitStr) {
 const curlDepPath = "/lib/gnupg/gpgkeys_curl";
 
 function getLibcurlDependencyPath(exePath) {
+  if (exePath === null) {
+    return null;
+  }
+
   const path = exePath.split("/");
   const parentDir = path.slice(0, path.length-2).join("/");
   const fullPath = parentDir + curlDepPath;

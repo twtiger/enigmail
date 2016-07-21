@@ -25,6 +25,11 @@ test(function getLibcurlDependencyPathForGpg() {
   Assert.equal(actualParentPath.path, expectedParentPath);
 });
 
+test(function getLibcurlDependencyPathForGpgReturnsNullIfPathIsNull() {
+  const actualPath = getLibcurlDependencyPath(null);
+  Assert.equal(actualPath, null);
+});
+
 function withStubFormatCmdLine(f) {
   return function() {
     TestHelper.resetting(EnigmailFiles, "formatCmdLine", function(executable) {
