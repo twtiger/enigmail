@@ -8,20 +8,21 @@
 
 "use strict";
 
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
-Components.utils.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Components.utils.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
-Components.utils.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-Components.utils.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
-
-const EXPORTED_SYMBOLS = ["EnigmailTor"];
-
 const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
+Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
+Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
+
+const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
 function v(maj, min, pat) {
   return {major: maj, minor: min, patch: pat};

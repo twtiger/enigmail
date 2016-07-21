@@ -9,13 +9,14 @@
 
 var EXPORTED_SYMBOLS = ["Socks5Proxy"];
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-
 const CC = Components.Constructor;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://gre/modules/XPCOMUtils.jsm"); /*global XPCOMUtils:false */
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
 const CHECK_TOR_URI = "https://check.torproject.org/api/ip";
 const EXPECTED_TOR_EXISTS_RESPONSE = "\"IsTor\":true";

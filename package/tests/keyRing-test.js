@@ -12,7 +12,8 @@
 
 /*global EnigmailFiles: false */
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
-Components.utils.import("resource://enigmail/trust.jsm"); /*global EnigmailTrust: false */
+
+component("enigmail/trust.jsm"); /*global EnigmailTrust: false */
 component("enigmail/locale.jsm"); /*global EnigmailLocale: false */
 
 /*global getUserIdList: false, createAndSortKeyList: false, Number: false */

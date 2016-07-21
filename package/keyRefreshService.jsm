@@ -6,12 +6,13 @@ const EXPORTED_SYMBOLS = ["KeyRefreshService"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
-Components.utils.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
-Components.utils.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Components.utils.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
-Components.utils.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Components.utils.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
+Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
+Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
+Cu.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 

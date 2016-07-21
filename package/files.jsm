@@ -38,7 +38,7 @@ const lazyLog = (function() {
   let log = null;
   return function() {
     if (!log) {
-      Components.utils.import("resource://enigmail/log.jsm");
+      Cu.import("resource://enigmail/log.jsm");
       log = EnigmailLog;
     }
     return log;

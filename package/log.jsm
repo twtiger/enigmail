@@ -10,14 +10,15 @@
 
 var EXPORTED_SYMBOLS = ["EnigmailLog"];
 
-Components.utils.import("resource://enigmail/pipeConsole.jsm");
-Components.utils.import("resource://enigmail/files.jsm");
-Components.utils.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
-
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
-
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://enigmail/pipeConsole.jsm");
+Cu.import("resource://enigmail/files.jsm");
+Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
+
+const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 const NS_IOSERVICE_CONTRACTID = "@mozilla.org/network/io-service;1";
