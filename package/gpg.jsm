@@ -24,7 +24,7 @@ Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: fals
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Components.utils.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
 
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
