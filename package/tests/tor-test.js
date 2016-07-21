@@ -99,38 +99,36 @@ test(function createHelperArgsAlwaysReturnsRandomUserAndPass() {
 });
 
 test(function createGpgProxyArgs_forWindows() {
-  const username = RandomNumberGenerator.getUint32();
-  const password = RandomNumberGenerator.getUint32();
-  const tor = {
-    ip: '127.0.0.1',
-    port: 9050,
-    username: username,
-    password: password
-  };
-  const system = {
-    isDosLikeWasCalled: false,
-    isDosLike: function() {
-      system.isDosLikeWasCalled = true;
-      return true;
-    }
-  };
-  const versioning = {
-    versionFoundMeetsMinimumVersionRequiredWasCalled: false,
-    versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
-      Assert.equal(executable, 'curl');
-      Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
-      versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
-      return false;
-    }
-  };
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return true;
+  }, function() {
+    const username = RandomNumberGenerator.getUint32();
+    const password = RandomNumberGenerator.getUint32();
+    const tor = {
+      ip: '127.0.0.1',
+      port: 9050,
+      username: username,
+      password: password
+    };
+    const versioning = {
+      versionFoundMeetsMinimumVersionRequiredWasCalled: false,
+      versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
+        Assert.equal(executable, 'curl');
+        Assert.deepEqual(minimum, MINIMUM_CURL_SOCKS5H_VERSION);
+        versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
+        return false;
+      }
+    };
 
-  const args = gpgProxyArgs(tor, system, versioning);
-
-  Assert.deepEqual(args, 'socks5-hostname://'+username+':'+password+'@127.0.0.1:9050');
-  Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
+    const args = gpgProxyArgs(tor, versioning);
+    Assert.deepEqual(args, 'socks5-hostname://'+username+':'+password+'@127.0.0.1:9050');
+  });
 });
 
 test(function createGpgProxyArgs_forLinux() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return false;
+  }, function() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const tor = {
@@ -139,13 +137,6 @@ test(function createGpgProxyArgs_forLinux() {
     username: username,
     password: password
   };
-  const system = {
-    isDosLikeWasCalled: false,
-    isDosLike: function() {
-      system.isDosLikeWasCalled = true;
-      return false;
-    }
-  };
   const versioning = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
     versionFoundMeetsMinimumVersionRequired: function(executable, minimum) {
@@ -156,10 +147,9 @@ test(function createGpgProxyArgs_forLinux() {
     }
   };
 
-  const args = gpgProxyArgs(tor, system, versioning);
-
+  const args = gpgProxyArgs(tor, versioning);
   Assert.equal(args, 'socks5h://'+username+':'+password+'@192.8.8.4:9150');
-  Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
+  });
 });
 
 test(withStandardGpg(function testTorPropertiesSearchesForTor() {
@@ -177,23 +167,19 @@ test(withStandardGpg(function testTorPropertiesSearchesForTor() {
           command: 'torsocks',
           args: ['--user', '12345', '--pass', '12345', '/usr/bin/gpg2']
         };
-      },
-      isDosLikeWasCalled: false,
-      isDosLike: function() {
-        system.isDosLikeWasCalled = true;
-        return false;
-      },
+      }
     };
 
     torProperties(system);
-
     Assert.equal(system.findTorWasCalled, true);
     Assert.equal(system.findTorExecutableHelperWasCalled, true);
-    Assert.equal(system.isDosLikeWasCalled, true, 'isDosLike was not called');
   });
 }));
 
 test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return false;
+  }, function() {
   const username = RandomNumberGenerator.getUint32();
   const password = RandomNumberGenerator.getUint32();
   const tor = {
@@ -201,11 +187,6 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
     port: 9150,
     username: username,
     password: password
-  };
-  const system = {
-    isDosLike: function() {
-      return false;
-    }
   };
   const versioning = {
     versionFoundMeetsMinimumVersionRequiredWasCalled: false,
@@ -217,10 +198,11 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
     }
   };
 
-  const args = gpgProxyArgs(tor, system, versioning);
+  const args = gpgProxyArgs(tor, versioning);
 
   Assert.equal(args, 'socks5-hostname://'+username+':'+password+'@192.8.8.4:9150');
   Assert.equal(versioning.versionFoundMeetsMinimumVersionRequiredWasCalled, true, 'versionFoundMeetsMinimumVersionRequired was not called');
+  });
 });
 
 
@@ -245,9 +227,6 @@ test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsock
     const torArgs = ['--user', username, '--pass', password, '/usr/bin/gpg2'];
     const gpgArgs = 'socks5h://' + username + ':' + password + '@127.0.0.1:9050';
     const system = {
-      isDosLike: function() {
-        return false;
-      },
       findTor: function() {
         return {
           ip: '127.0.0.1',
@@ -298,9 +277,6 @@ test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
         },
         findTorExecutableHelper: function() {
           return null;
-        },
-        isDosLike: function() {
-          return false;
         },
       };
 

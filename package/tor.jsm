@@ -74,8 +74,8 @@ function isRequired(actionFlags) {
 }
 
 
-function gpgProxyArgs(tor, system, versioning) {
-  if (system.isDosLike() ||
+function gpgProxyArgs(tor, versioning) {
+  if (EnigmailOS.isDosLike() ||
     !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
     return OLD_CURL_PROTOCOL + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
   }
@@ -166,15 +166,13 @@ function gpgUsesSocksArguments() {
 const systemCaller = {
   findTor: findTor,
   findTorExecutableHelper: findTorExecutableHelper,
-  getOS: EnigmailOS.getOS,
-  isDosLike: EnigmailOS.isDosLike,
   gpgUsesSocksArguments: gpgUsesSocksArguments
 };
 
 function buildSocksProperties(tor, system) {
   return {
     command: 'gpg',
-    args: gpgProxyArgs(tor, system, Versioning),
+    args: gpgProxyArgs(tor, Versioning),
     envVars: []
   };
 }
