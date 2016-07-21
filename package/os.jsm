@@ -47,11 +47,12 @@ function isUbuntu() {
   return distro.indexOf("ubuntu") > -1;
 }
 
+let isDosLikeVal = null;
 function isDosLike() {
-  if (EnigmailOS.isDosLikeVal === undefined) {
-    EnigmailOS.isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
+  if (isDosLikeVal === null) {
+    isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
   }
-  return EnigmailOS.isDosLikeVal;
+  return isDosLikeVal;
 }
 
 function isMac() {
