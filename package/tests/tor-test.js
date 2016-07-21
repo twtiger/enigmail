@@ -13,6 +13,7 @@ testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties,
 component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
+component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 function withStandardGpg(f) {
   return function() {
@@ -26,52 +27,52 @@ function withStandardGpg(f) {
 }
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
-  TestHelper.resetting(EnigmailGpg, "agentVersion", '1.4.0', function() {
-    const versioning = {
-      versionMeetsMinimumWasCalled: false,
-      versionMeetsMinimum: function(version, minimumVersion) {
-        Assert.equal(version, '1.4.0');
-        Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-        versioning.versionMeetsMinimumWasCalled = true;
-        return false;
-      }
-    };
-
-    Assert.equal(meetsOSConstraints("OS2", versioning), false);
-    Assert.equal(versioning.versionMeetsMinimumWasCalled, true, "versionMeetsMinimum was not called");
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailGpg, "agentVersion", '1.4.0', function() {
+      const versioning = {
+        versionMeetsMinimum: function(version, minimumVersion) {
+          Assert.equal(version, '1.4.0');
+          Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
+          return false;
+        }
+      };
+      Assert.equal(meetsOSConstraints(versioning), false);
+    });
   });
 });
 
-test(function evaluateGpgVersionWhenOSIsWindows32() {
-  TestHelper.resetting(EnigmailGpg, "agentVersion", '2.0.30', function() {
-    const versioning = {
-      versionFoundMeetsMinimumWasCalled: false,
-      versionMeetsMinimum: function(version, minimumVersion) {
-        Assert.equal(version, '2.0.30');
-        Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-        versioning.versionMeetsMinimumWasCalled = true;
-        return true;
-      }
-    };
-
-    Assert.equal(meetsOSConstraints("WINNT", versioning), true);
-    Assert.equal(versioning.versionMeetsMinimumWasCalled, true, "versionMeetsMinimum was not called");
+test(function evaluateGpgVersionWhenOsIsWindows() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailGpg, "agentVersion", '2.0.30', function() {
+      const versioning = {
+        versionMeetsMinimum: function(version, minimumVersion) {
+          Assert.equal(version, '2.0.30');
+          Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
+          return true;
+        }
+      };
+      Assert.equal(meetsOSConstraints(versioning), true);
+    });
   });
 });
 
-test(function whenMeetsMinimumCurlSocksVersion() {
-  const versioning = {
-    versionFoundMeetsMinimumVersionRequiredWasCalled: false,
-    versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
-      Assert.equal(executable, 'curl');
-      Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
-      versioning.versionFoundMeetsMinimumVersionRequiredWasCalled = true;
-      return true;
-    }
-  };
-
-  Assert.equal(meetsOSConstraints("Linux", versioning), true);
-  Assert.equal(versioning.versionFoundMeetsMinimumVersionRequiredWasCalled, true, "versionFoundMeetsMinimumVersionRequired was not called");
+test(function evaluateMeetsMinimumCurlSocksVersion() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
+    return false;
+  }, function() {
+      const versioning = {
+        versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
+          Assert.equal(executable, 'curl');
+          Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+          return true;
+        }
+      };
+      Assert.equal(meetsOSConstraints(versioning), true);
+  });
 });
 
 test(withEnigmail(function createHelperArgsForTorsocks1(enigmail) {

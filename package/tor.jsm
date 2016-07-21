@@ -96,8 +96,8 @@ function torOn(portPref) {
   return null;
 }
 
-function meetsOSConstraints(os, versioning) {
-  if (os === 'WINNT' || os === 'OS2') {
+function meetsOSConstraints(versioning) {
+  if (EnigmailOS.isDosLike()) {
     return versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
@@ -147,7 +147,7 @@ function findTorExecutableHelper(versioning) {
 
 function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(EnigmailOS.getOS(), Versioning)) {
+  if (!tor || !meetsOSConstraints(Versioning)) {
     return null;
   } else {
     return {
