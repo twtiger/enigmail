@@ -439,7 +439,6 @@ const EnigmailKeyEditor = {
     return editKey(parent, false, null, keyId, "passwd", {
         oldPw: oldPw,
         newPw: newPw,
-        useAgent: EnigmailGpgAgent.useGpgAgent(),
         step: 0,
         observer: pwdObserver,
         usePassphrase: true
@@ -506,13 +505,13 @@ const EnigmailKeyEditor = {
     var photoFileName = EnigmailFiles.getEscapedFilename(EnigmailFiles.getFilePath(photoFile.QueryInterface(Ci.nsIFile)));
 
     return editKey(parent, true, null, keyId, "addphoto", {
-        file: photoFileName,
-        step: 0,
-        usePassphrase: true
-      },
-      addPhotoCallback,
-      null,
-      callbackFunc);
+      file: photoFileName,
+      step: 0,
+      usePassphrase: true
+    },
+    addPhotoCallback,
+    null,
+    callbackFunc);
   },
 
 
@@ -540,37 +539,36 @@ const EnigmailKeyEditor = {
       ", login=" + login + ", forcepin=" + forcepin + "\n");
     var adminObserver = new EnigCardAdminObserver(null, EnigmailOS.isDosLike());
     return editKey(parent, false, null, "", ["--with-colons", "--card-edit"], {
-        step: 0,
-        name: name,
-        firstname: firstname,
-        lang: lang,
-        sex: sex,
-        url: url,
-        login: login,
-        cardAdmin: true,
-        forcepin: forcepin
-      },
-      cardAdminDataCallback,
-      adminObserver,
-      callbackFunc);
+      step: 0,
+      name: name,
+      firstname: firstname,
+      lang: lang,
+      sex: sex,
+      url: url,
+      login: login,
+      cardAdmin: true,
+      forcepin: forcepin
+    },
+    cardAdminDataCallback,
+    adminObserver,
+    callbackFunc);
   },
 
   cardChangePin: function(parent, action, oldPin, newPin, adminPin, pinObserver, callbackFunc) {
     EnigmailLog.DEBUG("keyManagmenent.jsm: Enigmail.cardChangePin: parent=" + parent + ", action=" + action + "\n");
     var adminObserver = new EnigCardAdminObserver(pinObserver, EnigmailOS.isDosLike());
-
-    return editKey(parent, EnigmailGpgAgent.useGpgAgent(), null, "", ["--with-colons", "--card-edit"], {
-        step: 0,
-        pinStep: 0,
-        cardAdmin: true,
-        action: action,
-        oldPin: oldPin,
-        newPin: newPin,
-        adminPin: adminPin
-      },
-      cardChangePinCallback,
-      adminObserver,
-      callbackFunc);
+    return editKey(parent, true, null, "", ["--with-colons", "--card-edit"], {
+      step: 0,
+      pinStep: 0,
+      cardAdmin: true,
+      action: action,
+      oldPin: oldPin,
+      newPin: newPin,
+      adminPin: adminPin
+    },
+    cardChangePinCallback,
+    adminObserver,
+    callbackFunc);
   }
 
 }; // EnigmailKeyEditor
@@ -892,11 +890,7 @@ function changePassphraseCallback(inputData, keyEdit, ret) {
     ret.exitCode = 0;
   }
   else if (keyEdit.doCheck(GET_LINE, "keyedit.prompt")) {
-    if (inputData.useAgent) {
-      ret.exitCode = 0;
-    }
-    else
-      ret.exitCode = null;
+    ret.exitCode = 0;
     ret.quitNow = true;
   }
   else {
