@@ -74,29 +74,37 @@ function gpgRequest(keyId, uri, action, usingTor) {
 }
 
 function requestOverTorWithSocks(keyId, uri, torProperties, action) {
-  let request = { usingTor: true };
-  request.command =  EnigmailGpgAgent.agentPath;
-  request.args = flatten([
+  const args = flatten([
     buildStandardArgs(action),
     ['--keyserver', uri],
     buildProxyInfo(uri, torProperties.args),
     getRequestAction(action, keyId)
   ]);
-  request.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-  return request;
+
+  return {
+    command: EnigmailGpgAgent.agentPath,
+    args: args,
+    usingTor: true,
+    envVars: [],
+    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
+  };
 }
 
 function requestOverTorWithHelper(keyId, uri, torProperties, action) {
-  let request = { envVars: torProperties.envVars, usingTor: true };
-  request.command = torProperties.command;
-  request.args = flatten([
+  const args = flatten([
     torProperties.args,
     buildStandardArgs(action),
     ['--keyserver', uri],
     getRequestAction(action, keyId)
   ]);
-  request.isDownload = action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY);
-  return request;
+
+  return {
+    command: torProperties.command,
+    args: args,
+    usingTor: true,
+    envVars: torProperties.envVars,
+    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY),
+  };
 }
 
 function buildRequests(keyId, action, tor) {
