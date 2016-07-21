@@ -81,7 +81,7 @@ function gpgProxyArgs(tor, versioning) {
   } else {
     args += NEW_CURL_PROTOCOL;
   }
-  return args + tor.username + ":" + tor.password + "@" + tor.ip + ":" + tor.port;
+  return args + createRandomCredential() + ":" + createRandomCredential() + "@" + tor.ip + ":" + tor.port;
 }
 
 function torOn(portPref) {
@@ -151,14 +151,8 @@ function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
   if (!tor || !meetsOSConstraints(Versioning)) {
     return null;
-  } else {
-    return {
-      ip: tor.ip,
-      port: tor.port,
-      username: createRandomCredential(),
-      password: createRandomCredential()
-    };
   }
+  return tor;
 }
 
 function gpgUsesSocksArguments() {
