@@ -73,7 +73,6 @@ function isRequired(actionFlags) {
   return EnigmailPrefs.getPref(getAction(actionFlags).requires);
 }
 
-
 function gpgProxyArgs(tor, versioning) {
   let args = "";
   if (EnigmailOS.isDosLike() || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
@@ -82,6 +81,26 @@ function gpgProxyArgs(tor, versioning) {
     args += NEW_CURL_PROTOCOL;
   }
   return args + createRandomCredential() + ":" + createRandomCredential() + "@" + tor.ip + ":" + tor.port;
+}
+
+function createHelperArgs(helper, addAuth) {
+  let args = [];
+  if (addAuth) {
+    args = ['--user', createRandomCredential(), '--pass', createRandomCredential()];
+  }
+  args.push(EnigmailGpg.agentPath.path);
+  return args;
+}
+
+function buildEnvVars() {
+  return [
+    "TORSOCKS_USERNAME=" + createRandomCredential(),
+    "TORSOCKS_PASSWORD=" + createRandomCredential()
+  ];
+}
+
+function createRandomCredential() {
+  return RandomNumberGenerator.getUint32().toString();
 }
 
 function torOn(portPref) {
@@ -104,26 +123,6 @@ function meetsOSConstraints(versioning) {
   } else {
     return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
-}
-
-function createRandomCredential() {
-  return RandomNumberGenerator.getUint32().toString();
-}
-
-function createHelperArgs(helper, addAuth) {
-  let args = [];
-  if (addAuth) {
-    args = ['--user', createRandomCredential(), '--pass', createRandomCredential()];
-  }
-  args.push(EnigmailGpg.agentPath.path);
-  return args;
-}
-
-function buildEnvVars() {
-  return [
-    "TORSOCKS_USERNAME=" + createRandomCredential(),
-    "TORSOCKS_PASSWORD=" + createRandomCredential()
-  ];
 }
 
 function useAuthOverArgs(helper, versioning) {
