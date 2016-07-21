@@ -147,11 +147,16 @@ function initializeEnvironment(env) {
     "XMODIFIERS"
   ];
 
+  EnigmailCore.initEnvList();
+
   if (!(EnigmailOS.getOS() === "WINNT" && EnigmailPrefs.getPref("gpgLocaleEn"))) {
     passEnv = passEnv.concat([
       "LANG", "LANGUAGE", "LC_ALL", "LC_COLLATE", "LC_CTYPE",
       "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME"
     ]);
+    // force output on Windows to EN-US
+    EnigmailCore.addToEnvList("LC_ALL=en_US");
+    EnigmailCore.addToEnvList("LANG=en_US");
   }
 
   const passList = env.get("ENIGMAIL_PASS_ENV");
@@ -160,14 +165,6 @@ function initializeEnvironment(env) {
     for (var k = 0; k < passNames.length; k++) {
       passEnv.push(passNames[k]);
     }
-  }
-
-  EnigmailCore.initEnvList();
-
-  if (EnigmailOS.getOS() === "WINNT" && EnigmailPrefs.getPref("gpgLocaleEn")) {
-    // force output on Windows to EN-US
-    EnigmailCore.addToEnvList("LC_ALL=en_US");
-    EnigmailCore.addToEnvList("LANG=en_US");
   }
 
   for (var j = 0; j < passEnv.length; j++) {
