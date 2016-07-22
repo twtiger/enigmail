@@ -17,7 +17,7 @@ Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: fals
 const ONE_HOUR_IN_MILLISEC = 60 * 60 * 1000;
 
 let timer = null;
-function getTimerInstance() {
+function getTimer() {
   if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
   return timer;
 }
@@ -42,7 +42,7 @@ function calculateWaitTimeInMilliseconds(totalPublicKeys) {
 }
 
 function refreshKey() {
-  const timer = getTimerInstance();
+  const timer = getTimer();
   refreshWith(EnigmailKeyServer, timer, true);
 }
 
@@ -104,7 +104,7 @@ function refreshWith(keyserver, timer, readyToRefresh) {
 function start(keyserver) {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true){
     EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Started\n");
-    const timer = getTimerInstance();
+    const timer = getTimer();
     refreshWith(keyserver, timer, false);
   }
 }
