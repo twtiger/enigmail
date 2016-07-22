@@ -24,12 +24,8 @@ function getOS() {
   return operatingSystem;
 }
 
-let isDosLikeVal = null;
 function isDosLike() {
-  if (isDosLikeVal === null) {
-    isDosLikeVal = (EnigmailOS.getOS() == "WINNT" || EnigmailOS.getOS() == "OS2");
-  }
-  return isDosLikeVal;
+  return getOS() == "WINNT" || getOS() == "OS2";
 }
 
 function isMac() {
