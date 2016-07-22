@@ -15,7 +15,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-Cu.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
 Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
@@ -98,7 +98,7 @@ function buildEnvVars() {
 }
 
 function createRandomCredential() {
-  return RandomNumberGenerator.getUint32().toString();
+  return EnigmailRNG.getUint32().toString();
 }
 
 function torOn(portPref) {

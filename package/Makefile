@@ -70,7 +70,7 @@ MODFILES = \
            prefs.jsm \
            promise.jsm \
            protocolHandler.jsm \
-           randomNumber.jsm \
+           rng.jsm \
            rules.jsm \
            socks5Proxy.jsm \
            streams.jsm \

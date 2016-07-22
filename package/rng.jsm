@@ -7,7 +7,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["RandomNumberGenerator"];
+const EXPORTED_SYMBOLS = ["EnigmailRNG"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -35,6 +35,6 @@ function getUint32() {
   return bytesToUInt(randomNumberGenerator().generateRandomBytes(4));
 }
 
-const RandomNumberGenerator = {
+const EnigmailRNG = {
   getUint32: getUint32
 };

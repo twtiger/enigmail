@@ -10,7 +10,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
-Cu.import("resource://enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
@@ -29,7 +29,7 @@ function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
-  const randomNumber = RandomNumberGenerator.getUint32();
+  const randomNumber = EnigmailRNG.getUint32();
   const maxTimeForRefresh = calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
 
   EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Wait time = random number: "+ randomNumber + " % max time for refresh: " + maxTimeForRefresh + "\n");
@@ -82,7 +82,7 @@ function refreshKeyIfReady(keyserver, readyToRefresh, keyId){
 }
 
 function refreshWith(keyserver, timer, readyToRefresh) {
-  const keyId = getRandomKeyId(RandomNumberGenerator.getUint32());
+  const keyId = getRandomKeyId(EnigmailRNG.getUint32());
   const keyIdsExist = keyId !== null;
   const keyserversExist = EnigmailPrefs.getPref("keyserver").trim() !== "";
 

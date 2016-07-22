@@ -10,7 +10,7 @@ do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestH
 
 testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties, meetsOSConstraints, MINIMUM_CURL_SOCKS5H_VERSION, MINIMUM_WINDOWS_GPG_VERSION, MINIMUM_CURL_SOCKS5_PROXY_VERSION, createHelperArgs, gpgProxyArgs, findTorExecutableHelper: false*/
 
-component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator*/
+component("enigmail/rng.jsm"); /*global EnigmailRNG*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
@@ -102,7 +102,7 @@ test(function createGpgProxyArgs_forWindows() {
   TestHelper.resetting(EnigmailOS, "isDosLike", function() {
     return true;
   }, function() {
-    TestHelper.resetting(RandomNumberGenerator, "getUint32", function() {
+    TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
       const tor = {
@@ -127,7 +127,7 @@ test(function createGpgProxyArgs_forLinux() {
   TestHelper.resetting(EnigmailOS, "isDosLike", function() {
     return false;
   }, function() {
-    TestHelper.resetting(RandomNumberGenerator, "getUint32", function() {
+    TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
       const tor = {
@@ -176,7 +176,7 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
   TestHelper.resetting(EnigmailOS, "isDosLike", function() {
     return false;
   }, function() {
-    TestHelper.resetting(RandomNumberGenerator, "getUint32", function() {
+    TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
       const tor = {
@@ -218,7 +218,7 @@ test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsock
   TestHelper.resetting(EnigmailGpg, "usesSocksArguments", function() {
     return true;
   }, function() {
-    TestHelper.resetting(RandomNumberGenerator, "getUint32", function() {
+    TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
       const torArgs = ['--user', 'dummyUsername', '--pass', 'dummyPassword', '/usr/bin/gpg2'];

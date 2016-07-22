@@ -14,7 +14,7 @@ testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseco
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
-component("enigmail/randomNumber.jsm"); /*global RandomNumberGenerator: false */
+component("enigmail/rng.jsm"); /*global EnigmailRNG: false */
 
 function withKeys(f) {
   return function() {
@@ -150,7 +150,7 @@ test(withTestGpgHome(withEnigmail(withKeys(function refreshesKeyOnlyIfWaitTimeHa
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_withWaitTime(){
-  const expectedRandomTime = RandomNumberGenerator.getUint32();
+  const expectedRandomTime = EnigmailRNG.getUint32();
   const timer = {
     initWithCallbackWasCalled: false,
     initWithCallback: function(f, time, timerType) {

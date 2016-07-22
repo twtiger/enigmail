@@ -36,4 +36,4 @@ do_subtest("installGnuPG-test.js");
 do_subtest("keyRefreshService-test.js");
 do_subtest("tor-test.js");
 do_subtest("versioning-test.js");
-do_subtest("randomNumber-test.js");
+do_subtest("rng-test.js");
