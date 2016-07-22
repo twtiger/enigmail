@@ -9,7 +9,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["Versioning"];
+const EXPORTED_SYMBOLS = ["EnigmailVersioning"];
 
 const Cu = Components.utils;
 
@@ -76,7 +76,7 @@ function versionMeetsMinimum(versionString, minimum) {
   return compareVersionParts(parseVersion(versionString), minimum);
 }
 
-const Versioning = {
+const EnigmailVersioning = {
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
   versionMeetsMinimum: versionMeetsMinimum
 };

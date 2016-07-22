@@ -16,7 +16,7 @@ const Cu = Components.utils;
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false*/
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
-Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
@@ -146,7 +146,7 @@ function findTorExecutableHelper(versioning) {
 
 function findTor() {
   const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(Versioning)) {
+  if (!tor || !meetsOSConstraints(EnigmailVersioning)) {
     return null;
   }
   return tor;
@@ -161,7 +161,7 @@ const systemCaller = {
 function buildSocksProperties(tor, system) {
   return {
     command: 'gpg',
-    args: gpgProxyArgs(tor, Versioning),
+    args: gpgProxyArgs(tor, EnigmailVersioning),
     envVars: []
   };
 }
@@ -172,7 +172,7 @@ function torProperties(system) {
     return {isAvailable: false, useTorMode: false, socks: null, helper: null};
   }
 
-  const helper = system.findTorExecutableHelper(Versioning);
+  const helper = system.findTorExecutableHelper(EnigmailVersioning);
   let socks = null;
   let useTorMode = false;
 

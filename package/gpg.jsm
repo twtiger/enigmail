@@ -24,7 +24,7 @@ Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: fals
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/osDistribution.jsm"); /*global EnigmailOSDistribution: false */
-Cu.import("resource://enigmail/versioning.jsm"); /*global Versioning: false */
+Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 function v(maj, min, pat) {
   return {major: maj, minor: min, patch: pat};
@@ -117,7 +117,7 @@ function dirmngrConfiguredWithTor() {
 }
 
 function usesDirmngr() {
-  return Versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+  return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
 }
 
 function usesSocksArguments() {

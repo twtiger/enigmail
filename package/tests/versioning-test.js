@@ -9,7 +9,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("versioning.jsm"); /*global Versioning: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
+testing("versioning.jsm"); /*global EnigmailVersioning: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
