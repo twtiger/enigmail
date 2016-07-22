@@ -14,8 +14,6 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
-
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 
 let operatingSystem = null;
@@ -24,27 +22,6 @@ function getOS() {
     operatingSystem = Cc[XPCOM_APPINFO].getService(Ci.nsIXULRuntime).OS;
   }
   return operatingSystem;
-}
-
-function getLinuxDistribution() {
-  const args = ["-a"];
-  const exitCodeObj = {value: null};
-  const output = EnigmailExecution.resolveAndSimpleExec("uname", args, exitCodeObj, {});
-  if (!output || exitCodeObj.value < 0) {
-    return null;
-  }
-  return output;
-}
-
-function isUbuntu() {
-  if (EnigmailOS.isDosLike()) {
-    return false;
-  }
-  const distro = getLinuxDistribution();
-  if (distro === null) {
-    return null;
-  }
-  return distro.indexOf("ubuntu") > -1;
 }
 
 let isDosLikeVal = null;
@@ -63,8 +40,6 @@ const EnigmailOS = {
   isWin32: (getOS() == "WINNT"),
 
   getOS: getOS,
-
-  isUbuntu: isUbuntu,
 
   isDosLike: isDosLike,
 

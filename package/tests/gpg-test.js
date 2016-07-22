@@ -16,7 +16,7 @@ testing("gpg.jsm"); /*global lazyEnv: true, EnigmailGpg: false, usesDirmngr: fal
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/subprocess.jsm"); /*global subprocess: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
-component("enigmail/os.jsm"); /*global EnigmailOS: false */
+component("enigmail/osDistribution.jsm"); /*global EnigmailOSDistribution: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 
 test(function getLibcurlDependencyPathForGpg() {
@@ -132,7 +132,7 @@ test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
 });
 
 test(function usesLibcurlReturnsTrueForNonUbuntuSystems() {
-  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
     return false;
   }, function() {
     const output = usesLibcurl();
@@ -153,7 +153,7 @@ function withGpgPath(f) {
 }
 
 test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcurl() {
-  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
     return true;
   }, function() {
     TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
@@ -167,7 +167,7 @@ test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcu
 }));
 
 test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSupportLibcurl() {
-  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
     return true;
   }, function() {
     TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
@@ -181,7 +181,7 @@ test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSuppor
 }));
 
 test(withGpgPath(function usesLibcurlReturnsFalseWhenError() {
-  TestHelper.resetting(EnigmailOS, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
     return true;
   }, function() {
     TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
