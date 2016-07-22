@@ -25,7 +25,7 @@ function getOS() {
 }
 
 function isDosLike() {
-  return getOS() == "WINNT" || getOS() == "OS2";
+  return getOS() === "WINNT" || getOS() === "OS2";
 }
 
 function isMac() {
