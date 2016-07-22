@@ -16,9 +16,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://enigmail/data.jsm");
-Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
-
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const NS_FILE_CONTRACTID = "@mozilla.org/file/local;1";
 const NS_LOCAL_FILE_CONTRACTID = "@mozilla.org/file/local;1";
@@ -46,7 +44,7 @@ const lazyLog = (function() {
 })();
 
 function addMacPaths(isDosLike, envPath) {
-  if (!isDosLike && loadOS().isMac()) {
+  if (!isDosLike && EnigmailOS.isMac()) {
     return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
   }
   return envPath;
@@ -61,7 +59,7 @@ function environment() {
 }
 
 function potentialWindowsExecutable(execName) {
-  if (loadOS().isWin32) {
+  if (EnigmailOS.isWin32) {
     return execName + ".exe";
   }
   return execName;
@@ -81,7 +79,7 @@ const EnigmailFiles = {
   },
 
   simpleResolvePath: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), loadOS().isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {
@@ -217,7 +215,7 @@ const EnigmailFiles = {
   },
 
   getFilePathDesc: function(nsFileObj) {
-    if (loadOS().getOS() == "WINNT") {
+    if (EnigmailOS.getOS() == "WINNT") {
       return nsFileObj.persistentDescriptor;
     }
     else {
@@ -230,12 +228,12 @@ const EnigmailFiles = {
   },
 
   getEscapedFilename: function(fileNameStr) {
-    if (loadOS().isDosLike()) {
+    if (EnigmailOS.isDosLike()) {
       // escape the backslashes and the " character (for Windows and OS/2)
       fileNameStr = fileNameStr.replace(/([\\\"])/g, "\\$1");
     }
 
-    if (loadOS().getOS() == "WINNT") {
+    if (EnigmailOS.getOS() == "WINNT") {
       // replace leading "\\" with "//"
       fileNameStr = fileNameStr.replace(/^\\\\*/, "//");
     }
@@ -258,7 +256,7 @@ const EnigmailFiles = {
     catch (ex) {
       // let's guess ...
       let tmpDirObj = Cc[NS_FILE_CONTRACTID].createInstance(Ci.nsIFile);
-      if (loadOS().getOS() == "WINNT") {
+      if (EnigmailOS.getOS() == "WINNT") {
         tmpDirObj.initWithPath("C:/TEMP");
       }
       else {

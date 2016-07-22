@@ -16,9 +16,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://enigmail/pipeConsole.jsm");
 Cu.import("resource://enigmail/files.jsm");
-Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
-
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 const NS_IOSERVICE_CONTRACTID = "@mozilla.org/network/io-service;1";
@@ -39,7 +37,7 @@ const EnigmailLog = {
   },
 
   setLogDirectory: function(newLogDirectory) {
-    EnigmailLog.directory = newLogDirectory + (loadOS().isDosLike() ? "\\" : "/");
+    EnigmailLog.directory = newLogDirectory + (EnigmailOS.isDosLike() ? "\\" : "/");
     EnigmailLog.createLogFiles();
   },
 

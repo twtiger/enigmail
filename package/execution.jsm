@@ -21,8 +21,7 @@ Cu.import("resource://enigmail/log.jsm");
 Cu.import("resource://enigmail/subprocess.jsm");
 Cu.import("resource://enigmail/errorHandling.jsm");
 Cu.import("resource://enigmail/core.jsm");
-Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
-const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const nsIEnigmail = Ci.nsIEnigmail;
 
@@ -291,7 +290,7 @@ const EnigmailExecution = {
         EnigmailLog.DEBUG("enigmailCommon.jsm: Enigmail.fixExitCode: Changing exitCode for decrypted msg " + exitCode + "->0\n");
         exitCode = 0;
       }
-      if ((EnigmailExecution.agentType === "gpg") && (exitCode == 256) && (loadOS().getOS() == "WINNT")) {
+      if ((EnigmailExecution.agentType === "gpg") && (exitCode == 256) && (EnigmailOS.getOS() == "WINNT")) {
         EnigmailLog.WARNING("enigmailCommon.jsm: Enigmail.fixExitCode: Using gpg and exit code is 256. You seem to use cygwin-gpg, activating countermeasures.\n");
         if (statusFlags & (nsIEnigmail.BAD_PASSPHRASE | nsIEnigmail.UNVERIFIED_SIGNATURE)) {
           EnigmailLog.WARNING("enigmailCommon.jsm: Enigmail.fixExitCode: Changing exitCode 256->2\n");
