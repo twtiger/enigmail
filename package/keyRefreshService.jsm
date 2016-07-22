@@ -25,8 +25,7 @@ const HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF = "hoursPerWeekEnigmailIsOn";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
   const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF) * ONE_HOUR_IN_MILLISEC;
-  //return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
-  return 3000;
+  return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
