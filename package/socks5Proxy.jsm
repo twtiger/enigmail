@@ -7,7 +7,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["Socks5Proxy"];
+const EXPORTED_SYMBOLS = ["EnigmailSocks5Proxy"];
 
 const CC = Components.Constructor;
 const Cc = Components.classes;
@@ -91,7 +91,7 @@ function checkTorExists(portPref) {
   return foundTor;
 }
 
-const Socks5Proxy = {
+const EnigmailSocks5Proxy = {
   checkTorExists: checkTorExists,
   torIpAddr: function() {
     return EnigmailPrefs.getPref(TOR_IP_ADDR_PREF);

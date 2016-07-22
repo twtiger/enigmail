@@ -18,7 +18,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/rng.jsm"); /*global EnigmailRNG: false */
 Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global Socks5Proxy: false */
+Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global EnigmailSocks5Proxy: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 
@@ -102,13 +102,13 @@ function createRandomCredential() {
 }
 
 function torOn(portPref) {
-  if (Socks5Proxy.checkTorExists(portPref)) {
+  if (EnigmailSocks5Proxy.checkTorExists(portPref)) {
     const port = EnigmailPrefs.getPref(portPref);
 
-    EnigmailLog.CONSOLE("Tor found on IP: " + Socks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
+    EnigmailLog.CONSOLE("Tor found on IP: " + EnigmailSocks5Proxy.torIpAddr() + ", port: " + port + "\n\n");
 
     return {
-      ip: Socks5Proxy.torIpAddr(),
+      ip: EnigmailSocks5Proxy.torIpAddr(),
       port: port
     };
   }
