@@ -148,10 +148,9 @@ function stringContains(stringToCheck, substring) {
 }
 
 function convertRequestArgsToStrings(args) {
-  for (let i=0; i<args.length; i++) {
-    args[i] = args[i].toString();
-  }
-  return args;
+  return args.map(function(a) {
+    return a.toString();
+  });
 }
 
 function execute(request, listener, subproc) {

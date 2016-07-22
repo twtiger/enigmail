@@ -71,14 +71,16 @@ function isRequired(actionFlags) {
   return EnigmailPrefs.getPref(getAction(actionFlags).requires);
 }
 
+function combineIntoProxyhostURI(protocol, tor) {
+  return protocol + createRandomCredential() + ":" + createRandomCredential() + "@" + tor.ip + ":" + tor.port;
+}
+
 function gpgProxyArgs(tor, versioning) {
-  let args = "";
   if (EnigmailOS.isDosLike() || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
-    args += OLD_CURL_PROTOCOL;
+    return combineIntoProxyhostURI(OLD_CURL_PROTOCOL, tor);
   } else {
-    args += NEW_CURL_PROTOCOL;
+    return combineIntoProxyhostURI(NEW_CURL_PROTOCOL, tor);
   }
-  return args + createRandomCredential() + ":" + createRandomCredential() + "@" + tor.ip + ":" + tor.port;
 }
 
 function createHelperArgs(helper, addAuth) {

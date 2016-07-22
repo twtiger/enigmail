@@ -81,9 +81,10 @@ function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
 }
 
 function prioritiseEncryption() {
-  let urisInParts = [];
-  getKeyservers().forEach(function(keyserver) {
-    urisInParts = urisInParts.concat(buildProtocolAndKeyserver(keyserver));
+  const urisInParts = getKeyservers().map(function(keyserver) {
+    return buildProtocolAndKeyserver(keyserver);
+  }).reduce(function(a, b) {
+    return a.concat(b);
   });
 
   const completeURI = [];
