@@ -8,7 +8,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailLazy"];
+const EXPORTED_SYMBOLS = ["EnigmailLazy"];
 
 const Cu = Components.utils;
 

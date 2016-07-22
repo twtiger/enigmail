@@ -8,7 +8,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailOS"];
+const EXPORTED_SYMBOLS = ["EnigmailOS"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -46,9 +46,9 @@ const EnigmailOS = {
   // @ keyName: the name of the key to get (e.g. InstallDir)
   // @ rootKey: HKLM, HKCU, etc. (according to constants in nsIWindowsRegKey)
   getWinRegistryString: function(keyPath, keyName, rootKey) {
-    var registry = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
+    const registry = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
 
-    var retval = "";
+    let retval = "";
     try {
       registry.open(rootKey, keyPath, registry.ACCESS_READ);
       retval = registry.readStringValue(keyName);

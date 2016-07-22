@@ -8,7 +8,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailOSDistribution"];
+const EXPORTED_SYMBOLS = ["EnigmailOSDistribution"];
 
 const Cu = Components.utils;
 

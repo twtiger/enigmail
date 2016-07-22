@@ -9,7 +9,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailGpg"];
+const EXPORTED_SYMBOLS = ["EnigmailGpg"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -291,22 +291,22 @@ const EnigmailGpg = {
    * (see docu for gnupg parameter --group)
    */
   getGpgGroups: function() {
-    let exitCodeObj = {};
-    let errorMsgObj = {};
+    const exitCodeObj = {};
+    const errorMsgObj = {};
 
-    let cfgStr = EnigmailGpg.getGnupgConfig(exitCodeObj, errorMsgObj);
+    const cfgStr = EnigmailGpg.getGnupgConfig(exitCodeObj, errorMsgObj);
 
     if (exitCodeObj.value !== 0) {
       EnigmailDialog.alert(errorMsgObj.value);
       return null;
     }
 
-    let groups = [];
-    let cfg = cfgStr.split(/\n/);
+    const groups = [];
+    const cfg = cfgStr.split(/\n/);
 
     for (let i = 0; i < cfg.length; i++) {
       if (cfg[i].indexOf("cfg:group") === 0) {
-        let groupArr = cfg[i].split(/:/);
+        const groupArr = cfg[i].split(/:/);
         groups.push({
           alias: groupArr[2],
           keylist: groupArr[3]

@@ -7,7 +7,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["EnigmailKeyServer"];
+const EXPORTED_SYMBOLS = ["EnigmailKeyServer"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -116,7 +116,7 @@ function buildRequests(keyId, action, tor) {
   const torProperties = tor.torProperties();
 
   const uris = EnigmailKeyserverURIs.prioritiseEncryption();
-  let requests = [];
+  const requests = [];
 
   if (tor.isRequired(action) && !torProperties.isAvailable) {
     EnigmailLog.CONSOLE("Unable to perform action with key " + keyId + " because Tor is required but not available.\n");
