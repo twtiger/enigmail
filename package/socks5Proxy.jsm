@@ -41,19 +41,12 @@ function createScriptableInputStream(inputStream) {
 function buildListener(hasFoundTor, isDoneChecking) {
   const listener = {
     onStartRequest: function(request, context) {
-      EnigmailLog.DEBUG("ON START REQUEST\n");
     },
     onStopRequest: function(request, context, statusCode) {
-      EnigmailLog.DEBUG("ON STOP REQUEST\n");
       isDoneChecking();
     },
     onDataAvailable: function(request, context, inputStream, offset, count) {
-      EnigmailLog.DEBUG("ON DATA AVAILABLE\n");
       const response = createScriptableInputStream(inputStream).read(count);
-
-      EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
-      EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
-
       hasFoundTor(response.indexOf(EXPECTED_TOR_EXISTS_RESPONSE) !== -1);
     },
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIRequestObserver, Ci.nsIStreamListener])
