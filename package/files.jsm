@@ -43,19 +43,19 @@ const lazyLog = (function() {
   };
 })();
 
-function addMacPaths(isDosLike, envPath) {
-  if (!isDosLike && EnigmailOS.isMac()) {
-    return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
-  }
-  return envPath;
-}
-
 let lazyEnv = null;
 function environment() {
   if (lazyEnv === null) {
     lazyEnv = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
   }
   return lazyEnv;
+}
+
+function addMacPaths(isDosLike, envPath) {
+  if (!isDosLike && EnigmailOS.isMac()) {
+    return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
+  }
+  return envPath;
 }
 
 function potentialWindowsExecutable(execName) {
