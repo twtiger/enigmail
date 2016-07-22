@@ -7,7 +7,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["KeyserverURIs"];
+var EXPORTED_SYMBOLS = ["EnigmailKeyserverURIs"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -93,6 +93,6 @@ function prioritiseEncryption() {
   return completeURI;
 }
 
-const KeyserverURIs = {
+const EnigmailKeyserverURIs = {
   prioritiseEncryption: prioritiseEncryption
 };

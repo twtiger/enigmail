@@ -24,7 +24,7 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
-Cu.import("resource://enigmail/keyserverUris.jsm"); /*global KeyserverURIs: false */
+Cu.import("resource://enigmail/keyserverUris.jsm"); /*global EnigmailKeyserverURIs: false */
 
 function getRequestAction(actionFlags, keys) {
   if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) { return ['--recv-keys'].concat(keys); }
@@ -115,7 +115,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
 function buildRequests(keyId, action, tor) {
   const torProperties = tor.torProperties();
 
-  const uris = KeyserverURIs.prioritiseEncryption();
+  const uris = EnigmailKeyserverURIs.prioritiseEncryption();
   let requests = [];
 
   if (tor.isRequired(action) && !torProperties.isAvailable) {
