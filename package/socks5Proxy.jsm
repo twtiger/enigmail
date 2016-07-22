@@ -7,7 +7,7 @@
 
 "use strict";
 
-var EXPORTED_SYMBOLS = ["Socks5Proxy"];
+const EXPORTED_SYMBOLS = ["Socks5Proxy"];
 
 const CC = Components.Constructor;
 const Cc = Components.classes;
@@ -26,7 +26,7 @@ const CONNECTION_FLAGS = 0;
 const SECONDS_TO_WAIT_FOR_CONNECTION = -1;
 
 function createCheckTorURIChannel() {
-  let ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+  const ioservice = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
   return ioservice.newChannel2(CHECK_TOR_URI, "UTF-8", null, null, null, null, null, null);
 }
 
@@ -49,7 +49,7 @@ function buildListener(hasFoundTor, isDoneChecking) {
     },
     onDataAvailable: function(request, context, inputStream, offset, count) {
       EnigmailLog.DEBUG("ON DATA AVAILABLE\n");
-      let response = createScriptableInputStream(inputStream).read(count);
+      const response = createScriptableInputStream(inputStream).read(count);
 
       EnigmailLog.DEBUG("RESPONSE COUNT: " + count + "\n");
       EnigmailLog.DEBUG("RESPONSE: " + response + "\n");
