@@ -2,7 +2,7 @@
 
 "use strict";
 
-const EXPORTED_SYMBOLS = ["KeyRefreshService"];
+const EXPORTED_SYMBOLS = ["EnigmailKeyRefreshService"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -25,7 +25,8 @@ const HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF = "hoursPerWeekEnigmailIsOn";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
   const millisecondsAvailableForRefresh = EnigmailPrefs.getPref(HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF) * ONE_HOUR_IN_MILLISEC;
-  return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
+  //return Math.floor(millisecondsAvailableForRefresh / totalPublicKeys);
+  return 3000;
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
@@ -109,6 +110,6 @@ function start(keyserver) {
   }
 }
 
-const KeyRefreshService = {
+const EnigmailKeyRefreshService = {
   start: start
 };

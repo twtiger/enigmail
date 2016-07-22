@@ -10,7 +10,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
 
-testing("keyRefreshService.jsm"); /*global calculateMaxTimeForRefreshInMilliseconds, HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, KeyRefreshService: false, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
+testing("keyRefreshService.jsm"); /*global EnigmailKeyRefreshService: false, calculateMaxTimeForRefreshInMilliseconds, HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
@@ -205,10 +205,10 @@ test(withLogFiles(withPreferences(function keyRefreshServiceIsTurnedOffByDefault
   const keyRefreshStartMessage = "[KEY REFRESH SERVICE]: Started";
   const keyserver = {};
 
-  KeyRefreshService.start(keyserver);
+  EnigmailKeyRefreshService.start(keyserver);
   assertLogDoesNotContain(keyRefreshStartMessage);
 
   EnigmailPrefs.setPref("keyRefreshOn", true);
-  KeyRefreshService.start(keyserver);
+  EnigmailKeyRefreshService.start(keyserver);
   assertLogContains(keyRefreshStartMessage);
 })));
