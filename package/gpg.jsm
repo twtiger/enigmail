@@ -140,7 +140,7 @@ function usesLibcurl() {
   const exitCodeObj  = {value: null};
   const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
 
-  if (exitCodeObj.value < 0) {
+  if (output === null || exitCodeObj.value < 0) {
     return false;
   }
 
