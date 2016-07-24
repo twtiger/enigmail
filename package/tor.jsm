@@ -157,7 +157,7 @@ function findTor() {
 
 const systemCaller = {
   findTor: findTor,
-  findTorExecutableHelper: findTorExecutableHelper,
+  findTorExecutableHelper: findTorExecutableHelper
 };
 
 function buildSocksProperties(tor, system) {
