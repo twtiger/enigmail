@@ -2133,7 +2133,7 @@ Enigmail.msg = {
       return {
         sendFlags: sendFlags,
         toAddrStr: toAddrStr,
-        bccAddrStr: bccAddrStr,
+        bccAddrStr: bccAddrStr
       };
     }
 
@@ -2201,7 +2201,7 @@ Enigmail.msg = {
     return {
       sendFlags: sendFlags,
       toAddrStr: toAddrStr,
-      bccAddrStr: bccAddrStr,
+      bccAddrStr: bccAddrStr
     };
   },
 
@@ -2399,7 +2399,7 @@ Enigmail.msg = {
       optSendFlags: optSendFlags,
       toAddr: toAddrStr,
       bccAddr: bccAddrStr,
-      didRefreshKeyList: didRefreshKeyList,
+      didRefreshKeyList: didRefreshKeyList
     };
   },
 
@@ -2521,7 +2521,7 @@ Enigmail.msg = {
             createNewRule: false,
             sendFlags: sendFlags,
             toAddrStr: toAddrStr,
-            bccAddrStr: bccAddrStr,
+            bccAddrStr: bccAddrStr
           };
 
           // "Create per recipient rule(s)":
@@ -2582,7 +2582,7 @@ Enigmail.msg = {
       createNewRule: false,
       sendFlags: sendFlags,
       toAddrStr: toAddrStr,
-      bccAddrStr: bccAddrStr,
+      bccAddrStr: bccAddrStr
     };
   },
 

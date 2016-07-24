@@ -456,7 +456,7 @@ var EnigmailRules = {
 
     // here, both values are 'maybe', which we return then
     return EnigmailConstants.ENIG_UNDEF; // maybe
-  },
+  }
 
 
 };
