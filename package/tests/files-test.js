@@ -41,7 +41,7 @@ test(function shouldAddMacPaths() {
   const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
   const isDosLike = false;
 
-  TestHelper.resetting(EnigmailOS, "isMac", function() {return true;}, function() {
+  TestHelper.resetting(EnigmailOS, "isMac", true, function() {
     const newPath = addMacPaths(isDosLike, oldPath);
 
     const expectedPath = '/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/local/bin:/usr/local/MacGPG2/bin';
@@ -53,7 +53,7 @@ test(function shouldNotAddMacPathWhenSystemIsDosLike() {
   const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
   const isDosLike = true;
 
-  TestHelper.resetting(EnigmailOS, "isMac", function() {return false;}, function() {
+  TestHelper.resetting(EnigmailOS, "isMac", false, function() {
     const newPath = addMacPaths(isDosLike, oldPath);
 
     Assert.equal(oldPath, newPath);
@@ -64,7 +64,7 @@ test(function shouldNotAddMacPathWhenSystemIsLinux() {
   const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
   const isDosLike = false;
 
-  TestHelper.resetting(EnigmailOS, "isMac", function() {return false;}, function() {
+  TestHelper.resetting(EnigmailOS, "isMac", false, function() {
     const newPath = addMacPaths(isDosLike, oldPath);
 
     Assert.equal(oldPath, newPath);

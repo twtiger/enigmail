@@ -39,7 +39,7 @@ const EnigmailOS = {
 
   isDosLike: isDosLike,
 
-  isMac: isMac,
+  isMac: isMac(),
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)

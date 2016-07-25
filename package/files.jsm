@@ -52,7 +52,7 @@ function environment() {
 }
 
 function addMacPaths(isDosLike, envPath) {
-  if (!isDosLike && EnigmailOS.isMac()) {
+  if (!isDosLike && EnigmailOS.isMac) {
     return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
   }
   return envPath;
