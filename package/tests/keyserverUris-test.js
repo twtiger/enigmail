@@ -9,7 +9,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
 
-testing("keyserverUris.jsm"); /*global prioritiseEncryption, buildKeyserverUris */
+testing("keyserverUris.jsm"); /*global validKeyserversExist: false, prioritiseEncryption: false, buildKeyserverUris: false */
 
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
@@ -64,4 +64,28 @@ test(withPreferences(function shouldUseCorrectCorrespondingHkpsAddressForHkpPool
   Assert.equal(keyserverUris.length, 2);
   Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
   Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
+}));
+
+test(withPreferences(function validKeyserversExistWithDefaultPreferences() {
+  setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
+
+  Assert.equal(validKeyserversExist(), true);
+}));
+
+test(withPreferences(function noValidKeyserversExistWithEmptyKeyserverList() {
+  setupKeyserverPrefs(" ", true);
+
+  Assert.equal(validKeyserversExist(), false);
+}));
+
+test(withPreferences(function noValidKeyserversExistWhenAllProtocolsAreInvalid() {
+  setupKeyserverPrefs("xyz://pool.sks-keyservers.net, abc://keys.gnupg.net, def://pgp.mit.edu", true);
+
+  Assert.equal(validKeyserversExist(), false);
+}));
+
+test(withPreferences(function validKeyserversExistWhenOneProtocolIsValid() {
+  setupKeyserverPrefs("hkps://pool.sks-keyservers.net, abc://keys.gnupg.net, def://pgp.mit.edu", true);
+
+  Assert.equal(validKeyserversExist(), true);
 }));
