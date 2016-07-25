@@ -8,13 +8,14 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, withTestGpgHome: false, withLogFiles: false, assertLogContains: false, assertLogDoesNotContain: false, withPreferences: false */
 
 testing("keyRefreshService.jsm"); /*global EnigmailKeyRefreshService: false, calculateMaxTimeForRefreshInMilliseconds, HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF, calculateWaitTimeInMilliseconds, startWith, ONE_HOUR_IN_MILLISEC, refreshWith, refreshKey: false, getRandomKeyId: false, setupNextRefresh: false */
 
 component("enigmail/keyRing.jsm"); /*global EnigmailKeyRing: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/rng.jsm"); /*global EnigmailRNG: false */
+component("enigmail/keyserverUris.jsm"); /*global EnigmailKeyserverURIs: false */
 
 function withKeys(f) {
   return function() {
@@ -121,32 +122,34 @@ test(withTestGpgHome(withEnigmail(withKeys(function ifOnlyOneKey_shouldGetOnlyKe
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function refreshesKeyOnlyIfWaitTimeHasBeenSetup_AndRefreshIsReady(){
-  EnigmailPrefs.setPref("keyserver", "keyserver.1");
-  const expectedKeyId = importAndReturnOneKey();
-  const timer = {
-    initWithCallbackWasCalled: false,
-    initWithCallback: function(f, timeUntilNextRefresh, timerType) {
-      timer.initWithCallbackWasCalled = true;
-    }
-  };
+  TestHelper.resetting(EnigmailKeyserverURIs, "validKeyserversExist", function() { return true; }, function() {
+    EnigmailPrefs.setPref("keyserver", "keyserver.1");
+    const expectedKeyId = importAndReturnOneKey();
+    const timer = {
+      initWithCallbackWasCalled: false,
+      initWithCallback: function(f, timeUntilNextRefresh, timerType) {
+        timer.initWithCallbackWasCalled = true;
+      }
+    };
 
-  const keyserver = {
-    refreshWasCalled: false,
-    refresh: function(keyId) {
-      Assert.equal(keyId, expectedKeyId);
-      keyserver.refreshWasCalled = true;
-    }
-  };
+    const keyserver = {
+      refreshWasCalled: false,
+      refresh: function(keyId) {
+        Assert.equal(keyId, expectedKeyId);
+        keyserver.refreshWasCalled = true;
+      }
+    };
 
-  refreshWith(keyserver, timer, false);
+    refreshWith(keyserver, timer, false);
 
-  Assert.equal(keyserver.refreshWasCalled, false, "keyserver.refresh was called and shouldn't have been");
-  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+    Assert.equal(keyserver.refreshWasCalled, false, "keyserver.refresh was called and shouldn't have been");
+    Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
 
-  refreshWith(keyserver, timer, true);
+    refreshWith(keyserver, timer, true);
 
-  Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
-  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+    Assert.equal(keyserver.refreshWasCalled, true, "keyserver.refresh was not called");
+    Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+  });
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_withWaitTime(){
@@ -166,39 +169,42 @@ test(withTestGpgHome(withEnigmail(withKeys(function setUpRefreshTimer_withWaitTi
 }))));
 
 test(withTestGpgHome(withEnigmail(withKeys(function whenNoKeysExist_retryInOneHour(){
-  const timer = {
-    initWithCallbackWasCalled: false,
-    initWithCallback: function(f, time, timerType) {
-      Assert.equal(time, ONE_HOUR_IN_MILLISEC);
-      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
-      timer.initWithCallbackWasCalled = true;
-    }
-  };
+  TestHelper.resetting(EnigmailKeyserverURIs, "validKeyserversExist", function() { return true; }, function() {
+    const timer = {
+      initWithCallbackWasCalled: false,
+      initWithCallback: function(f, time, timerType) {
+        Assert.equal(time, ONE_HOUR_IN_MILLISEC);
+        Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
+        timer.initWithCallbackWasCalled = true;
+      }
+    };
 
-  const keyserver = {};
+    const keyserver = {};
 
-  refreshWith(keyserver, timer, false);
+    refreshWith(keyserver, timer, false);
 
-  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
-  assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
+    Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+    assertLogContains("[KEY REFRESH SERVICE]: No keys available to refresh yet. Will recheck in an hour.");
+  });
 }))));
 
-test(withPreferences(function ifKeyserverListIsEmpty_checkAgainInAnHour(){
-  EnigmailPrefs.setPref("keyserver", " ");
-  const timer = {
-    initWithCallbackWasCalled: false,
-    initWithCallback: function(f, time, timerType) {
-      Assert.equal(time, ONE_HOUR_IN_MILLISEC);
-      Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
-      timer.initWithCallbackWasCalled = true;
-    }
-  };
-  const keyserver = {};
+test(withPreferences(function ifKeyserverListIsInvalid_checkAgainInAnHour(){
+  TestHelper.resetting(EnigmailKeyserverURIs, "validKeyserversExist", function() { return false; }, function() {
+    const timer = {
+      initWithCallbackWasCalled: false,
+      initWithCallback: function(f, time, timerType) {
+        Assert.equal(time, ONE_HOUR_IN_MILLISEC);
+        Assert.equal(timerType, Ci.nsITimer.TYPE_ONE_SHOT);
+        timer.initWithCallbackWasCalled = true;
+      }
+    };
+    const keyserver = {};
 
-  refreshWith(keyserver, timer, false);
+    refreshWith(keyserver, timer, false);
 
-  assertLogContains("[KEY REFRESH SERVICE]: No keyservers are available. Will recheck in an hour.");
-  Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+    assertLogContains("[KEY REFRESH SERVICE]: Either no keyservers exist or the protocols specified are invalid. Will recheck in an hour.");
+    Assert.equal(timer.initWithCallbackWasCalled, true, "timer.initWithCallback was not called");
+  });
 }));
 
 test(withLogFiles(withPreferences(function keyRefreshServiceIsTurnedOffByDefault(){
@@ -207,8 +213,15 @@ test(withLogFiles(withPreferences(function keyRefreshServiceIsTurnedOffByDefault
 
   EnigmailKeyRefreshService.start(keyserver);
   assertLogDoesNotContain(keyRefreshStartMessage);
+})));
 
-  EnigmailPrefs.setPref("keyRefreshOn", true);
-  EnigmailKeyRefreshService.start(keyserver);
-  assertLogContains(keyRefreshStartMessage);
+test(withLogFiles(withPreferences(function keyRefreshServiceStartsWhenPreferenceIsOn(){
+  TestHelper.resetting(EnigmailKeyserverURIs, "validKeyserversExist", function() { return false; }, function() {
+    const keyRefreshStartMessage = "[KEY REFRESH SERVICE]: Started";
+    const keyserver = {};
+
+    EnigmailPrefs.setPref("keyRefreshOn", true);
+    EnigmailKeyRefreshService.start(keyserver);
+    assertLogContains(keyRefreshStartMessage);
+  });
 })));
