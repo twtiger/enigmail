@@ -33,7 +33,7 @@ function isMac() {
 }
 
 const EnigmailOS = {
-  isWin32: (getOS() == "WINNT"),
+  isWin32: (getOS() === "WINNT"),
 
   getOS: getOS,
 
