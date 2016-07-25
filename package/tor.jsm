@@ -169,7 +169,7 @@ function buildSocksProperties(tor, system) {
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!meetsOSConstraints() || (tor === null)) {
+  if (!meetsOSConstraints() || tor === null) {
     return {isAvailable: false, useTorMode: false, socks: null, helper: null};
   }
 
