@@ -117,11 +117,11 @@ function torOn(portPref) {
   return null;
 }
 
-function meetsOSConstraints(versioning) {
+function meetsOSConstraints() {
   if (EnigmailOS.isDosLike()) {
-    return versioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
+    return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
-    return versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+    return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
 }
 
@@ -147,13 +147,8 @@ function findTorExecutableHelper(versioning) {
 }
 
 function findTor() {
-  const tor = torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
-  if (!tor || !meetsOSConstraints(EnigmailVersioning)) {
-    return null;
-  }
-  return tor;
+  return torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
 }
-
 
 const systemCaller = {
   findTor: findTor,
@@ -170,7 +165,7 @@ function buildSocksProperties(tor, system) {
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!tor) {
+  if (!meetsOSConstraints() || !tor) {
     return {isAvailable: false, useTorMode: false, socks: null, helper: null};
   }
 

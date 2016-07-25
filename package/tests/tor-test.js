@@ -14,6 +14,7 @@ component("enigmail/rng.jsm"); /*global EnigmailRNG*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
+component("enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 function withStandardGpg(f) {
   return function() {
@@ -31,31 +32,13 @@ test(function evaluateGpgVersionWhenOsIsWindows() {
     return true;
   }, function() {
     TestHelper.resetting(EnigmailGpg, "agentVersion", '1.4.0', function() {
-      const versioning = {
-        versionMeetsMinimum: function(version, minimumVersion) {
-          Assert.equal(version, '1.4.0');
-          Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-          return false;
-        }
-      };
-      Assert.equal(meetsOSConstraints(versioning), false);
-    });
-  });
-});
-
-test(function evaluateGpgVersionWhenOsIsWindows() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return true;
-  }, function() {
-    TestHelper.resetting(EnigmailGpg, "agentVersion", '2.0.30', function() {
-      const versioning = {
-        versionMeetsMinimum: function(version, minimumVersion) {
-          Assert.equal(version, '2.0.30');
-          Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
-          return true;
-        }
-      };
-      Assert.equal(meetsOSConstraints(versioning), true);
+      TestHelper.resetting(EnigmailVersioning, "versionMeetsMinimum", function(version, minimumVersion) {
+        Assert.equal(version, '1.4.0');
+        Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
+        return false;
+      }, function() {
+        Assert.equal(meetsOSConstraints(), false);
+      });
     });
   });
 });
@@ -64,14 +47,13 @@ test(function evaluateMeetsMinimumCurlSocksVersion() {
   TestHelper.resetting(EnigmailOS, "isDosLike", function() {
     return false;
   }, function() {
-      const versioning = {
-        versionFoundMeetsMinimumVersionRequired: function(executable, minimumVersion) {
-          Assert.equal(executable, 'curl');
-          Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
-          return true;
-        }
-      };
-      Assert.equal(meetsOSConstraints(versioning), true);
+    TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function(executable, minimumVersion) {
+      Assert.equal(executable, 'curl');
+      Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+      return true;
+    }, function() {
+      Assert.equal(meetsOSConstraints(), true);
+    });
   });
 });
 
