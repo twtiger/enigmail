@@ -113,7 +113,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
     args: args,
     usingTor: true,
     envVars: torProperties.envVars,
-    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY),
+    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
   };
 }
 
@@ -247,7 +247,6 @@ function build(actionFlags, keyserver, searchTerms, errorMsgObj) {
   }
 
   const searchTermsList = searchTerms.split(" ");
-
   return gpgRequest(searchTermsList, keyserver.trim(), actionFlags);
 }
 

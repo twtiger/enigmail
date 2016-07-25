@@ -235,7 +235,7 @@ test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsock
             command: 'torsocks',
             args: torArgs
           };
-        },
+        }
       };
 
       const properties = torProperties(system);
@@ -276,7 +276,7 @@ test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
           },
           findTorExecutableHelper: function() {
             return null;
-          },
+          }
         };
 
         const properties = torProperties(system);

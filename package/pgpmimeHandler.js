@@ -210,7 +210,7 @@ PgpMimeHandler.prototype = {
     }
 
     return null;
-  },
+  }
 };
 
 
