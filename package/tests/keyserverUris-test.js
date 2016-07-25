@@ -7,9 +7,10 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
 
-testing("keyserverUris.jsm"); /*global sortWithHkpsFirst, prioritiseEncryption */
+testing("keyserverUris.jsm"); /*global prioritiseEncryption, buildKeyserverUris */
+
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
 function setupKeyserverPrefs(keyservers, autoOn) {
@@ -17,56 +18,50 @@ function setupKeyserverPrefs(keyservers, autoOn) {
   EnigmailPrefs.setPref("autoKeyServerSelection", autoOn);
 }
 
-test(function organizeProtocols_withOneHkpsServer() {
+test(withPreferences(function organizeProtocols_withOneHkpsServer() {
   setupKeyserverPrefs("keyserver.1", true);
 
-  const sortedRequests = prioritiseEncryption();
+  const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(sortedRequests[0], 'hkps://keyserver.1:443');
-  Assert.equal(sortedRequests[1], 'hkp://keyserver.1:11371');
-  Assert.equal(sortedRequests.length, 2);
-});
+  Assert.equal(keyserverUris[0], 'hkps://keyserver.1:443');
+  Assert.equal(keyserverUris[1], 'hkp://keyserver.1:11371');
+  Assert.equal(keyserverUris.length, 2);
+}));
 
-test(function createStatesForMultipleKeyservers() {
+test(withPreferences(function buildUrisFromKeyservers_withoutSpecifiedProtocols() {
   setupKeyserverPrefs("keyserver.1, keyserver.2, keyserver.3", false);
 
-  const sortedRequests = prioritiseEncryption();
+  const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(sortedRequests[0], 'hkps://keyserver.1:443');
-  Assert.equal(sortedRequests[1], 'hkps://keyserver.2:443');
-  Assert.equal(sortedRequests[2], 'hkps://keyserver.3:443');
-  Assert.equal(sortedRequests[3], 'hkp://keyserver.1:11371');
-  Assert.equal(sortedRequests[4], 'hkp://keyserver.2:11371');
-  Assert.equal(sortedRequests[5], 'hkp://keyserver.3:11371');
-  Assert.equal(sortedRequests.length, 6);
-});
+  Assert.equal(keyserverUris[0], 'hkps://keyserver.1:443');
+  Assert.equal(keyserverUris[1], 'hkp://keyserver.1:11371');
+  Assert.equal(keyserverUris[2], 'hkps://keyserver.2:443');
+  Assert.equal(keyserverUris[3], 'hkp://keyserver.2:11371');
+  Assert.equal(keyserverUris[4], 'hkps://keyserver.3:443');
+  Assert.equal(keyserverUris[5], 'hkp://keyserver.3:11371');
+  Assert.equal(keyserverUris.length, 6);
+}));
 
-test(function setsUpStatesWithMixOfSpecifiedProtocols() {
+test(withPreferences(function buildUrisFromKeyservers_withMixOfProtocols() {
   setupKeyserverPrefs("hkp://keyserver.1, hkps://keyserver.2, keyserver.3, hkps://keyserver.4, ldap://keyserver.5", false);
 
-  const sortedRequests = prioritiseEncryption();
+  const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(sortedRequests[0],'hkps://keyserver.2:443');
-  Assert.equal(sortedRequests[1],'hkps://keyserver.3:443');
-  Assert.equal(sortedRequests[2],'hkps://keyserver.4:443');
-  Assert.equal(sortedRequests[3],'hkp://keyserver.1:11371');
-  Assert.equal(sortedRequests[4],'hkp://keyserver.3:11371');
-  Assert.equal(sortedRequests[5],'ldap://keyserver.5:389');
-});
+  Assert.equal(keyserverUris[0],'hkp://keyserver.1:11371');
+  Assert.equal(keyserverUris[1],'hkps://keyserver.2:443');
+  Assert.equal(keyserverUris[2],'hkps://keyserver.3:443');
+  Assert.equal(keyserverUris[3],'hkp://keyserver.3:11371');
+  Assert.equal(keyserverUris[4],'hkps://keyserver.4:443');
+  Assert.equal(keyserverUris[5],'ldap://keyserver.5:389');
 
-test(function orderHkpsKeyserversToBeginningOfKeyserverArray() {
-  const unorderedKeyservers = [{protocol: "hkp"}, {protocol: "hkps"}, {protocol: "hkps"}];
-  const orderedKeyservers = [{protocol: "hkps"}, {protocol: "hkps"}, {protocol: "hkp"}];
+}));
 
-  Assert.deepEqual(sortWithHkpsFirst(unorderedKeyservers), orderedKeyservers);
-});
-
-test(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
+test(withPreferences(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
   setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
 
-  const keyserverUris = prioritiseEncryption();
+  const keyserverUris = buildKeyserverUris();
 
   Assert.equal(keyserverUris.length, 2);
   Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
   Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
-});
+}));

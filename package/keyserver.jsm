@@ -123,7 +123,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
 function buildRequests(keyId, action, tor) {
   const torProperties = tor.torProperties();
 
-  const uris = EnigmailKeyserverURIs.prioritiseEncryption();
+  const uris = EnigmailKeyserverURIs.buildKeyserverUris();
   const requests = [];
 
   if (tor.isRequired(action) && !torProperties.isAvailable) {

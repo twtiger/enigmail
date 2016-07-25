@@ -18,27 +18,6 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 const KEYSERVER_PREF = "keyserver";
 const AUTO_KEYSERVER_SELECTION_PREF = "autoKeyServerSelection";
 
-function getKeyservers(){
-  const keyservers = EnigmailPrefs.getPref(KEYSERVER_PREF).split(/\s*[,;]\s*/g);
-  return EnigmailPrefs.getPref(AUTO_KEYSERVER_SELECTION_PREF) ? [keyservers[0]] : keyservers;
-}
-
-function isHkps(keyserver){
-  return keyserver.protocol === "hkps";
-}
-
-function sortWithHkpsFirst(keyservers){
-  return keyservers.sort(function(a, b){
-    if (isHkps(b) && !isHkps(a)){
-      return 1;
-    }
-    if (isHkps(a) && !isHkps(b)){
-      return -1;
-    }
-    return 0;
-  });
-}
-
 const supportedProtocols = {
   "hkps": "443",
   "hkp": "11371",
@@ -52,21 +31,26 @@ function mapToHkpsName(keyserver) {
   return keyserver;
 }
 
-function buildProtocolAndKeyserver(keyserver){
-  const protocolAndKeyserver = keyserver.split("://");
-  const protocolIncluded = protocolAndKeyserver.length === 2;
-
+function buildUriFrom(keyserver) {
   const uris = [];
-  if (protocolIncluded) {
-    const protocol = protocolAndKeyserver[0];
-    uris.push({ protocol: protocol, keyserverName: protocolAndKeyserver[1], port: supportedProtocols[protocol]});
-  }
-  else {
+  const keyserverProtocolAndName = keyserver.split("://");
+  const protocolIncluded = keyserverProtocolAndName.length === 2;
+
+  if (protocolIncluded){
+    const protocol = keyserverProtocolAndName[0];
+    uris.push({ protocol: protocol, keyserverName: keyserverProtocolAndName[1], port: supportedProtocols[protocol]});
+  } else {
     const hkpsKeyserverName = mapToHkpsName(keyserver);
     uris.push({ protocol: "hkps", keyserverName: hkpsKeyserverName, port: supportedProtocols.hkps});
     uris.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
   }
+
   return uris;
+}
+
+function getKeyservers() {
+  const keyservers = EnigmailPrefs.getPref(KEYSERVER_PREF).split(/\s*[,;]\s*/g);
+  return EnigmailPrefs.getPref(AUTO_KEYSERVER_SELECTION_PREF) ? [keyservers[0]] : keyservers;
 }
 
 function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
@@ -80,20 +64,16 @@ function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
   }
 }
 
-function prioritiseEncryption() {
-  const urisInParts = getKeyservers().map(function(keyserver) {
-    return buildProtocolAndKeyserver(keyserver);
+function buildKeyserverUris() {
+  const uris = getKeyservers().map(function(keyserver) {
+    return buildUriFrom(keyserver);;
   }).reduce(function(a, b) {
     return a.concat(b);
   });
 
-  const completeURI = [];
-  sortWithHkpsFirst(urisInParts).forEach(function(uri) {
-    completeURI.push(concatProtocolKeyserverNamePort(uri.protocol, uri.keyserverName, uri.port));
-  });
-  return completeURI;
+  return uris.map(function(uri) {return concatProtocolKeyserverNamePort(uri.protocol, uri.keyserverName, uri.port);});
 }
 
 const EnigmailKeyserverURIs = {
-  prioritiseEncryption: prioritiseEncryption
+  buildKeyserverUris: buildKeyserverUris
 };
