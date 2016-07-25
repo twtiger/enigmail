@@ -63,6 +63,10 @@ function flatten(arrOfArr) {
   }, []);
 }
 
+function isDownload(action) {
+    return matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY);
+}
+
 function gpgRequest(keyId, uri, action, usingTor) {
   const proxyHost = getProxyModule().getHttpProxy(uri.keyserverName);
   const args = flatten([
@@ -78,7 +82,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
     usingTor: usingTor,
     inputData: getInputData(action),
     envVars: [],
-    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: isDownload(action)
   };
 }
 
@@ -95,7 +99,7 @@ function requestOverTorWithSocks(keyId, uri, torProperties, action) {
     args: args,
     usingTor: true,
     envVars: [],
-    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: isDownload(action)
   };
 }
 
@@ -112,7 +116,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
     args: args,
     usingTor: true,
     envVars: torProperties.envVars,
-    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: isDownload(action)
   };
 }
 
