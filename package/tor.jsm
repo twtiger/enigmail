@@ -134,7 +134,7 @@ function useAuthOverArgs(helper, versioning) {
 
 function findTorExecutableHelper(versioning) {
   const helper = EnigmailFiles.simpleResolvePath('torsocks2') || EnigmailFiles.simpleResolvePath('torsocks');
-  if (helper) {
+  if (helper !== null) {
     const authOverArgs = useAuthOverArgs(helper, versioning);
     return {
       envVars: (authOverArgs ? [] : buildEnvVars()),
