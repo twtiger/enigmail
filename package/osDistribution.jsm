@@ -19,7 +19,7 @@ function getLinuxDistribution() {
   const args = ["-a"];
   const exitCodeObj = {value: null};
   const output = EnigmailExecution.resolveAndSimpleExec("uname", args, exitCodeObj, {});
-  if (!output || exitCodeObj.value < 0) {
+  if (output === null || exitCodeObj.value < 0) {
     return null;
   }
   return output;
