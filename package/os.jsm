@@ -32,8 +32,12 @@ function isMac() {
   return getOS() === "Darwin";
 }
 
+function isWin32() {
+  return getOS() === "WINNT";
+}
+
 const EnigmailOS = {
-  isWin32: (getOS() === "WINNT"),
+  isWin32: isWin32(),
 
   getOS: getOS,
 
