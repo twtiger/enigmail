@@ -79,7 +79,7 @@ const EnigmailFiles = {
   },
 
   simpleResolvePath: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike);
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {
@@ -228,7 +228,7 @@ const EnigmailFiles = {
   },
 
   getEscapedFilename: function(fileNameStr) {
-    if (EnigmailOS.isDosLike()) {
+    if (EnigmailOS.isDosLike) {
       // escape the backslashes and the " character (for Windows and OS/2)
       fileNameStr = fileNameStr.replace(/([\\\"])/g, "\\$1");
     }

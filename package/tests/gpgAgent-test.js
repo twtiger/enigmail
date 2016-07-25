@@ -145,11 +145,11 @@ test(function determineGpgHomeDirReturnsDefaultForWin32() {
 // //   EnigmailPrefs.getPrefBranch().getBoolPref("useGpgAgent")
 
 function asDosLike(f) {
-  resetting(EnigmailOS, 'isDosLikeVal', true, f);
+  resetting(EnigmailOS, 'isDosLike', true, f);
 }
 
 function notDosLike(f) {
-  resetting(EnigmailOS, 'isDosLikeVal', false, f);
+  resetting(EnigmailOS, 'isDosLike', false, f);
 }
 
 function withGpgFeatures(features, f) {

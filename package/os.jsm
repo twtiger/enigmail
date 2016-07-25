@@ -37,11 +37,11 @@ function isWin32() {
 }
 
 const EnigmailOS = {
-  isWin32: isWin32(),
-
   getOS: getOS,
 
-  isDosLike: isDosLike,
+  isDosLike: isDosLike(),
+
+  isWin32: isWin32(),
 
   isMac: isMac(),
 

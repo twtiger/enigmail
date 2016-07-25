@@ -19,9 +19,7 @@ component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 function withDosLike(val, f) {
   return function() {
-    TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-      return val;
-    }, f);
+    TestHelper.resetting(EnigmailOS, "isDosLike", val, f);
   };
 }
 
@@ -63,11 +61,7 @@ test(withDosLike(false, function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
 
 test(withDosLike(true, function shouldReturnFalseIfIsSystemIsWindows() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function() { return { path: '/usr/bin/uname'}; }, function () {
-    TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-      return true;
-    }, function() {
-      Assert.equal(isUbuntu(), false);
-    });
+    Assert.equal(isUbuntu(), false);
   });
 }));
 

@@ -26,7 +26,7 @@ function getLinuxDistribution() {
 }
 
 function isUbuntu() {
-  if (EnigmailOS.isDosLike()) {
+  if (EnigmailOS.isDosLike) {
     return false;
   }
   const distro = getLinuxDistribution();

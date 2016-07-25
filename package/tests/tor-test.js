@@ -28,9 +28,7 @@ function withStandardGpg(f) {
 }
 
 test(function evaluateGpgVersionWhenOsIsWindows() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return true;
-  }, function() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
     TestHelper.resetting(EnigmailGpg, "agentVersion", '1.4.0', function() {
       TestHelper.resetting(EnigmailVersioning, "versionMeetsMinimum", function(version, minimumVersion) {
         Assert.equal(version, '1.4.0');
@@ -44,9 +42,7 @@ test(function evaluateGpgVersionWhenOsIsWindows() {
 });
 
 test(function evaluateMeetsMinimumCurlSocksVersion() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return false;
-  }, function() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", false, function() {
     TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function(executable, minimumVersion) {
       Assert.equal(executable, 'curl');
       Assert.deepEqual(minimumVersion, MINIMUM_CURL_SOCKS5_PROXY_VERSION);
@@ -81,9 +77,7 @@ test(function createHelperArgsAlwaysReturnsRandomUserAndPass() {
 });
 
 test(function createGpgProxyArgs_forWindows() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return true;
-  }, function() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
     TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
@@ -106,9 +100,7 @@ test(function createGpgProxyArgs_forWindows() {
 });
 
 test(function createGpgProxyArgs_forLinux() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return false;
-  }, function() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", false, function() {
     TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {
@@ -155,9 +147,7 @@ test(withStandardGpg(function testTorPropertiesSearchesForTor() {
 }));
 
 test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
-  TestHelper.resetting(EnigmailOS, "isDosLike", function() {
-    return false;
-  }, function() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", false, function() {
     TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
     }, function () {

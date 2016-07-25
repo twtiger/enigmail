@@ -106,7 +106,7 @@ function initializeSubprocessLogging(env) {
 }
 
 function initializeAgentInfo() {
-  if (EnigmailGpgAgent.useGpgAgent() && (!EnigmailOS.isDosLike())) {
+  if (EnigmailGpgAgent.useGpgAgent() && (!EnigmailOS.isDosLike)) {
     if (!EnigmailGpgAgent.isDummy()) {
       EnigmailCore.addToEnvList("GPG_AGENT_INFO=" + EnigmailGpgAgent.gpgAgentInfo.envStr);
     }
