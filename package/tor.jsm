@@ -147,7 +147,11 @@ function findTorExecutableHelper(versioning) {
 }
 
 function findTor() {
-  return torOn(TOR_BROWSER_BUNDLE_PORT_PREF) || torOn(TOR_SERVICE_PORT_PREF);
+  const torOnBrowser = torOn(TOR_BROWSER_BUNDLE_PORT_PREF);
+  if (torOnBrowser !== null) {
+    return torOnBrowser;
+  }
+  return torOn(TOR_SERVICE_PORT_PREF);
 }
 
 const systemCaller = {
@@ -165,7 +169,7 @@ function buildSocksProperties(tor, system) {
 
 function torProperties(system) {
   const tor = system.findTor();
-  if (!meetsOSConstraints() || !tor) {
+  if (!meetsOSConstraints() || (tor === null)) {
     return {isAvailable: false, useTorMode: false, socks: null, helper: null};
   }
 
