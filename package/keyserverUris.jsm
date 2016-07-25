@@ -24,11 +24,15 @@ const supportedProtocols = {
   "ldap": "389"
 };
 
-function mapToHkpsName(keyserver) {
-  if (keyserver === 'pool.sks-keyservers.net') {
-    return 'hkps.pool.sks-keyservers.net';
+function getKeyserverName(keyserver, protocol) {
+  if (keyserver === 'pool.sks-keyservers.net' && protocol ===  "hkps") {
+    return protocol + "." + keyserver;
   }
   return keyserver;
+}
+
+function buildUriFor(protocol, keyserver) {
+  return { protocol: protocol, keyserverName: getKeyserverName(keyserver, protocol), port: supportedProtocols[protocol]};
 }
 
 function buildUriFrom(keyserver) {
@@ -36,13 +40,11 @@ function buildUriFrom(keyserver) {
   const keyserverProtocolAndName = keyserver.split("://");
   const protocolIncluded = keyserverProtocolAndName.length === 2;
 
-  if (protocolIncluded){
-    const protocol = keyserverProtocolAndName[0];
-    uris.push({ protocol: protocol, keyserverName: keyserverProtocolAndName[1], port: supportedProtocols[protocol]});
+  if (protocolIncluded) {
+    uris.push(buildUriFor(keyserverProtocolAndName[0], keyserverProtocolAndName[1]));
   } else {
-    const hkpsKeyserverName = mapToHkpsName(keyserver);
-    uris.push({ protocol: "hkps", keyserverName: hkpsKeyserverName, port: supportedProtocols.hkps});
-    uris.push({ protocol: "hkp", keyserverName: keyserver, port: supportedProtocols.hkp});
+    uris.push(buildUriFor("hkps", keyserver));
+    uris.push(buildUriFor("hkp", keyserver));
   }
 
   return uris;
