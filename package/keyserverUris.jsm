@@ -66,7 +66,7 @@ function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
 
 function buildKeyserverUris() {
   const uris = getKeyservers().map(function(keyserver) {
-    return buildUriFrom(keyserver);;
+    return buildUriFrom(keyserver);
   }).reduce(function(a, b) {
     return a.concat(b);
   });
