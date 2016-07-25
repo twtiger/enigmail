@@ -18,6 +18,7 @@ Cu.import("resource://enigmail/os.jsm"); /* global EnigmailOS: false */
 Cu.import("resource://enigmail/data.jsm"); /* global EnigmailData: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /* global subprocess: false */
 Cu.import("resource://enigmail/log.jsm"); /* global EnigmailLog: false */
+Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
 var gKernel32Dll = null;
 var gSystemCharset = null;
