@@ -104,7 +104,7 @@ test(function testBuildNormalRequestOverTorWithStandardArgs(){
 
   Assert.equal(request.command.path, '/usr/bin/gpg2');
   Assert.deepEqual(request.args, refreshKeyArgs);
-  Assert.equal(request.isDownload, Ci.nsIEnigmail.DOWNLOAD_KEY);
+  Assert.equal(request.isDownload, true);
   Assert.equal(request.usingTor, true);
 });
 
@@ -412,7 +412,7 @@ test(function testBasicNormalQuery() {
 
   Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
-  Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.REFRESH_KEY);
+  Assert.equal(keyRequest.isDownload, true);
   Assert.equal(errormsgobj.value, null);
 });
 
@@ -434,7 +434,7 @@ test(function testBasicNormalQueryWithHTTPPRoxy() {
 
   Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
-  Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.REFRESH_KEY);
+  Assert.equal(keyRequest.isDownload, true);
   Assert.equal(errormsgobj.value, null);
 });
 
@@ -456,7 +456,7 @@ test(function testBasicNormalQueryWithInputData() {
 
   Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, "quit\n");
-  Assert.equal(keyRequest.isDownload, 0);
+  Assert.equal(keyRequest.isDownload, false);
   Assert.equal(errormsgobj.value, null);
 });
 
@@ -477,7 +477,7 @@ test(function testNormalReceiveKeyQuery() {
 
   Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
-  Assert.equal(keyRequest.isDownload, Ci.nsIEnigmail.DOWNLOAD_KEY);
+  Assert.equal(keyRequest.isDownload, true);
   Assert.equal(errormsgobj.value, null);
 });
 
@@ -498,7 +498,7 @@ test(function testNormalUploadKeyRequest() {
 
   Assert.deepEqual(keyRequest.args, expectedArgs);
   Assert.equal(keyRequest.inputData, null);
-  Assert.equal(keyRequest.isDownload, 0);
+  Assert.equal(keyRequest.isDownload, false);
   Assert.equal(errormsgobj.value, null);
 });
 

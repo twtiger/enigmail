@@ -31,16 +31,20 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global EnigmailKeyserverURIs: false */
 
+function matchesKeyserverAction(action, flag) {
+  return (action & flag) === flag;
+}
+
 function getRequestAction(actionFlags, keys) {
-  if (actionFlags & Ci.nsIEnigmail.DOWNLOAD_KEY) { return ['--recv-keys'].concat(keys); }
-  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) { return ['--search-keys'].concat(keys); }
-  if (actionFlags & Ci.nsIEnigmail.UPLOAD_KEY) { return ['--send-keys'].concat(keys); }
-  if (actionFlags & Ci.nsIEnigmail.REFRESH_KEY) { return ['--refresh-keys']; }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY)) { return ['--recv-keys'].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) { return ['--search-keys'].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.UPLOAD_KEY)) { return ['--send-keys'].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.REFRESH_KEY))  { return ['--refresh-keys']; }
   return null;
 }
 
 function getInputData(actionFlags) {
-  if (actionFlags & Ci.nsIEnigmail.SEARCH_KEY) {return 'quit\n';}
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) {return 'quit\n';}
   return null;
 }
 
@@ -52,7 +56,7 @@ function buildProxyInfo(uri, proxyHost) {
 }
 
 function buildStandardArgs(action) {
-  if (action & Ci.nsIEnigmail.SEARCH_KEY) {
+  if (matchesKeyserverAction(action, Ci.nsIEnigmail.SEARCH_KEY)) {
     return EnigmailGpg.getStandardArgs(false).concat(["--command-fd", "0", "--fixed-list", "--with-colons"]);
   }
   return EnigmailGpg.getStandardArgs(true);
@@ -79,7 +83,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
     usingTor: usingTor,
     inputData: getInputData(action),
     envVars: [],
-    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
   };
 }
 
@@ -96,7 +100,7 @@ function requestOverTorWithSocks(keyId, uri, torProperties, action) {
     args: args,
     usingTor: true,
     envVars: [],
-    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
   };
 }
 
@@ -113,7 +117,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
     args: args,
     usingTor: true,
     envVars: torProperties.envVars,
-    isDownload: action & (Ci.nsIEnigmail.REFRESH_KEY | Ci.nsIEnigmail.DOWNLOAD_KEY)
+    isDownload: matchesKeyserverAction(action, Ci.nsIEnigmail.REFRESH_KEY) || matchesKeyserverAction(action, Ci.nsIEnigmail.DOWNLOAD_KEY)
   };
 }
 
@@ -234,7 +238,7 @@ function invalidArgumentsExist(actionFlags, keyserver, searchTerms, errorMsgObj)
     return true;
   }
 
-  if (!searchTerms && !(actionFlags & Ci.nsIEnigmail.REFRESH_KEY)) {
+  if (!searchTerms && !matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.REFRESH_KEY)) {
     errorMsgObj.value = EnigmailLocale.getString("failNoID");
     return true;
   }
