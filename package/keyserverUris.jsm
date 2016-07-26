@@ -26,7 +26,7 @@ const supportedProtocols = {
 
 function getKeyserverName(keyserver, protocol) {
   if (keyserver === 'pool.sks-keyservers.net' && protocol ===  "hkps") {
-    return protocol + "." + keyserver;
+    return 'hkps.pool.sks-keyservers.net';
   }
   return keyserver;
 }
