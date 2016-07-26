@@ -95,5 +95,5 @@ test(withPreferences(function buildUrisFromKeyservers_onlyInvalidProtocols() {
 
   const keyserverUris = buildKeyserverUris();
 
-  Assert.deepEqual(keyserverUris, ['hkp://keys.gnupg.net']);
+  Assert.deepEqual(keyserverUris, ['hkp://keys.gnupg.net:11371']);
 }));
