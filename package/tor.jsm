@@ -76,7 +76,7 @@ function combineIntoProxyhostURI(protocol, tor) {
 }
 
 function gpgProxyArgs(tor, versioning) {
-  if (EnigmailOS.isDosLike() || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+  if (EnigmailOS.isDosLike || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
     return combineIntoProxyhostURI(OLD_CURL_PROTOCOL, tor);
   } else {
     return combineIntoProxyhostURI(NEW_CURL_PROTOCOL, tor);
@@ -118,7 +118,7 @@ function torOn(portPref) {
 }
 
 function meetsOSConstraints() {
-  if (EnigmailOS.isDosLike()) {
+  if (EnigmailOS.isDosLike) {
     return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);

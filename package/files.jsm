@@ -51,8 +51,8 @@ function environment() {
   return lazyEnv;
 }
 
-function addMacPaths(isDosLike, envPath) {
-  if (!isDosLike && EnigmailOS.isMac()) {
+function addMacPaths(envPath) {
+  if (EnigmailOS.isMac) {
     return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
   }
   return envPath;
@@ -79,7 +79,7 @@ const EnigmailFiles = {
   },
 
   simpleResolvePath: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike);
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {
@@ -95,7 +95,7 @@ const EnigmailFiles = {
 
     const fileNames = filePath.split(";");
 
-    envPath = addMacPaths(isDosLike, envPath);
+    envPath = addMacPaths(envPath);
     const pathDirs = envPath.split(isDosLike ? ";" : ":");
 
     for (let i = 0; i < fileNames.length; i++) {
@@ -228,7 +228,7 @@ const EnigmailFiles = {
   },
 
   getEscapedFilename: function(fileNameStr) {
-    if (EnigmailOS.isDosLike()) {
+    if (EnigmailOS.isDosLike) {
       // escape the backslashes and the " character (for Windows and OS/2)
       fileNameStr = fileNameStr.replace(/([\\\"])/g, "\\$1");
     }

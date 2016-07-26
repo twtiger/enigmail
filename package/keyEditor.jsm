@@ -518,7 +518,7 @@ const EnigmailKeyEditor = {
 
   genCardKey: function(parent, name, email, comment, expiry, backupPasswd, requestObserver, callbackFunc) {
     EnigmailLog.DEBUG("keyManagmenent.jsm: Enigmail.genCardKey: \n");
-    var generateObserver = new EnigCardAdminObserver(requestObserver, EnigmailOS.isDosLike());
+    var generateObserver = new EnigCardAdminObserver(requestObserver, EnigmailOS.isDosLike);
     return editKey(parent, false, null, "", ["--with-colons", "--card-edit"], {
         step: 0,
         name: EnigmailData.convertFromUnicode(name),
@@ -538,7 +538,7 @@ const EnigmailKeyEditor = {
   cardAdminData: function(parent, name, firstname, lang, sex, url, login, forcepin, callbackFunc) {
     EnigmailLog.DEBUG("keyManagmenent.jsm: Enigmail.cardAdminData: parent=" + parent + ", name=" + name + ", firstname=" + firstname + ", lang=" + lang + ", sex=" + sex + ", url=" + url +
       ", login=" + login + ", forcepin=" + forcepin + "\n");
-    var adminObserver = new EnigCardAdminObserver(null, EnigmailOS.isDosLike());
+    var adminObserver = new EnigCardAdminObserver(null, EnigmailOS.isDosLike);
     return editKey(parent, false, null, "", ["--with-colons", "--card-edit"], {
       step: 0,
       name: name,
@@ -557,7 +557,7 @@ const EnigmailKeyEditor = {
 
   cardChangePin: function(parent, action, oldPin, newPin, adminPin, pinObserver, callbackFunc) {
     EnigmailLog.DEBUG("keyManagmenent.jsm: Enigmail.cardChangePin: parent=" + parent + ", action=" + action + "\n");
-    var adminObserver = new EnigCardAdminObserver(pinObserver, EnigmailOS.isDosLike());
+    var adminObserver = new EnigCardAdminObserver(pinObserver, EnigmailOS.isDosLike);
     return editKey(parent, true, null, "", ["--with-colons", "--card-edit"], {
       step: 0,
       pinStep: 0,

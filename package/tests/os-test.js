@@ -11,7 +11,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("os.jsm"); /*global operatingSystem: true, isMac: false, EnigmailOS: false  */
+testing("os.jsm"); /*global operatingSystem: true, isMac: false, isDosLike: false, isWin32: false, EnigmailOS: false  */
 
 function withOS(os, f) {
   return function() {
@@ -32,4 +32,24 @@ test(withOS('Darwin', function shouldReturnTrueWhenSystemIsMac() {
 
 test(withOS('Linux', function shouldReturnFalseWhenSystemIsLinux() {
   Assert.equal(isMac(), false);
+}));
+
+test(withOS('Linux', function shouldReturnFalseWhenSystemIsLinux() {
+  Assert.equal(isWin32(), false);
+}));
+
+test(withOS('WINNT', function shouldReturnTrueWhenSystemIsWin32() {
+  Assert.equal(isWin32(), true);
+}));
+
+test(withOS('OS2', function shouldBeDosLikeWhenSystemIsWindows() {
+  Assert.equal(isDosLike(), true);
+}));
+
+test(withOS('WINNT', function shouldBeDosLikeWhenSystemIsWindows32() {
+  Assert.equal(isDosLike(), true);
+}));
+
+test(withOS('Darwin', function shouldNotBeDosLikeWhenSystemIsMac() {
+  Assert.equal(isDosLike(), false);
 }));

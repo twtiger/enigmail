@@ -79,9 +79,9 @@ const executor = {
   },
   findExecutable: function(executable) {
     if (EnigmailOS.getOS() === 'Darwin') {
-      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', EnigmailOS.isDosLike());
+      return EnigmailFiles.resolvePath(executable, environment().get("PATH") + ':/usr/local/bin', EnigmailOS.isDosLike);
     }
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike());
+    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike);
   },
   exists: function(executable) {
     return executor.findExecutable(executable) !== null;

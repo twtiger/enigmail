@@ -7,9 +7,9 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withPreferences: false, resetting: false, withEnvironment: false, withEnigmail: false, withTestGpgHome: false, getKeyListEntryOfKey: false, gKeyListObj: true */
 
-testing("keyserver.jsm"); /*global currentProxyModule: true, Ci, executeRefresh: false, gpgRequest: false, requestOverTorWithSocks: false, requestOverTorWithHelper: false, build: false, buildRequests: false */
+testing("keyserver.jsm"); /*global validKeyserversExist: false, currentProxyModule: true, Ci, executeRefresh: false, gpgRequest: false, requestOverTorWithSocks: false, requestOverTorWithHelper: false, build: false, buildRequests: false */
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */

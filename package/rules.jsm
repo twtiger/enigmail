@@ -132,11 +132,11 @@ var EnigmailRules = {
 
     if (origFirstChild && (!appendToEnd)) {
       rulesListHolder.rulesList.firstChild.insertBefore(rule, origFirstChild);
-      rulesListHolder.rulesList.firstChild.insertBefore(rulesListHolder.rulesList.createTextNode(EnigmailOS.isDosLike() ? "\r\n" : "\n"), origFirstChild);
+      rulesListHolder.rulesList.firstChild.insertBefore(rulesListHolder.rulesList.createTextNode(EnigmailOS.isDosLike ? "\r\n" : "\n"), origFirstChild);
     }
     else {
       rulesListHolder.rulesList.firstChild.appendChild(rule);
-      rulesListHolder.rulesList.firstChild.appendChild(rulesListHolder.rulesList.createTextNode(EnigmailOS.isDosLike() ? "\r\n" : "\n"));
+      rulesListHolder.rulesList.firstChild.appendChild(rulesListHolder.rulesList.createTextNode(EnigmailOS.isDosLike ? "\r\n" : "\n"));
     }
   },
 

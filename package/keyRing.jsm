@@ -643,7 +643,7 @@ var EnigmailKeyRing = {
       return null;
     }
 
-    if (EnigmailOS.isDosLike() && EnigmailGpg.getGpgFeature("windows-photoid-bug")) {
+    if (EnigmailOS.isDosLike && EnigmailGpg.getGpgFeature("windows-photoid-bug")) {
       // workaround for error in gpg
       photoDataObj.value = photoDataObj.value.replace(/\r\n/g, "\n");
     }

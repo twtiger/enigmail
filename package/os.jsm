@@ -32,14 +32,18 @@ function isMac() {
   return getOS() === "Darwin";
 }
 
-const EnigmailOS = {
-  isWin32: (getOS() == "WINNT"),
+function isWin32() {
+  return getOS() === "WINNT";
+}
 
+const EnigmailOS = {
   getOS: getOS,
 
-  isDosLike: isDosLike,
+  isDosLike: isDosLike(),
 
-  isMac: isMac,
+  isWin32: isWin32(),
+
+  isMac: isMac(),
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)
