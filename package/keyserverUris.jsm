@@ -24,23 +24,29 @@ const supportedProtocols = {
   "ldap": "389"
 };
 
-function getKeyserverName(keyserver, protocol) {
-  if (keyserver === 'pool.sks-keyservers.net' && protocol ===  "hkps") {
-    return 'hkps.pool.sks-keyservers.net';
-  }
-  return keyserver;
-}
-
 function buildUriFor(protocol, keyserver) {
-  return { protocol: protocol, keyserverName: getKeyserverName(keyserver, protocol), port: supportedProtocols[protocol]};
+  return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
 }
 
-function buildUriFrom(keyserver) {
+function addUriOptionsForPoolKeyservers(keyserver, uris){
+  if (keyserver === 'hkps.pool.sks-keyservers.net') {
+    uris.push(buildUriFor("hkps", keyserver));
+  }
+  if (keyserver === 'pool.sks-keyservers.net') {
+    uris.push(buildUriFor("hkps", 'hkps.pool.sks-keyservers.net'));
+    uris.push(buildUriFor("hkp", keyserver));
+  }
+}
+
+function buildUriOptionsFor(keyserver) {
   const uris = [];
   const keyserverProtocolAndName = keyserver.split("://");
   const protocolIncluded = keyserverProtocolAndName.length === 2;
+  const isPoolKeyserver = ['hkps.pool.sks-keyservers.net', 'pool.sks-keyservers.net'].indexOf(keyserver) > -1;
 
-  if (protocolIncluded) {
+  if (isPoolKeyserver) {
+    addUriOptionsForPoolKeyservers(keyserver, uris);
+  } else if (protocolIncluded) {
     uris.push(buildUriFor(keyserverProtocolAndName[0], keyserverProtocolAndName[1]));
   } else {
     uris.push(buildUriFor("hkps", keyserver));
@@ -68,7 +74,7 @@ function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
 
 function buildKeyserverUris() {
   const uris = getUserDefinedKeyserverURIs().filter(isValidProtocol).map(function(keyserver) {
-    return buildUriFrom(keyserver);
+    return buildUriOptionsFor(keyserver);
   }).reduce(function(a, b) {
     return a.concat(b);
   });

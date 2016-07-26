@@ -9,7 +9,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
 
-testing("keyserverUris.jsm"); /*global validKeyserversExist: false, prioritiseEncryption: false, buildKeyserverUris: false */
+testing("keyserverUris.jsm"); /*global validKeyserversExist: false, buildKeyserverUris: false */
 
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
@@ -64,6 +64,16 @@ test(withPreferences(function shouldUseCorrectCorrespondingHkpsAddressForHkpPool
   Assert.equal(keyserverUris.length, 2);
   Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
   Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
+}));
+
+test(withPreferences(function shouldNotChangeAddressForHkpsPoolServers(){
+  setupKeyserverPrefs("hkps.pool.sks-keyservers.net, hkps://keyserver2", false);
+
+  const keyserverUris = buildKeyserverUris();
+
+  Assert.equal(keyserverUris.length, 2);
+  Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
+  Assert.equal(keyserverUris[1],'hkps://keyserver2:443');
 }));
 
 test(withPreferences(function validKeyserversExistWithDefaultPreferences() {
