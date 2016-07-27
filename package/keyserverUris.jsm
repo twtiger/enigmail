@@ -25,7 +25,7 @@ const supportedProtocols = {
 };
 
 function buildUriFor(protocol, keyserver) {
-  return { protocol: protocol, keyserverName: keyserver, port: supportedProtocols[protocol]};
+  return { protocol: protocol, domain: keyserver, port: supportedProtocols[protocol]};
 }
 
 function addUriOptionsForPoolKeyservers(keyserver, uris){
@@ -40,14 +40,14 @@ function addUriOptionsForPoolKeyservers(keyserver, uris){
 
 function buildUriOptionsFor(keyserver) {
   const uris = [];
-  const keyserverProtocolAndName = keyserver.split("://");
-  const protocolIncluded = keyserverProtocolAndName.length === 2;
+  const keyserverProtocolAndDomain = keyserver.split("://");
+  const protocolIncluded = keyserverProtocolAndDomain.length === 2;
   const isPoolKeyserver = ["hkps.pool.sks-keyservers.net", "pool.sks-keyservers.net"].indexOf(keyserver) > -1;
 
   if (isPoolKeyserver) {
     addUriOptionsForPoolKeyservers(keyserver, uris);
   } else if (protocolIncluded) {
-    uris.push(buildUriFor(keyserverProtocolAndName[0], keyserverProtocolAndName[1]));
+    uris.push(buildUriFor(keyserverProtocolAndDomain[0], keyserverProtocolAndDomain[1]));
   } else {
     uris.push(buildUriFor("hkps", keyserver));
     uris.push(buildUriFor("hkp", keyserver));
@@ -61,14 +61,14 @@ function getUserDefinedKeyserverURIs() {
   return EnigmailPrefs.getPref(AUTO_KEYSERVER_SELECTION_PREF) ? [keyservers[0]] : keyservers;
 }
 
-function concatProtocolKeyserverNamePort(protocol, keyserverName, port) {
+function combineIntoURI(protocol, domain, port) {
   // Returns hkps.pool.sks-keyservers.net only because
   // GnuPG version 2.1.14 in Windows does not parse
   // hkps://hkps.pool.sks-keyservers.net:443 correctly
-  if (keyserverName === "hkps.pool.sks-keyservers.net") {
-    return keyserverName;
+  if (domain === "hkps.pool.sks-keyservers.net") {
+    return domain;
   } else {
-    return protocol + "://" + keyserverName + ":" + port;
+    return protocol + "://" + domain + ":" + port;
   }
 }
 
@@ -79,7 +79,7 @@ function buildKeyserverUris() {
     return a.concat(b);
   });
 
-  return uris.map(function(uri) {return concatProtocolKeyserverNamePort(uri.protocol, uri.keyserverName, uri.port);});
+  return uris.map(function(uri) {return combineIntoURI(uri.protocol, uri.domain, uri.port);});
 }
 
 function isValidProtocol(uri) {
