@@ -30,7 +30,7 @@ function getLinuxDistribution() {
 }
 
 function isUbuntu() {
-  if (EnigmailOS.isDosLike) {
+  if (isDosLike()) {
     return false;
   }
   const distro = getLinuxDistribution();
