@@ -167,10 +167,20 @@ function buildSocksProperties(tor, system) {
   };
 }
 
+function torNotAvailableProperties() {
+  return {isAvailable: false, useTorMode: false, socks: null, helper: null};
+}
+
 function torProperties(system) {
   const tor = system.findTor();
-  if (!meetsOSConstraints() || tor === null) {
-    return {isAvailable: false, useTorMode: false, socks: null, helper: null};
+
+  if (!meetsOSConstraints())  {
+    EnigmailLog.DEBUG("tor.jsm: this version of curl does not support socks5 proxies \n");
+    return torNotAvailableProperties();
+  }
+
+  if (tor === null) {
+    return torNotAvailableProperties();
   }
 
   const helper = system.findTorExecutableHelper(EnigmailVersioning);
