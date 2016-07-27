@@ -100,7 +100,7 @@ test(withPreferences(function validKeyserversExistWhenOneProtocolIsValid() {
   Assert.equal(validKeyserversExist(), true);
 }));
 
-test(withPreferences(function buildUrisFromKeyservers_onlyInvalidProtocols() {
+test(withPreferences(function buildUrisFromKeyservers_oneValidProtocol() {
   setupKeyserverPrefs("hkp://keys.gnupg.net, abc://pgp.mit.edu", true);
 
   const keyserverUris = buildKeyserverUris();
