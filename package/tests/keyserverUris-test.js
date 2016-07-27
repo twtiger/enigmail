@@ -9,7 +9,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
 
-testing("keyserverUris.jsm"); /*global validKeyserversExist: false, buildKeyserverUris: false */
+testing("keyserverUris.jsm"); /*global isValidProtocol: false, validKeyserversExist: false, buildKeyserverUris: false */
 
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 
@@ -106,4 +106,12 @@ test(withPreferences(function buildUrisFromKeyservers_oneValidProtocol() {
   const keyserverUris = buildKeyserverUris();
 
   Assert.deepEqual(keyserverUris, ["hkp://keys.gnupg.net:11371"]);
+}));
+
+test(withPreferences(function considerPoolHkpsServerValidWithProtocolAndPortSpecified() {
+    Assert.equal(isValidProtocol("hkps://hkps.pool.sks-keyservers.net:443"), true);
+}));
+
+test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValidProtocols() {
+    Assert.equal(isValidProtocol("hkpsldap://domain"), false);
 }));
