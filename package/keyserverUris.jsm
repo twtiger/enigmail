@@ -83,12 +83,10 @@ function buildKeyserverUris() {
 }
 
 function isValidProtocol(uri) {
-  if (uri.match(/:\/\//)) {
-    const protocol = uri.split("://")[0];
-    return supportedProtocols.hasOwnProperty(protocol);
-  } else {
-    return true;
-  }
+  return uri.match(/:\/\//) === null
+    || /^hkps:\/\//.test(uri)
+    || /^hkp:\/\//.test(uri)
+    || /^ldap:\/\//.test(uri);
 }
 
 function validProtocolsExist() {
