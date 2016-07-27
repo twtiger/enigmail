@@ -93,7 +93,6 @@ function isValidProtocol(uri) {
 
 function validProtocolsExist() {
   const validKeyserverUris = getUserDefinedKeyserverURIs().filter(isValidProtocol);
-
   return validKeyserverUris.length > 0;
 }
 
