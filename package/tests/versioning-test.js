@@ -15,12 +15,12 @@ component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
 test(function checkCurlVersionIsOver() {
   const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', minimumCurlVersion), true);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", minimumCurlVersion), true);
 });
 
 test(function checkCurlVersionIsLess() {
   const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('curl', absurdlyHighCurlRequirement), false);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", absurdlyHighCurlRequirement), false);
 });
 
 test(function parseFullVersionResponse() {
@@ -43,5 +43,5 @@ test(function parseMajorOnlyResponse() {
 
 test(function gpgNotOverOrEqual() {
   const minimum = { major: 2, minor: 0, patch: 30 };
-  Assert.equal(versionFoundMeetsMinimumVersionRequired('gpg', minimum), false);
+  Assert.equal(versionFoundMeetsMinimumVersionRequired("gpg", minimum), false);
 });

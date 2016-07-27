@@ -79,7 +79,7 @@ function getDirmngrTorStatus(exitCodeObj) {
 
   EnigmailLog.CONSOLE("enigmail> " + EnigmailFiles.formatCmdLine(command, args) + "\n");
 
-  let stdout = '';
+  let stdout = "";
   try {
     subprocess.call({
       command: command,
@@ -189,17 +189,17 @@ const EnigmailGpg = {
     const vc = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator);
 
     switch (featureName) {
-      case 'version-supported':
+      case "version-supported":
         return vc.compare(gpgVersion, "2.0.7") >= 0;
-      case 'supports-gpg-agent':
+      case "supports-gpg-agent":
         return vc.compare(gpgVersion, "2.0") >= 0;
-      case 'autostart-gpg-agent':
+      case "autostart-gpg-agent":
         return vc.compare(gpgVersion, "2.0.16") >= 0;
-      case 'keygen-passphrase':
+      case "keygen-passphrase":
         return vc.compare(gpgVersion, "2.1") < 0 || vc.compare(gpgVersion, "2.1.2") >= 0;
-      case 'genkey-no-protection':
+      case "genkey-no-protection":
         return vc.compare(gpgVersion, "2.1") > 0;
-      case 'windows-photoid-bug':
+      case "windows-photoid-bug":
         return vc.compare(gpgVersion, "2.0.16") < 0;
     }
 

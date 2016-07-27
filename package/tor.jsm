@@ -37,7 +37,7 @@ const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
 
-const TOR_HELPERS = ['torsocks2', 'torsocks', 'torify', 'usewithtor'];
+const TOR_HELPERS = ["torsocks2", "torsocks", "torify", "usewithtor"];
 
 const TORSOCKS_VERSION_2 = v(2, 0, 0);
 
@@ -76,7 +76,7 @@ function combineIntoProxyhostURI(protocol, tor) {
 }
 
 function gpgProxyArgs(tor, versioning) {
-  if (EnigmailOS.isDosLike || !versioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5H_VERSION)) {
+  if (EnigmailOS.isDosLike || !versioning.versionFoundMeetsMinimumVersionRequired("curl", MINIMUM_CURL_SOCKS5H_VERSION)) {
     return combineIntoProxyhostURI(OLD_CURL_PROTOCOL, tor);
   } else {
     return combineIntoProxyhostURI(NEW_CURL_PROTOCOL, tor);
@@ -86,7 +86,7 @@ function gpgProxyArgs(tor, versioning) {
 function createHelperArgs(helper, addAuth) {
   let args = [];
   if (addAuth) {
-    args = ['--user', createRandomCredential(), '--pass', createRandomCredential()];
+    args = ["--user", createRandomCredential(), "--pass", createRandomCredential()];
   }
   args.push(EnigmailGpg.agentPath.path);
   return args;
@@ -121,19 +121,19 @@ function meetsOSConstraints() {
   if (EnigmailOS.isDosLike) {
     return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
-    return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired('curl', MINIMUM_CURL_SOCKS5_PROXY_VERSION);
+    return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired("curl", MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
 }
 
 function useAuthOverArgs(helper, versioning) {
-  if (helper === 'torsocks2') {
-    return versioning.versionFoundMeetsMinimumVersionRequired('torsocks2', TORSOCKS_VERSION_2);
+  if (helper === "torsocks2") {
+    return versioning.versionFoundMeetsMinimumVersionRequired("torsocks2", TORSOCKS_VERSION_2);
   }
-  return versioning.versionFoundMeetsMinimumVersionRequired('torsocks', TORSOCKS_VERSION_2);
+  return versioning.versionFoundMeetsMinimumVersionRequired("torsocks", TORSOCKS_VERSION_2);
 }
 
 function findTorExecutableHelper(versioning) {
-  const helper = EnigmailFiles.simpleResolvePath('torsocks2') || EnigmailFiles.simpleResolvePath('torsocks');
+  const helper = EnigmailFiles.simpleResolvePath("torsocks2") || EnigmailFiles.simpleResolvePath("torsocks");
   if (helper !== null) {
     const authOverArgs = useAuthOverArgs(helper, versioning);
     return {
@@ -161,7 +161,7 @@ const systemCaller = {
 
 function buildSocksProperties(tor, system) {
   return {
-    command: 'gpg',
+    command: "gpg",
     args: gpgProxyArgs(tor, EnigmailVersioning),
     envVars: []
   };

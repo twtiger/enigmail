@@ -23,8 +23,8 @@ test(withPreferences(function organizeProtocols_withOneHkpsServer() {
 
   const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(keyserverUris[0], 'hkps://keyserver.1:443');
-  Assert.equal(keyserverUris[1], 'hkp://keyserver.1:11371');
+  Assert.equal(keyserverUris[0], "hkps://keyserver.1:443");
+  Assert.equal(keyserverUris[1], "hkp://keyserver.1:11371");
   Assert.equal(keyserverUris.length, 2);
 }));
 
@@ -33,12 +33,12 @@ test(withPreferences(function buildUrisFromKeyservers_withoutSpecifiedProtocols(
 
   const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(keyserverUris[0], 'hkps://keyserver.1:443');
-  Assert.equal(keyserverUris[1], 'hkp://keyserver.1:11371');
-  Assert.equal(keyserverUris[2], 'hkps://keyserver.2:443');
-  Assert.equal(keyserverUris[3], 'hkp://keyserver.2:11371');
-  Assert.equal(keyserverUris[4], 'hkps://keyserver.3:443');
-  Assert.equal(keyserverUris[5], 'hkp://keyserver.3:11371');
+  Assert.equal(keyserverUris[0], "hkps://keyserver.1:443");
+  Assert.equal(keyserverUris[1], "hkp://keyserver.1:11371");
+  Assert.equal(keyserverUris[2], "hkps://keyserver.2:443");
+  Assert.equal(keyserverUris[3], "hkp://keyserver.2:11371");
+  Assert.equal(keyserverUris[4], "hkps://keyserver.3:443");
+  Assert.equal(keyserverUris[5], "hkp://keyserver.3:11371");
   Assert.equal(keyserverUris.length, 6);
 }));
 
@@ -47,12 +47,12 @@ test(withPreferences(function buildUrisFromKeyservers_withMixOfProtocols() {
 
   const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(keyserverUris[0],'hkp://keyserver.1:11371');
-  Assert.equal(keyserverUris[1],'hkps://keyserver.2:443');
-  Assert.equal(keyserverUris[2],'hkps://keyserver.3:443');
-  Assert.equal(keyserverUris[3],'hkp://keyserver.3:11371');
-  Assert.equal(keyserverUris[4],'hkps://keyserver.4:443');
-  Assert.equal(keyserverUris[5],'ldap://keyserver.5:389');
+  Assert.equal(keyserverUris[0],"hkp://keyserver.1:11371");
+  Assert.equal(keyserverUris[1],"hkps://keyserver.2:443");
+  Assert.equal(keyserverUris[2],"hkps://keyserver.3:443");
+  Assert.equal(keyserverUris[3],"hkp://keyserver.3:11371");
+  Assert.equal(keyserverUris[4],"hkps://keyserver.4:443");
+  Assert.equal(keyserverUris[5],"ldap://keyserver.5:389");
 
 }));
 
@@ -62,8 +62,8 @@ test(withPreferences(function shouldUseCorrectCorrespondingHkpsAddressForHkpPool
   const keyserverUris = buildKeyserverUris();
 
   Assert.equal(keyserverUris.length, 2);
-  Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
-  Assert.equal(keyserverUris[1],'hkp://pool.sks-keyservers.net:11371');
+  Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
+  Assert.equal(keyserverUris[1],"hkp://pool.sks-keyservers.net:11371");
 }));
 
 test(withPreferences(function shouldNotChangeAddressForHkpsPoolServers(){
@@ -72,8 +72,8 @@ test(withPreferences(function shouldNotChangeAddressForHkpsPoolServers(){
   const keyserverUris = buildKeyserverUris();
 
   Assert.equal(keyserverUris.length, 2);
-  Assert.equal(keyserverUris[0],'hkps.pool.sks-keyservers.net');
-  Assert.equal(keyserverUris[1],'hkps://keyserver2:443');
+  Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
+  Assert.equal(keyserverUris[1],"hkps://keyserver2:443");
 }));
 
 test(withPreferences(function validKeyserversExistWithDefaultPreferences() {
@@ -105,5 +105,5 @@ test(withPreferences(function buildUrisFromKeyservers_oneValidProtocol() {
 
   const keyserverUris = buildKeyserverUris();
 
-  Assert.deepEqual(keyserverUris, ['hkp://keys.gnupg.net:11371']);
+  Assert.deepEqual(keyserverUris, ["hkp://keys.gnupg.net:11371"]);
 }));

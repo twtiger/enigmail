@@ -55,7 +55,7 @@ function buildListener(hasFoundTor, isDoneChecking) {
 }
 
 function getCurrentThread() {
-    return Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager).currentThread;
+    return Cc["@mozilla.org/thread-manager;1"].getService(Ci.nsIThreadManager).currentThread;
 }
 
 function filterWith(portPref) {

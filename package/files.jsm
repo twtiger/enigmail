@@ -53,7 +53,7 @@ function environment() {
 
 function addMacPaths(envPath) {
   if (EnigmailOS.isMac) {
-    return envPath + ':/usr/local/bin:/usr/local/MacGPG2/bin';
+    return envPath + ":/usr/local/bin:/usr/local/MacGPG2/bin";
   }
   return envPath;
 }

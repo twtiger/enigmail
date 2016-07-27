@@ -26,30 +26,30 @@ function withOS(os, f) {
   };
 }
 
-test(withOS('Darwin', function shouldReturnTrueWhenSystemIsMac() {
+test(withOS("Darwin", function shouldReturnTrueWhenSystemIsMac() {
   Assert.equal(isMac(), true);
 }));
 
-test(withOS('Linux', function shouldReturnFalseWhenSystemIsLinux() {
+test(withOS("Linux", function shouldReturnFalseWhenSystemIsLinux() {
   Assert.equal(isMac(), false);
 }));
 
-test(withOS('Linux', function shouldReturnFalseWhenSystemIsLinux() {
+test(withOS("Linux", function shouldReturnFalseWhenSystemIsLinux() {
   Assert.equal(isWin32(), false);
 }));
 
-test(withOS('WINNT', function shouldReturnTrueWhenSystemIsWin32() {
+test(withOS("WINNT", function shouldReturnTrueWhenSystemIsWin32() {
   Assert.equal(isWin32(), true);
 }));
 
-test(withOS('OS2', function shouldBeDosLikeWhenSystemIsWindows() {
+test(withOS("OS2", function shouldBeDosLikeWhenSystemIsWindows() {
   Assert.equal(isDosLike(), true);
 }));
 
-test(withOS('WINNT', function shouldBeDosLikeWhenSystemIsWindows32() {
+test(withOS("WINNT", function shouldBeDosLikeWhenSystemIsWindows32() {
   Assert.equal(isDosLike(), true);
 }));
 
-test(withOS('Darwin', function shouldNotBeDosLikeWhenSystemIsMac() {
+test(withOS("Darwin", function shouldNotBeDosLikeWhenSystemIsMac() {
   Assert.equal(isDosLike(), false);
 }));

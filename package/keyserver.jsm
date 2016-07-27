@@ -36,15 +36,15 @@ function matchesKeyserverAction(action, flag) {
 }
 
 function getRequestAction(actionFlags, keys) {
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY)) { return ['--recv-keys'].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) { return ['--search-keys'].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.UPLOAD_KEY)) { return ['--send-keys'].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.REFRESH_KEY))  { return ['--refresh-keys']; }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY)) { return ["--recv-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) { return ["--search-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.UPLOAD_KEY)) { return ["--send-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.REFRESH_KEY))  { return ["--refresh-keys"]; }
   return null;
 }
 
 function getInputData(actionFlags) {
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) {return 'quit\n';}
+  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) {return "quit\n";}
   return null;
 }
 
@@ -76,7 +76,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
   const proxyHost = getProxyModule().getHttpProxy(uri.keyserverName);
   const args = flatten([
     buildStandardArgs(action),
-    ['--keyserver', uri],
+    ["--keyserver", uri],
     buildProxyInfo(uri, proxyHost),
     getRequestAction(action, keyId)
   ]);
@@ -94,7 +94,7 @@ function gpgRequest(keyId, uri, action, usingTor) {
 function requestOverTorWithSocks(keyId, uri, torProperties, action) {
   const args = flatten([
     buildStandardArgs(action),
-    ['--keyserver', uri],
+    ["--keyserver", uri],
     buildProxyInfo(uri, torProperties.args),
     getRequestAction(action, keyId)
   ]);
@@ -112,7 +112,7 @@ function requestOverTorWithHelper(keyId, uri, torProperties, action) {
   const args = flatten([
     torProperties.args,
     buildStandardArgs(action),
-    ['--keyserver', uri],
+    ["--keyserver", uri],
     getRequestAction(action, keyId)
   ]);
 
@@ -217,8 +217,8 @@ function execute(request, listener, subproc) {
 }
 
 function executeRefresh(request, subproc) {
-  let stdout = '';
-  let stderr = '';
+  let stdout = "";
+  let stderr = "";
   let successful = false;
 
   const listener = {

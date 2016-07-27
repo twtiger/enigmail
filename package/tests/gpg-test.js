@@ -44,7 +44,7 @@ function withStubFormatCmdLine(f) {
 
 test(withStubFormatCmdLine(function shouldUseResolveAndSimpleExecWhenCheckingDirmngrConfiguration() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
-    Assert.equal(executable, 'gpg-connect-agent');
+    Assert.equal(executable, "gpg-connect-agent");
     return;
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
@@ -59,7 +59,7 @@ test(withStubFormatCmdLine(function shouldUseResolveAndSimpleExecWhenCheckingDir
 
 test(withStubFormatCmdLine(function returnsTrueWhenConfiguredToUseTor() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
-    return { path: '/usr/bin/gpg-connect-agent' };
+    return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
       subprocObj.stdout("OK - Tor mode is enabled\n OK closing connection\n");
@@ -76,7 +76,7 @@ test(withStubFormatCmdLine(function returnsTrueWhenConfiguredToUseTor() {
 
 test(withStubFormatCmdLine(function returnsFalseWhenNotConfiguredToUseTor() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
-    return { path: '/usr/bin/gpg-connect-agent' };
+    return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
       subprocObj.stdout("OK - Tor mode is NOT enabled\n OK closing connection\n");
@@ -102,7 +102,7 @@ test(withStubFormatCmdLine(function returnsFalseWhenGpgConnectAgentPathIsNotFoun
 
 test(withStubFormatCmdLine(function returnsFalseWhenExitCodeIndicatesErrorInExecution() {
   TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
-    return { path: '/usr/bin/gpg-connect-agent' };
+    return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
       subprocObj.stdout("");
@@ -132,7 +132,7 @@ test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
 });
 
 test(function usesLibcurlReturnsTrueForNonUbuntuSystems() {
-  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, "isUbuntu", function() {
     return false;
   }, function() {
     const output = usesLibcurl();
@@ -143,7 +143,7 @@ test(function usesLibcurlReturnsTrueForNonUbuntuSystems() {
 function withGpgPath(f) {
   return function() {
     const path = EnigmailGpg.agentPath;
-    EnigmailGpg.setAgentPath({path: '/usr/bin/gpg2'});
+    EnigmailGpg.setAgentPath({path: "/usr/bin/gpg2"});
     try {
       f();
     } finally {
@@ -153,12 +153,12 @@ function withGpgPath(f) {
 }
 
 test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcurl() {
-  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, "isUbuntu", function() {
     return true;
   }, function() {
-    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
       exitCodeObj.value = 0;
-      return 'version: libcurl';
+      return "version: libcurl";
     }, function() {
       const output = usesLibcurl();
       Assert.equal(output, true);
@@ -167,12 +167,12 @@ test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcu
 }));
 
 test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSupportLibcurl() {
-  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, "isUbuntu", function() {
     return true;
   }, function() {
-    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
       exitCodeObj.value = 0;
-      return 'version: curl shim';
+      return "version: curl shim";
     }, function() {
       const output = usesLibcurl();
       Assert.equal(output, false);
@@ -181,10 +181,10 @@ test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSuppor
 }));
 
 test(withGpgPath(function usesLibcurlReturnsFalseWhenError() {
-  TestHelper.resetting(EnigmailOSDistribution, 'isUbuntu', function() {
+  TestHelper.resetting(EnigmailOSDistribution, "isUbuntu", function() {
     return true;
   }, function() {
-    TestHelper.resetting(EnigmailExecution, 'simpleExecCmd', function(command, args, exitCodeObj) {
+    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
       exitCodeObj.value = -1;
       return {};
     }, function() {
