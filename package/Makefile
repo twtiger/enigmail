@@ -62,7 +62,6 @@ MODFILES = \
            mimeDecrypt.jsm \
            mimeVerify.jsm \
            os.jsm \
-           osDistribution.jsm \
            passwordCheck.jsm \
            passwords.jsm \
            pEp.jsm \

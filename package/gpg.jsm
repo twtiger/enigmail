@@ -23,7 +23,7 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
-Cu.import("resource://enigmail/osDistribution.jsm"); /*global EnigmailOSDistribution: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 function v(maj, min, pat) {
@@ -130,7 +130,7 @@ function usesSocksArguments() {
   * return value is true/false depending on whether libcurl is used
 */
 function usesLibcurl() {
-  if (!EnigmailOSDistribution.isUbuntu()) {
+  if (!EnigmailOS.isUbuntu()) {
     return true;
   }
 
