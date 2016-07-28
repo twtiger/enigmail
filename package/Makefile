@@ -35,7 +35,6 @@ MODFILES = \
            encryption.jsm \
            errorHandling.jsm \
            events.jsm \
-           versioning.jsm \
            execution.jsm \
            funcs.jsm \
            files.jsm \
@@ -51,7 +50,7 @@ MODFILES = \
            key.jsm \
            keyEditor.jsm \
            keyRing.jsm \
-					 keyUsability.jsm \
+           keyUsability.jsm \
            keyRefreshService.jsm \
            keyserver.jsm \
            keyserverUris.jsm \
@@ -80,6 +79,7 @@ MODFILES = \
            trust.jsm \
            uris.jsm \
            verify.jsm \
+           versioning.jsm \
            windows.jsm
 
 all: deploy

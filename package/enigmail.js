@@ -37,7 +37,6 @@ Cu.import("resource://enigmail/app.jsm"); /*global EnigmailApp: false */
 Cu.import("resource://enigmail/keyRefreshService.jsm"); /*global EnigmailKeyRefreshService: false */
 Cu.import("resource://enigmail/keyserver.jsm"); /*global EnigmailKeyServer: false */
 
-
 /* Implementations supplied by this module */
 const NS_ENIGMAIL_CONTRACTID = "@mozdev.org/enigmail/enigmail;1";
 

@@ -21,8 +21,8 @@ Cu.import("resource://enigmail/log.jsm");
 Cu.import("resource://enigmail/subprocess.jsm");
 Cu.import("resource://enigmail/errorHandling.jsm");
 Cu.import("resource://enigmail/core.jsm");
-
 Cu.import("resource://enigmail/lazy.jsm"); /* global EnigmailLazy: false */
+
 const loadOS = EnigmailLazy.loader("enigmail/os.jsm", "EnigmailOS");
 
 const nsIEnigmail = Ci.nsIEnigmail;
