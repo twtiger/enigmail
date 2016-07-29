@@ -7,11 +7,12 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper:false, resetting, withEnvironment, getKeyListEntryOfKey: false, gKeyListObj: true, withPreferences: false */
 
 testing("keyserverUris.jsm"); /*global isValidProtocol: false, validKeyserversExist: false, buildKeyserverUris: false */
 
 component("enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+component("enigmail/os.jsm"); /*global EnigmailOS: false */
 
 function setupKeyserverPrefs(keyservers, autoOn) {
   EnigmailPrefs.setPref("keyserver", keyservers);
@@ -56,24 +57,50 @@ test(withPreferences(function buildUrisFromKeyservers_withMixOfProtocols() {
 
 }));
 
-test(withPreferences(function shouldUseCorrectCorrespondingHkpsAddressForHkpPoolServers() {
-  setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
+test(withPreferences(function should_UseCorrectCorrespondingHkpsAddressForHkpPoolServers_IfNonDos() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", false, function() {
+    setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
 
-  const keyserverUris = buildKeyserverUris();
+    const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(keyserverUris.length, 2);
-  Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
-  Assert.equal(keyserverUris[1],"hkp://pool.sks-keyservers.net:11371");
+    Assert.equal(keyserverUris.length, 2);
+    Assert.equal(keyserverUris[0],"hkps://hkps.pool.sks-keyservers.net:443");
+    Assert.equal(keyserverUris[1],"hkp://pool.sks-keyservers.net:11371");
+  });
 }));
 
-test(withPreferences(function shouldNotChangeAddressForHkpsPoolServers(){
-  setupKeyserverPrefs("hkps.pool.sks-keyservers.net, hkps://keyserver2", false);
+test(withPreferences(function should_UseCorrectCorrespondingHkpsAddressForHkpPoolServers_IfDos() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
+    setupKeyserverPrefs("pool.sks-keyservers.net, keys.gnupg.net, pgp.mit.edu", true);
 
-  const keyserverUris = buildKeyserverUris();
+    const keyserverUris = buildKeyserverUris();
 
-  Assert.equal(keyserverUris.length, 2);
-  Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
-  Assert.equal(keyserverUris[1],"hkps://keyserver2:443");
+    Assert.equal(keyserverUris.length, 2);
+    Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
+    Assert.equal(keyserverUris[1],"hkp://pool.sks-keyservers.net:11371");
+  });
+}));
+
+test(withPreferences(function should_AddProtocolAndPortForHkpsPoolServers_IfNotDos(){
+  TestHelper.resetting(EnigmailOS, "isDosLike", false, function() {
+    setupKeyserverPrefs("hkps.pool.sks-keyservers.net", false);
+
+    const keyserverUris = buildKeyserverUris();
+
+    Assert.equal(keyserverUris.length, 1);
+    Assert.equal(keyserverUris[0],"hkps://hkps.pool.sks-keyservers.net:443");
+  });
+}));
+
+test(withPreferences(function shouldNot_AddProtocolAndPortForForHkpsPoolServers_IfDos(){
+  TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
+    setupKeyserverPrefs("hkps.pool.sks-keyservers.net", false);
+
+    const keyserverUris = buildKeyserverUris();
+
+    Assert.equal(keyserverUris.length, 1);
+    Assert.equal(keyserverUris[0],"hkps.pool.sks-keyservers.net");
+  });
 }));
 
 test(withPreferences(function validKeyserversExistWithDefaultPreferences() {

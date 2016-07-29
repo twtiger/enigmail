@@ -14,6 +14,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
+Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 
 const KEYSERVER_PREF = "keyserver";
 const AUTO_KEYSERVER_SELECTION_PREF = "autoKeyServerSelection";
@@ -65,7 +66,7 @@ function combineIntoURI(protocol, domain, port) {
   // Returns hkps.pool.sks-keyservers.net only because
   // GnuPG version 2.1.14 in Windows does not parse
   // hkps://hkps.pool.sks-keyservers.net:443 correctly
-  if (domain === "hkps.pool.sks-keyservers.net") {
+  if (domain === "hkps.pool.sks-keyservers.net" && EnigmailOS.isDosLike) {
     return domain;
   } else {
     return protocol + "://" + domain + ":" + port;
