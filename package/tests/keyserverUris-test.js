@@ -142,3 +142,11 @@ test(withPreferences(function considerPoolHkpsServerValidWithProtocolAndPortSpec
 test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValidProtocols() {
     Assert.equal(isValidProtocol("hkpsldap://domain"), false);
 }));
+
+test(withPreferences(function considerCapitalSchemesLegitimate() {
+    Assert.equal(isValidProtocol("HKPS://domain"), true);
+}));
+
+test(withPreferences(function considerLowerCaseAndCapitalSchemesLegitimate() {
+    Assert.equal(isValidProtocol("HkP://domain"), true);
+}));

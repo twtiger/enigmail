@@ -85,7 +85,7 @@ function buildKeyserverUris() {
 
 function isValidProtocol(uri) {
   return uri.match(/:\/\//) === null
-    || /^(hkps|hkp|ldap):\/\//.test(uri);
+    || /^(hkps|hkp|ldap):\/\//i.test(uri);
 }
 
 function validProtocolsExist() {
