@@ -143,6 +143,14 @@ test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValid
     Assert.equal(isValidProtocol("hkpsldap://domain"), false);
 }));
 
+test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValidProtocols() {
+  setupKeyserverPrefs("HKPS://domain", true);
+
+  const keyserverUris = buildKeyserverUris();
+
+  Assert.deepEqual(keyserverUris, ["hkps://domain:443"]);
+}));
+
 test(withPreferences(function considerCapitalSchemesLegitimate() {
     Assert.equal(isValidProtocol("HKPS://domain"), true);
 }));

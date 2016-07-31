@@ -48,7 +48,7 @@ function buildUriOptionsFor(keyserver) {
   if (isPoolKeyserver) {
     addUriOptionsForPoolKeyservers(keyserver, uris);
   } else if (protocolIncluded) {
-    uris.push(buildUriFor(keyserverProtocolAndDomain[0], keyserverProtocolAndDomain[1]));
+    uris.push(buildUriFor(keyserverProtocolAndDomain[0].toLowerCase(), keyserverProtocolAndDomain[1]));
   } else {
     uris.push(buildUriFor("hkps", keyserver));
     uris.push(buildUriFor("hkp", keyserver));
