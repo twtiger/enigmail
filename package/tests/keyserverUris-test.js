@@ -136,11 +136,11 @@ test(withPreferences(function buildUrisFromKeyservers_oneValidProtocol() {
 }));
 
 test(withPreferences(function considerPoolHkpsServerValidWithProtocolAndPortSpecified() {
-    Assert.equal(isValidProtocol("hkps://hkps.pool.sks-keyservers.net:443"), true);
+  Assert.equal(isValidProtocol("hkps://hkps.pool.sks-keyservers.net:443"), true);
 }));
 
 test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValidProtocols() {
-    Assert.equal(isValidProtocol("hkpsldap://domain"), false);
+  Assert.equal(isValidProtocol("hkpsldap://domain"), false);
 }));
 
 test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValidProtocols() {
@@ -152,9 +152,9 @@ test(withPreferences(function detectInvalidKeyserverWhenProtocolIsMadeOfTwoValid
 }));
 
 test(withPreferences(function considerCapitalSchemesLegitimate() {
-    Assert.equal(isValidProtocol("HKPS://domain"), true);
+  Assert.equal(isValidProtocol("HKPS://domain"), true);
 }));
 
 test(withPreferences(function considerLowerCaseAndCapitalSchemesLegitimate() {
-    Assert.equal(isValidProtocol("HkP://domain"), true);
+  Assert.equal(isValidProtocol("HkP://domain"), true);
 }));
