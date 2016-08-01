@@ -138,12 +138,12 @@ function withTestGpgHome(f) {
 function withPreferences(func){
   return function() {
     const keyRefreshPrefs = EnigmailPrefs.getPref("keyRefreshOn");
-    const keyserverPrefs = EnigmailPrefs.getPref("keyserver");  
+    const keyserverPrefs = EnigmailPrefs.getPref("keyserver");
     try {
       func();
     } finally {
       EnigmailPrefs.setPref("keyRefreshOn", keyRefreshPrefs);
-      EnigmailPrefs.setPref("keyserver", keyserverPrefs);  
+      EnigmailPrefs.setPref("keyserver", keyserverPrefs);
     }
   };
 }

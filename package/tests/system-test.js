@@ -42,4 +42,3 @@ test(function shouldTestUnixCharsetConversion() {
   Assert.equal(cs, "UTF-8");
   testEncoding(cs, "%E3%82%B5%E3%83%9D%E3%83%BC%E3", "%u30B5%u30DD%u30FC");
 });
-

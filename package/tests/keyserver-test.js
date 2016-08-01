@@ -527,4 +527,3 @@ test(function testErrorSearchQueryWithNoID() {
   Assert.equal(result, null);
   Assert.equal(errormsgobj.value, EnigmailLocale.getString("failNoID"));
 });
-
