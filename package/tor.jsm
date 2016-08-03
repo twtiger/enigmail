@@ -20,7 +20,7 @@ Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: fa
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global EnigmailSocks5Proxy: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
+Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 
 const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -36,8 +36,6 @@ const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
 
 // Stable and most used version according to gnupg.org
 const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
-
-const TOR_HELPERS = ["torsocks2", "torsocks", "torify", "usewithtor"];
 
 const TORSOCKS_VERSION_2 = v(2, 0, 0);
 
@@ -133,7 +131,7 @@ function useAuthOverArgs(helper, versioning) {
 }
 
 function findTorExecutableHelper(versioning) {
-  const helper = EnigmailFiles.simpleResolvePath("torsocks2") || EnigmailFiles.simpleResolvePath("torsocks");
+  const helper = EnigmailGpgAgent.resolveToolPath("torsocks2") || EnigmailGpgAgent.resolveToolPath("torsocks");
   if (helper !== null) {
     const authOverArgs = useAuthOverArgs(helper, versioning);
     return {

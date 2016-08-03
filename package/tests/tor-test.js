@@ -12,7 +12,7 @@ testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties,
 
 component("enigmail/rng.jsm"); /*global EnigmailRNG*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-component("enigmail/files.jsm"); /*global EnigmailFiles: false */
+component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
 component("enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
@@ -271,7 +271,7 @@ test(function testUsingTorsocksWithEnvironmentVariables() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -293,7 +293,7 @@ test(function testUsingTorsocksWithCommandArguments() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -317,7 +317,7 @@ test(function testUseNothingIfNoTorHelpersAreAvailable() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return null; }, function() {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) { return null; }, function() {
     const result = findTorExecutableHelper(versioning);
     Assert.equal(findTorExecutableHelper(versioning), null);
   });
