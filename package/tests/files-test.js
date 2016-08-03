@@ -36,34 +36,3 @@ test(function shouldFormatCmdLine() {
 
   Assert.equal(EnigmailFiles.formatCmdLine(md, ["1", "2", "3"]), do_get_cwd().path + " 1 2 3");
 });
-
-test(function shouldAddMacPaths() {
-  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
-
-  TestHelper.resetting(EnigmailOS, "isMac", true, function() {
-    const newPath = addMacPaths(oldPath);
-
-    const expectedPath = '/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/local/bin:/usr/local/MacGPG2/bin';
-    Assert.equal(expectedPath, newPath);
-  });
-});
-
-test(function shouldNotAddMacPathWhenSystemIsDosLike() {
-  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
-
-  TestHelper.resetting(EnigmailOS, "isMac", false, function() {
-    const newPath = addMacPaths(oldPath);
-
-    Assert.equal(oldPath, newPath);
-  });
-});
-
-test(function shouldNotAddMacPathWhenSystemIsLinux() {
-  const oldPath = '/usr/local/sbin:/usr/local/bin:/usr/bin';
-
-  TestHelper.resetting(EnigmailOS, "isMac", false, function() {
-    const newPath = addMacPaths(oldPath);
-
-    Assert.equal(oldPath, newPath);
-  });
-});
