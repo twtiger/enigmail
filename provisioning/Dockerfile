@@ -6,8 +6,6 @@
 FROM ubuntu
 
 RUN echo "deb http://deb.torproject.org/torproject.org sid main" >> /etc/apt/sources.list
-RUN gpg --keyserver keys.gnupg.net --recv 0xEE8CBC9E886DDD89
-RUN gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y zip
@@ -24,8 +22,6 @@ RUN apt-get install -y mime-support
 RUN apt-get install -y rng-tools
 RUN apt-get install -y haveged
 RUN apt-get install -y nodejs
-RUN apt-get install deb.torproject.org-keyring
-RUN apt-get install -y tor
 RUN apt-get install -y curl
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 RUN apt-get install -y npm

@@ -9,7 +9,6 @@ Xvfb :99 >/dev/null 2>&1 &
 export DISPLAY=:99
 export PL_PATH=`which perl`
 export TB_PATH=${TB_PATH:-`which thunderbird`}
-service tor start 2>&1 >/dev/null
 
 if [ "$#" -eq 0 ]; then
   util/run-tests.py
@@ -19,6 +18,5 @@ fi
 
 RESULT=$?
 
-service tor stop 2>&1 >/dev/null
 killall Xvfb
 exit $RESULT
