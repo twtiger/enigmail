@@ -24,14 +24,17 @@ Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: fals
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
-function v(maj, min, pat) {
-  return {major: maj, minor: min, patch: pat};
+let vc = null;
+function getVersionComparator() {
+  if (vc === null) {
+    vc = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator);
+  }
+  return vc;
 }
 
 // Socks5 arguments are no longer supported for this version of gpg and higher
-const MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED = v(2, 1, 0);
+const MAXIMUM_SOCK5_SUPPORTED = "2.1.0";
 
 const GPG_BATCH_OPT_LIST = ["--batch", "--no-tty", "--status-fd", "2"];
 
@@ -117,7 +120,7 @@ function dirmngrConfiguredWithTor() {
 }
 
 function usesDirmngr() {
-  return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_SOCKS5_ARGUMENTS_UNSUPPORTED);
+  return getVersionComparator().compare(EnigmailGpg.agentVersion, MAXIMUM_SOCK5_SUPPORTED) >= 0;
 }
 
 function usesSocksArguments() {
@@ -186,21 +189,19 @@ const EnigmailGpg = {
       return undefined;
     }
 
-    const vc = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator);
-
     switch (featureName) {
       case "version-supported":
-        return vc.compare(gpgVersion, "2.0.7") >= 0;
+        return getVersionComparator().compare(gpgVersion, "2.0.7") >= 0;
       case "supports-gpg-agent":
-        return vc.compare(gpgVersion, "2.0") >= 0;
+        return getVersionComparator().compare(gpgVersion, "2.0") >= 0;
       case "autostart-gpg-agent":
-        return vc.compare(gpgVersion, "2.0.16") >= 0;
+        return getVersionComparator().compare(gpgVersion, "2.0.16") >= 0;
       case "keygen-passphrase":
-        return vc.compare(gpgVersion, "2.1") < 0 || vc.compare(gpgVersion, "2.1.2") >= 0;
+        return getVersionComparator().compare(gpgVersion, "2.1") < 0 || getVersionComparator().compare(gpgVersion, "2.1.2") >= 0;
       case "genkey-no-protection":
-        return vc.compare(gpgVersion, "2.1") > 0;
+        return getVersionComparator().compare(gpgVersion, "2.1") > 0;
       case "windows-photoid-bug":
-        return vc.compare(gpgVersion, "2.0.16") < 0;
+        return getVersionComparator().compare(gpgVersion, "2.0.16") < 0;
     }
 
     return undefined;
