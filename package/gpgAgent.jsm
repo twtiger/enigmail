@@ -481,7 +481,7 @@ var EnigmailGpgAgent = {
     const command = agentPath;
     let args = [];
     if (agentType == "gpg") {
-      args = ["--version"];
+      args = ["--batch", "--no-tty", "--charset", "utf-8", "--display-charset", "utf-8", "--version", "--version"];
     }
 
     let exitCode = -1;
