@@ -151,6 +151,7 @@ function initializeEnvironment(env) {
       "LANG", "LANGUAGE", "LC_ALL", "LC_COLLATE", "LC_CTYPE",
       "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME"
     ]);
+  } else {
     // force output on Windows to EN-US
     EnigmailCore.addToEnvList("LC_ALL=en_US");
     EnigmailCore.addToEnvList("LANG=en_US");
