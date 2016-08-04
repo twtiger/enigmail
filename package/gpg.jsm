@@ -58,20 +58,6 @@ function pushTrimmedStr(arr, str, splitStr) {
 
 const curlDepPath = "/lib/gnupg/gpgkeys_curl";
 
-function getLibcurlDependencyPath(exePath) {
-  if (exePath === null) {
-    return null;
-  }
-
-  const path = exePath.split("/");
-  const parentDir = path.slice(0, path.length-2).join("/");
-  const fullPath = parentDir + curlDepPath;
-
-  const fileObj = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
-  fileObj.initWithPath(fullPath);
-  return fileObj;
-}
-
 function getDirmngrTorStatus(exitCodeObj) {
   const command = EnigmailFiles.simpleResolvePath("gpg-connect-agent");
   if (command === null) {
@@ -121,33 +107,6 @@ function dirmngrConfiguredWithTor() {
 
 function usesDirmngr() {
   return getVersionComparator().compare(EnigmailGpg.agentVersion, MAXIMUM_SOCK5_SUPPORTED) >= 0;
-}
-
-function usesSocksArguments() {
-  return !usesDirmngr() && usesLibcurl();
-}
-
-/**
-  * Checks that the user's current version of gpg is built against libcurl, not curl-shim
-  *
-  * return value is true/false depending on whether libcurl is used
-*/
-function usesLibcurl() {
-  if (!EnigmailOS.isUbuntu()) {
-    return true;
-  }
-
-  const command = getLibcurlDependencyPath(EnigmailGpg.agentPath.path);
-  const args = ["--version"];
-
-  const exitCodeObj  = {value: null};
-  const output = EnigmailExecution.simpleExecCmd(command, args, exitCodeObj, {});
-
-  if (output === null || exitCodeObj.value < 0) {
-    return false;
-  }
-
-  return output.indexOf("libcurl") > -1;
 }
 
 const EnigmailGpg = {
@@ -407,12 +366,5 @@ const EnigmailGpg = {
     *
     * return value is true/false depending on whether dirmngr can be used
   */
-  usesDirmngr: usesDirmngr,
-
-  /**
-    * Checks that the user's current version of gpg supports socks5 arguments
-    *
-    * return value is true/false depending on whether socks5 arguments can be used
-  */
-  usesSocksArguments: usesSocksArguments
+  usesDirmngr: usesDirmngr
 };

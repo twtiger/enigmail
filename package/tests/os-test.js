@@ -11,7 +11,7 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("os.jsm"); /*global operatingSystem: true, isMac: false, isDosLike: false, isWin32: false, EnigmailOS: false, isUbuntu: false  */
+testing("os.jsm"); /*global EnigmailOS: false, operatingSystem: true, isMac: false, isDosLike: false, isWin32: false */
 
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
@@ -27,54 +27,6 @@ function withOS(os, f) {
     }
   };
 }
-
-function withDosLike(val, f) {
-  return function() {
-    TestHelper.resetting(EnigmailOS, "isDosLike", val, f);
-  };
-}
-
-test(withDosLike(false, function shouldReturnTrueIfSystemIsUbuntu() {
-  const ubuntuUnameOutput = "Linux ubuntu 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:08 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux";
-
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(cmd, args, exit, err) {
-    exit.value = 0;
-    return ubuntuUnameOutput;
-  }, function() {
-    Assert.equal(isUbuntu(), true);
-  });
-}));
-
-test(withDosLike(false, function shouldReturnFalseIfLinuxSystemIsNotUbuntu() {
-  const archLinuxUnameOutput = "Linux arch 4.6.3-1-ARCH #1 SMP PREEMPT Fri Jun 24 21:19:13 CEST 2016 x86_64 GNU/Linux";
-
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(cmd, args, exit, err) {
-    exit.value = 0;
-    return archLinuxUnameOutput;
-  }, function() {
-    Assert.equal(isUbuntu(), false);
-  });
-}));
-
-test(withDosLike(true, function shouldReturnFalseIfIsSystemIsWindows() {
-  Assert.equal(isUbuntu(), false);
-}));
-
-test(withDosLike(false, function shouldReturnNullIfExecutableCheckExitCodeIsNotZero() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function(cmd, args, exit, err) {
-    exit.value = -1;
-  }, function() {
-    Assert.equal(isUbuntu(), null);
-  });
-}));
-
-test(withDosLike(false, function shouldReturnNullIfExecutableUnameIsNotFound() {
-  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function() {
-    return null;
-  }, function () {
-    Assert.equal(isUbuntu(), null);
-  });
-}));
 
 test(withOS("Darwin", function shouldReturnTrueWhenSystemIsMac() {
   Assert.equal(isMac(), true);

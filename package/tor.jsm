@@ -179,10 +179,10 @@ function torProperties(system) {
   let socks = null;
   let useTorMode = false;
 
-  if (EnigmailGpg.usesSocksArguments()) {
-    socks = buildSocksProperties(tor, system);
-  } else if (EnigmailGpg.usesDirmngr()) {
+  if (EnigmailGpg.usesDirmngr()) {
     useTorMode = EnigmailGpg.dirmngrConfiguredWithTor();
+  } else {
+    socks = buildSocksProperties(tor, system);
   }
 
   return {isAvailable: true, useTorMode: useTorMode, socks: socks, helper: helper};

@@ -18,7 +18,6 @@ component("enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 function withStandardGpg(f) {
   return function() {
-    EnigmailGpg.usesLibcurl = function() { return true; };
     EnigmailGpg.dirmngrConfiguredWithTor = function() { return false; };
     try {
       f();
@@ -187,8 +186,8 @@ test(function returnsFailure_whenSystemCannotFindTor() {
 });
 
 test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
-  TestHelper.resetting(EnigmailGpg, "usesSocksArguments", function() {
-    return true;
+  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
+    return false;
   }, function() {
     TestHelper.resetting(EnigmailRNG, "getUint32", function() {
       return "dummyData";
@@ -231,31 +230,27 @@ const torOn9150 = {
 };
 
 test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
-  TestHelper.resetting(EnigmailGpg, "usesSocksArguments", function() {
-    return false;
+  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
+    return true;
   }, function() {
-    TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
+    let dirmngrConfiguredWithTorFunctionWasCalled = false;
+    TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
       return true;
     }, function() {
-      let dirmngrConfiguredWithTorFunctionWasCalled = false;
-      TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
-        return true;
-      }, function() {
-        dirmngrConfiguredWithTorFunctionWasCalled = true;
-        const system = {
-          findTor: function() {
-            return torOn9150;
-          },
-          findTorExecutableHelper: function() {
-            return null;
-          }
-        };
+      dirmngrConfiguredWithTorFunctionWasCalled = true;
+      const system = {
+        findTor: function() {
+          return torOn9150;
+        },
+        findTorExecutableHelper: function() {
+          return null;
+        }
+      };
 
-        const properties = torProperties(system);
-        Assert.equal(properties.useTorMode, true);
-        Assert.equal(properties.socks, null);
-        Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, "dirmngrConfiguredWithTor() was not called");
-      });
+      const properties = torProperties(system);
+      Assert.equal(properties.useTorMode, true);
+      Assert.equal(properties.socks, null);
+      Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, "dirmngrConfiguredWithTor() was not called");
     });
   });
 });

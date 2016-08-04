@@ -12,7 +12,7 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("gpg.jsm"); /*global EnigmailGpg: false, usesSocksArguments: false, lazyEnv: true, usesDirmngr: false, getLibcurlDependencyPath: false, usesLibcurl: false, dirmngrConfiguredWithTor: false */
+testing("gpg.jsm"); /*global EnigmailGpg: false, lazyEnv: true, usesDirmngr: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/subprocess.jsm"); /*global subprocess: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
@@ -30,19 +30,6 @@ function withGpgPath(f) {
     }
   };
 }
-
-test(function getLibcurlDependencyPathForGpg() {
-  const origPath = "/start/middle/gpg";
-  const expectedParentPath = "/start/lib/gnupg/gpgkeys_curl";
-
-  const actualParentPath = getLibcurlDependencyPath(origPath);
-  Assert.equal(actualParentPath.path, expectedParentPath);
-});
-
-test(function getLibcurlDependencyPathForGpgReturnsNullIfPathIsNull() {
-  const actualPath = getLibcurlDependencyPath(null);
-  Assert.equal(actualPath, null);
-});
 
 function withStubFormatCmdLine(f) {
   return function() {
@@ -143,87 +130,3 @@ test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
   });
 });
 
-test(function testUsesSocksArgumentsReturnsTrueWhenDirmngrIsNotAvailableAndLibcurlIs() {
-  const verWithoutDirmngr = "2.0.30";
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return false;
-  }, function() {
-    TestHelper.resetting(EnigmailGpg, "agentVersion", verWithoutDirmngr, function() {
-      Assert.equal(usesSocksArguments(), true);
-    });
-  });
-});
-
-test(function testUsesSocksArgumentsReturnsFalseWhenDirmngrIsAvailable() {
-  const verWithDirmngr = "2.1.0";
-  TestHelper.resetting(EnigmailGpg, "agentVersion", verWithDirmngr, function() {
-    Assert.equal(usesSocksArguments(), false);
-  });
-});
-
-test(withGpgPath(function testUsesSocksArgumentsReturnsFalseWhenDirmngrIsNotAvailableAndLibcurlIsNotAvailable() {
-  const verWithoutDirmngr = "2.0.30";
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return true;
-  }, function() {
-    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
-      exitCodeObj.value = 0;
-      return "version: curl shim";
-    }, function() {
-      TestHelper.resetting(EnigmailGpg, "agentVersion", verWithoutDirmngr, function() {
-        Assert.equal(usesSocksArguments(), false);
-      });
-    });
-  });
-}));
-
-test(function usesLibcurlReturnsTrueForNonUbuntuSystems() {
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return false;
-  }, function() {
-    const output = usesLibcurl();
-    Assert.equal(output, true);
-  });
-});
-
-test(withGpgPath(function usesLibcurlReturnsTrueForUbuntuSystemsThatSupportLibcurl() {
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return true;
-  }, function() {
-    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
-      exitCodeObj.value = 0;
-      return "version: libcurl";
-    }, function() {
-      const output = usesLibcurl();
-      Assert.equal(output, true);
-    });
-  });
-}));
-
-test(withGpgPath(function usesLibcurlReturnsFalseForUbuntuSystemsThatDoNotSupportLibcurl() {
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return true;
-  }, function() {
-    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
-      exitCodeObj.value = 0;
-      return "version: curl shim";
-    }, function() {
-      const output = usesLibcurl();
-      Assert.equal(output, false);
-    });
-  });
-}));
-
-test(withGpgPath(function usesLibcurlReturnsFalseWhenError() {
-  TestHelper.resetting(EnigmailOS, "isUbuntu", function() {
-    return true;
-  }, function() {
-    TestHelper.resetting(EnigmailExecution, "simpleExecCmd", function(command, args, exitCodeObj) {
-      exitCodeObj.value = -1;
-      return {};
-    }, function() {
-      const output = usesLibcurl();
-      Assert.equal(output, false);
-    });
-  });
-}));

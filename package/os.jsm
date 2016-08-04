@@ -19,27 +19,6 @@ const XPCOM_APPINFO = "@mozilla.org/xre/app-info;1";
 Cu.import("resource://enigmail/lazy.jsm"); /* global EnigmailLazy: false */
 const getExecution = EnigmailLazy.loader("enigmail/execution.jsm", "EnigmailExecution");
 
-function getLinuxDistribution() {
-  const args = ["-a"];
-  const exitCodeObj = {value: null};
-  const output = getExecution().resolveAndSimpleExec("uname", args, exitCodeObj, {});
-  if (output === null || exitCodeObj.value < 0) {
-    return null;
-  }
-  return output;
-}
-
-function isUbuntu() {
-  if (isDosLike()) {
-    return false;
-  }
-  const distro = getLinuxDistribution();
-  if (distro === null) {
-    return null;
-  }
-  return distro.indexOf("ubuntu") > -1;
-}
-
 let operatingSystem = null;
 function getOS() {
   if (operatingSystem === null) {
@@ -68,8 +47,6 @@ const EnigmailOS = {
   isWin32: isWin32(),
 
   isMac: isMac(),
-
-  isUbuntu: isUbuntu,
 
   // get a Windows registry value (string)
   // @ keyPath: the path of the registry (e.g. Software\\GNU\\GnuPG)
