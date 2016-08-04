@@ -25,6 +25,8 @@ Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
+Cu.import("resource://enigmail/lazy.jsm"); /*global EnigmailLazy: false */
+const getGpgAgent = EnigmailLazy.loader("enigmail/gpgAgent.jsm", "EnigmailGpgAgent");
 
 // Socks5 arguments are no longer supported for this version of gpg and higher
 const MAXIMUM_SOCK5_SUPPORTED = "2.1.0";
@@ -52,7 +54,7 @@ function pushTrimmedStr(arr, str, splitStr) {
 const curlDepPath = "/lib/gnupg/gpgkeys_curl";
 
 function getDirmngrTorStatus(exitCodeObj) {
-  const command = EnigmailFiles.simpleResolvePath("gpg-connect-agent");
+  const command = getGpgAgent().resolveToolPath("gpg-connect-agent");
   if (command === null) {
     return null;
   }
