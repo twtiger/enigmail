@@ -63,5 +63,5 @@ function versionGreaterOrEqual(left, right) {
 
 const EnigmailVersioning = {
   versionGreaterOrEqual: versionGreaterOrEqual,
-  versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
+  versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired
 };
