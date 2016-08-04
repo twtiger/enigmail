@@ -54,14 +54,14 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
     return false;
   }
 
-  return versionGreaterOrEqual(version, minimumVersion);
+  return greaterThanOrEqual(version, minimumVersion);
 }
 
-function versionGreaterOrEqual(left, right) {
+function greaterThanOrEqual(left, right) {
   return getVersionComparator().compare(left, right) >= 0;
 }
 
 const EnigmailVersioning = {
-  versionGreaterOrEqual: versionGreaterOrEqual,
+  greaterThanOrEqual: greaterThanOrEqual,
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired
 };

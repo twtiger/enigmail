@@ -111,7 +111,7 @@ function torOn(portPref) {
 
 function meetsOSConstraints() {
   if (EnigmailOS.isDosLike) {
-    return EnigmailVersioning.greaterOrEqual(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
+    return EnigmailVersioning.greaterThanOrEqual(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired("curl", MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }
