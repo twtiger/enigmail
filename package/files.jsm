@@ -1,4 +1,4 @@
-/*global Components: false, EnigmailLog: false, EnigmailData: false */
+/*global Components: false, EnigmailLog: false */
 /*jshint -W097 */
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,8 +15,9 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-Cu.import("resource://enigmail/data.jsm");
+Cu.import("resource://enigmail/data.jsm"); /*global EnigmailData: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
+Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 
 const NS_FILE_CONTRACTID = "@mozilla.org/file/local;1";
 const NS_LOCAL_FILE_CONTRACTID = "@mozilla.org/file/local;1";
@@ -52,13 +53,14 @@ function environment() {
 }
 
 function potentialWindowsExecutable(execName) {
-  if (EnigmailOS.isWin32) {
+  if (EnigmailOS.isDosLike) {
     return execName + ".exe";
   }
   return execName;
 }
 
 const EnigmailFiles = {
+  potentialWindowsExecutable: potentialWindowsExecutable,
 
   isAbsolutePath: function(filePath, isDosLike) {
     // Check if absolute path
@@ -72,7 +74,11 @@ const EnigmailFiles = {
   },
 
   simpleResolvePath: function(executable) {
-    return EnigmailFiles.resolvePath(executable, environment().get("PATH"), EnigmailOS.isDosLike);
+    const foundPath = EnigmailFiles.resolvePath(potentialWindowsExecutable(executable), EnigmailCore.getEnigmailService().environment.get("PATH"), EnigmailOS.isDosLike);
+    if (foundPath !== null) {
+      foundPath.normalize();
+    }
+    return foundPath;
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {

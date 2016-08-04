@@ -556,26 +556,18 @@ var EnigmailGpgAgent = {
 
   // resolve the path for GnuPG helper tools
   resolveToolPath: function(fileName) {
-    if (EnigmailOS.isDosLike) {
-      fileName += ".exe";
-    }
-
     let filePath = cloneOrNull(EnigmailGpgAgent.agentPath);
 
     if (filePath) filePath = filePath.parent;
     if (filePath) {
-      filePath.append(fileName);
+      filePath.append(EnigmailFiles.potentialWindowsExecutable(fileName));
       if (filePath.exists()) {
         filePath.normalize();
         return filePath;
       }
     }
 
-    const foundPath = EnigmailFiles.resolvePath(fileName, EnigmailCore.getEnigmailService().environment.get("PATH"), EnigmailOS.isDosLike);
-    if (foundPath) {
-      foundPath.normalize();
-    }
-    return foundPath;
+    return EnigmailFiles.simpleResolvePath(fileName);
   },
 
   detectGpgAgent: function(domWindow, esvc) {

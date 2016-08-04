@@ -18,7 +18,7 @@ Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: fa
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
 Cu.import("resource://enigmail/socks5Proxy.jsm"); /*global EnigmailSocks5Proxy: false */
 Cu.import("resource://enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
+Cu.import("resource://enigmail/files.jsm"); /*global EnigmailFiles: false */
 
 const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
@@ -125,7 +125,7 @@ function useAuthOverArgs(helper, versioning) {
 }
 
 function findTorExecutableHelper(versioning) {
-  const helper = EnigmailGpgAgent.resolveToolPath("torsocks2") || EnigmailGpgAgent.resolveToolPath("torsocks");
+  const helper = EnigmailFiles.simpleResolvePath("torsocks2") || EnigmailFiles.simpleResolvePath("torsocks");
   if (helper !== null) {
     const authOverArgs = useAuthOverArgs(helper, versioning);
     return {

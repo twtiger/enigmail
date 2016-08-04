@@ -7,20 +7,35 @@
 
 "use strict";
 
-do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
+do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global TestHelper: false, withEnigmail: false, withTestGpgHome: false */
 
 testing("versioning.jsm"); /*global EnigmailVersioning: false, greaterThanOrEqual: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false, greaterThan: false, lessThan: false */
-component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
-component("enigmail/files.jsm"); /*global EnigmailFiles:false */
+component("enigmail/execution.jsm"); /*global EnigmailExecution:false */
 
 test(function checkCurlVersionIsOver() {
-  const minimumCurlVersion = "7.21.7";
-  Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", minimumCurlVersion), true);
+  const curl749 = "curl 7.49.1 (x86_64-pc-linux-gnu) libcurl/7.49.1 OpenSSL/1.0.2h zlib/1.2.8 libidn/1.32 libssh2/1.7.0\n" +
+    "Protocols: dict file ftp ftps gopher http https imap imaps pop3 pop3s rtsp scp sftp smb smbs smtp smtps telnet tftp\n" +
+    "Features: AsynchDNS IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP UnixSockets\n";
+
+  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function() {
+    return curl749;
+  }, function() {
+    const minimumCurlVersion = "7.21.7";
+    Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", minimumCurlVersion), true);
+  });
 });
 
 test(function checkCurlVersionIsLess() {
-  const absurdlyHighCurlRequirement = "100.100.100";
-  Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", absurdlyHighCurlRequirement), false);
+  const curl749 = "curl 7.49.1 (x86_64-pc-linux-gnu) libcurl/7.49.1 OpenSSL/1.0.2h zlib/1.2.8 libidn/1.32 libssh2/1.7.0\n" +
+    "Protocols: dict file ftp ftps gopher http https imap imaps pop3 pop3s rtsp scp sftp smb smbs smtp smtps telnet tftp\n" +
+    "Features: AsynchDNS IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP UnixSockets\n";
+
+  TestHelper.resetting(EnigmailExecution, "resolveAndSimpleExec", function() {
+    return curl749;
+  }, function() {
+    const absurdlyHighCurlRequirement = "100.100.100";
+    Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", absurdlyHighCurlRequirement), false);
+  });
 });
 
 test(function versionIsGreaterOrEqual() {
@@ -39,9 +54,4 @@ test(function versionIsLessThan() {
   Assert.equal(lessThan("1.1", "1.0"), false);
   Assert.equal(lessThan("1.0", "1.0"), false);
   Assert.equal(lessThan("1.0", "1.1"), true);
-});
-
-test(function gpgNotOverOrEqual() {
-  const minimum = "2.0.30";
-  Assert.equal(versionFoundMeetsMinimumVersionRequired("gpg", minimum), false);
 });

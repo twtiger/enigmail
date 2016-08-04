@@ -12,7 +12,7 @@ testing("tor.jsm"); /*global createRandomCredential, EnigmailTor, torProperties,
 
 component("enigmail/rng.jsm"); /*global EnigmailRNG*/
 component("enigmail/gpg.jsm"); /*global EnigmailGpg: false */
-component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
+component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
 component("enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
@@ -122,26 +122,30 @@ test(function createGpgProxyArgs_forLinux() {
 });
 
 test(withStandardGpg(function testTorPropertiesSearchesForTor() {
-  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() { return false; }, function() {
-    const system = {
-      findTorWasCalled: false,
-      findTor: function() {
-        system.findTorWasCalled = true;
-        return torOn9150;
-      },
-      findTorExecutableHelperWasCalled: false,
-      findTorExecutableHelper: function() {
-        system.findTorExecutableHelperWasCalled = true;
-        return {
-          command: "torsocks",
-          args: ["--user", "12345", "--pass", "12345", "/usr/bin/gpg2"]
-        };
-      }
-    };
+  TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function() {
+    return true;
+  }, function() {
+    TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() { return false; }, function() {
+      const system = {
+        findTorWasCalled: false,
+        findTor: function() {
+          system.findTorWasCalled = true;
+          return torOn9150;
+        },
+        findTorExecutableHelperWasCalled: false,
+        findTorExecutableHelper: function() {
+          system.findTorExecutableHelperWasCalled = true;
+          return {
+            command: "torsocks",
+            args: ["--user", "12345", "--pass", "12345", "/usr/bin/gpg2"]
+          };
+        }
+      };
 
-    torProperties(system);
-    Assert.equal(system.findTorWasCalled, true);
-    Assert.equal(system.findTorExecutableHelperWasCalled, true);
+      torProperties(system);
+      Assert.equal(system.findTorWasCalled, true);
+      Assert.equal(system.findTorExecutableHelperWasCalled, true);
+    });
   });
 }));
 
@@ -174,52 +178,62 @@ test(function createGpgProxyArgs_forLinux_whenSystemDOESNTMeetSocks5hVersion() {
 
 
 test(function returnsFailure_whenSystemCannotFindTor() {
-  const system = {
-    findTor: function() {
-      return null;
-    }
-  };
-  const properties = torProperties(system);
-  Assert.equal(properties.socks, null);
-  Assert.equal(properties.helper, null);
-  Assert.equal(properties.useTorMode, false);
+  TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function() {
+    return true;
+  }, function() {
+    const system = {
+      findTor: function() {
+        return null;
+      }
+    };
+
+    const properties = torProperties(system);
+
+    Assert.equal(properties.socks, null);
+    Assert.equal(properties.helper, null);
+    Assert.equal(properties.useTorMode, false);
+  });
 });
 
 test(withStandardGpg(function returnsSuccessWithArgs_whenAbleToFindTorAndTorsocks() {
-  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
-    return false;
+  TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function() {
+    return true;
   }, function() {
-    TestHelper.resetting(EnigmailRNG, "getUint32", function() {
-      return "dummyData";
-    }, function () {
-      const torArgs = ["--user", "dummyUsername", "--pass", "dummyPassword", "/usr/bin/gpg2"];
-      const gpgArgs = "socks5h://dummyData:dummyData@127.0.0.1:9050";
-      const system = {
-        findTor: function() {
-          return {
-            ip: "127.0.0.1",
-            port: 9050
-          };
-        },
-        findTorExecutableHelper: function() {
-          return {
-            command: "torsocks",
-            args: torArgs
-          };
-        }
-      };
+    TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
+      return false;
+    }, function() {
+      TestHelper.resetting(EnigmailRNG, "getUint32", function() {
+        return "dummyData";
+      }, function () {
+        const torArgs = ["--user", "dummyUsername", "--pass", "dummyPassword", "/usr/bin/gpg2"];
+        const gpgArgs = "socks5h://dummyData:dummyData@127.0.0.1:9050";
+        const system = {
+          findTor: function() {
+            return {
+              ip: "127.0.0.1",
+              port: 9050
+            };
+          },
+          findTorExecutableHelper: function() {
+            return {
+              command: "torsocks",
+              args: torArgs
+            };
+          }
+        };
 
-      const properties = torProperties(system);
-      Assert.equal(properties.useTorMode, false);
+        const properties = torProperties(system);
+        Assert.equal(properties.useTorMode, false);
 
-      const socksProperties = properties.socks;
-      const helperProperties = properties.helper;
+        const socksProperties = properties.socks;
+        const helperProperties = properties.helper;
 
-      Assert.equal(helperProperties.command, "torsocks");
-      Assert.equal(helperProperties.args, torArgs);
+        Assert.equal(helperProperties.command, "torsocks");
+        Assert.equal(helperProperties.args, torArgs);
 
-      Assert.equal(socksProperties.command, "gpg");
-      Assert.equal(socksProperties.args, gpgArgs);
+        Assert.equal(socksProperties.command, "gpg");
+        Assert.equal(socksProperties.args, gpgArgs);
+      });
     });
   });
 }));
@@ -230,27 +244,31 @@ const torOn9150 = {
 };
 
 test(function testThatTorModeIsTrueWhenUserHasEnabledTorMode() {
-  TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
+  TestHelper.resetting(EnigmailVersioning, "versionFoundMeetsMinimumVersionRequired", function() {
     return true;
   }, function() {
-    let dirmngrConfiguredWithTorFunctionWasCalled = false;
-    TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
+    TestHelper.resetting(EnigmailGpg, "usesDirmngr", function() {
       return true;
     }, function() {
-      dirmngrConfiguredWithTorFunctionWasCalled = true;
-      const system = {
-        findTor: function() {
-          return torOn9150;
-        },
-        findTorExecutableHelper: function() {
-          return null;
-        }
-      };
+      let dirmngrConfiguredWithTorFunctionWasCalled = false;
+      TestHelper.resetting(EnigmailGpg, "dirmngrConfiguredWithTor", function() {
+        return true;
+      }, function() {
+        dirmngrConfiguredWithTorFunctionWasCalled = true;
+        const system = {
+          findTor: function() {
+            return torOn9150;
+          },
+          findTorExecutableHelper: function() {
+            return null;
+          }
+        };
 
-      const properties = torProperties(system);
-      Assert.equal(properties.useTorMode, true);
-      Assert.equal(properties.socks, null);
-      Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, "dirmngrConfiguredWithTor() was not called");
+        const properties = torProperties(system);
+        Assert.equal(properties.useTorMode, true);
+        Assert.equal(properties.socks, null);
+        Assert.equal(dirmngrConfiguredWithTorFunctionWasCalled, true, "dirmngrConfiguredWithTor() was not called");
+      });
     });
   });
 });
@@ -266,7 +284,7 @@ test(function testUsingTorsocksWithEnvironmentVariables() {
     }
   };
 
-  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -288,7 +306,7 @@ test(function testUsingTorsocksWithCommandArguments() {
     }
   };
 
-  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -312,7 +330,7 @@ test(function testUseNothingIfNoTorHelpersAreAvailable() {
     }
   };
 
-  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(exe) { return null; }, function() {
+  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return null; }, function() {
     const result = findTorExecutableHelper(versioning);
     Assert.equal(findTorExecutableHelper(versioning), null);
   });
