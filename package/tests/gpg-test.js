@@ -12,24 +12,13 @@
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js");
 /*global TestHelper: false, withEnvironment: false, withEnigmail: false, component: false, withTestGpgHome: false, osUtils: false */
 
-testing("gpg.jsm"); /*global EnigmailGpg: false, lazyEnv: true, usesDirmngr: false, dirmngrConfiguredWithTor: false */
+testing("gpg.jsm"); /*global EnigmailGpg: false, getGpgFeature: false, lazyEnv: true, usesDirmngr: false, dirmngrConfiguredWithTor: false */
 component("enigmail/execution.jsm"); /*global EnigmailExecution: false */
 component("enigmail/subprocess.jsm"); /*global subprocess: false */
 component("enigmail/files.jsm"); /*global EnigmailFiles: false */
 component("enigmail/os.jsm"); /*global EnigmailOS: false */
 component("enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false */
-
-function withGpgPath(f) {
-  return function() {
-    const path = EnigmailGpg.agentPath;
-    EnigmailGpg.setAgentPath({path: "/usr/bin/gpg2"});
-    try {
-      f();
-    } finally {
-      EnigmailGpg.setAgentPath({path: path});
-    }
-  };
-}
+component("enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 function withStubFormatCmdLine(f) {
   return function() {
@@ -130,3 +119,107 @@ test(function testIfVersionOfGpgDoesNotHaveDirmngr() {
   });
 });
 
+test(function testGetGpgFeatureForWhenVersionIsSupported() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.7", function() {
+    const output = EnigmailGpg.getGpgFeature("version-supported");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionIsSupported() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.0", function() {
+    const output = EnigmailGpg.getGpgFeature("version-supported");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionSupportsGpgAgent() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.0", function() {
+    const output = EnigmailGpg.getGpgFeature("supports-gpg-agent");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionDoesNotSupportGpgAgent() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "1.4", function() {
+    const output = EnigmailGpg.getGpgFeature("supports-gpg-agent");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionSupportsAutostartGpgAgent() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.16", function() {
+    const output = EnigmailGpg.getGpgFeature("autostart-gpg-agent");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionDoesNotSupportAutostartGpgAgent() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.0", function() {
+    const output = EnigmailGpg.getGpgFeature("autostart-gpg-agent");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionDoesNotSupportKeygenPassPhrase() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1", function() {
+    const output = EnigmailGpg.getGpgFeature("keygen-passphrase");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionSupportsKeygenPassPhrase() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1.2", function() {
+    const output = EnigmailGpg.getGpgFeature("keygen-passphrase");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionSupportsGenKeyNoProtection() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.1.2", function() {
+    const output = EnigmailGpg.getGpgFeature("genkey-no-protection");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionDoesNotSupportGenKeyNoProtection() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0", function() {
+    const output = EnigmailGpg.getGpgFeature("genkey-no-protection");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionSupportsWindowsPhotoidBug() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.16", function() {
+    const output = EnigmailGpg.getGpgFeature("windows-photoid-bug");
+    Assert.equal(output, false);
+  });
+});
+
+test(function testGetGpgFeatureForWhenVersionDoesNotSupportWindowsPhotoidBug() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.15", function() {
+    const output = EnigmailGpg.getGpgFeature("windows-photoid-bug");
+    Assert.equal(output, true);
+  });
+});
+
+test(function testGetGpgFeatureForUnkownFeature() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "2.0.15", function() {
+    const output = EnigmailGpg.getGpgFeature("I_am_unsupported");
+    Assert.equal(output, undefined);
+  });
+});
+
+test(function testGetGpgFeatureForNullAgentVersion() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", null, function() {
+    const output = EnigmailGpg.getGpgFeature("version-supported");
+    Assert.equal(output, undefined);
+  });
+});
+
+test(function testGetGpgFeatureForInvalidAgentVersion() {
+  TestHelper.resetting(EnigmailGpg, "agentVersion", "not a digit", function() {
+    const output = EnigmailGpg.getGpgFeature("version-supported");
+    Assert.equal(output, undefined);
+  });
+});
