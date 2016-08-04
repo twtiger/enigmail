@@ -24,14 +24,7 @@ Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: fals
 Cu.import("resource://enigmail/subprocess.jsm"); /*global subprocess: false */
 Cu.import("resource://enigmail/core.jsm"); /*global EnigmailCore: false */
 Cu.import("resource://enigmail/os.jsm"); /*global EnigmailOS: false */
-
-let vc = null;
-function getVersionComparator() {
-  if (vc === null) {
-    vc = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator);
-  }
-  return vc;
-}
+Cu.import("resource://enigmail/versioning.jsm"); /*global EnigmailVersioning: false */
 
 // Socks5 arguments are no longer supported for this version of gpg and higher
 const MAXIMUM_SOCK5_SUPPORTED = "2.1.0";
@@ -106,7 +99,7 @@ function dirmngrConfiguredWithTor() {
 }
 
 function usesDirmngr() {
-  return getVersionComparator().compare(EnigmailGpg.agentVersion, MAXIMUM_SOCK5_SUPPORTED) >= 0;
+  return EnigmailVersioning.greaterThanOrEqual(EnigmailGpg.agentVersion, MAXIMUM_SOCK5_SUPPORTED);
 }
 
 const EnigmailGpg = {
@@ -150,17 +143,17 @@ const EnigmailGpg = {
 
     switch (featureName) {
       case "version-supported":
-        return getVersionComparator().compare(gpgVersion, "2.0.7") >= 0;
+        return EnigmailVersioning.greaterThanOrEqual(gpgVersion, "2.0.7");
       case "supports-gpg-agent":
-        return getVersionComparator().compare(gpgVersion, "2.0") >= 0;
+        return EnigmailVersioning.greaterThanOrEqual(gpgVersion, "2.0");
       case "autostart-gpg-agent":
-        return getVersionComparator().compare(gpgVersion, "2.0.16") >= 0;
+        return EnigmailVersioning.greaterThanOrEqual(gpgVersion, "2.0.16");
       case "keygen-passphrase":
-        return getVersionComparator().compare(gpgVersion, "2.1") < 0 || getVersionComparator().compare(gpgVersion, "2.1.2") >= 0;
+        return EnigmailVersioning.lessThan(gpgVersion, "2.1") || EnigmailVersioning.greaterThanOrEqual(gpgVersion, "2.1.2");
       case "genkey-no-protection":
-        return getVersionComparator().compare(gpgVersion, "2.1") > 0;
+        return EnigmailVersioning.greaterThan(gpgVersion, "2.1");
       case "windows-photoid-bug":
-        return getVersionComparator().compare(gpgVersion, "2.0.16") < 0;
+        return EnigmailVersioning.lessThan(gpgVersion, "2.0.16");
     }
 
     return undefined;

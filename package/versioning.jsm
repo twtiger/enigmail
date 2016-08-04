@@ -61,7 +61,17 @@ function greaterThanOrEqual(left, right) {
   return getVersionComparator().compare(left, right) >= 0;
 }
 
+function greaterThan(left, right) {
+  return getVersionComparator().compare(left, right) > 0;
+}
+
+function lessThan(left, right) {
+  return getVersionComparator().compare(left, right) < 0;
+}
+
 const EnigmailVersioning = {
   greaterThanOrEqual: greaterThanOrEqual,
+  greaterThan: greaterThan,
+  lessThan: lessThan,
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired
 };
