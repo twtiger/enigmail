@@ -41,8 +41,8 @@ function withStubFormatCmdLine(f) {
   };
 }
 
-test(withStubFormatCmdLine(function shouldUseResolveAndSimpleExecWhenCheckingDirmngrConfiguration() {
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+test(withStubFormatCmdLine(function shouldUseResolveToolPathWhenCheckingDirmngrConfiguration() {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(executable) {
     Assert.equal(executable, "gpg-connect-agent");
     return;
   }, function() {
@@ -57,7 +57,7 @@ test(withStubFormatCmdLine(function shouldUseResolveAndSimpleExecWhenCheckingDir
 }));
 
 test(withStubFormatCmdLine(function returnsTrueWhenConfiguredToUseTor() {
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(executable) {
     return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
@@ -74,7 +74,7 @@ test(withStubFormatCmdLine(function returnsTrueWhenConfiguredToUseTor() {
 }));
 
 test(withStubFormatCmdLine(function returnsFalseWhenNotConfiguredToUseTor() {
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(executable) {
     return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
@@ -91,7 +91,7 @@ test(withStubFormatCmdLine(function returnsFalseWhenNotConfiguredToUseTor() {
 }));
 
 test(withStubFormatCmdLine(function returnsFalseWhenGpgConnectAgentPathIsNotFound() {
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(executable) {
     return null;
   }, function() {
 
@@ -100,7 +100,7 @@ test(withStubFormatCmdLine(function returnsFalseWhenGpgConnectAgentPathIsNotFoun
 }));
 
 test(withStubFormatCmdLine(function returnsFalseWhenExitCodeIndicatesErrorInExecution() {
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(executable) {
+  TestHelper.resetting(EnigmailGpgAgent, "resolveToolPath", function(executable) {
     return { path: "/usr/bin/gpg-connect-agent" };
   }, function() {
     TestHelper.resetting(subprocess, "call", function(subprocObj) {
