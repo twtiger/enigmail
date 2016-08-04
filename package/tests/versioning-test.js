@@ -9,39 +9,27 @@
 
 do_load_module("file://" + do_get_cwd().path + "/testHelper.js"); /*global withEnigmail: false, withTestGpgHome: false */
 
-testing("versioning.jsm"); /*global EnigmailVersioning: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
+testing("versioning.jsm"); /*global EnigmailVersioning: false, versionGreaterOrEqual: false, createVersionRequest:false, versionFoundMeetsMinimumVersionRequired:false  */
 component("enigmail/log.jsm"); /*global EnigmailLog:false, Components:false, Cc: false, Ci: false, parseVersion: false  */
 component("enigmail/files.jsm"); /*global EnigmailFiles:false */
 
 test(function checkCurlVersionIsOver() {
-  const minimumCurlVersion = { major: 7, minor: 21, patch: 7 };
+  const minimumCurlVersion = "7.21.7";
   Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", minimumCurlVersion), true);
 });
 
 test(function checkCurlVersionIsLess() {
-  const absurdlyHighCurlRequirement = { major: 100, minor: 100, patch: 100 };
+  const absurdlyHighCurlRequirement = "100.100.100";
   Assert.equal(versionFoundMeetsMinimumVersionRequired("curl", absurdlyHighCurlRequirement), false);
 });
 
-test(function parseFullVersionResponse() {
-  const response = "10.12.5";
-  const expectedParsedVersion = { major: 10, minor: 12, patch: 5 };
-  Assert.deepEqual(parseVersion(response), expectedParsedVersion);
-});
-
-test(function parseMajorMinorResponse() {
-  const response = "7.12";
-  const expectedParsedVersion = { major: 7, minor: 12, patch: 0 };
-  Assert.deepEqual(parseVersion(response), expectedParsedVersion);
-});
-
-test(function parseMajorOnlyResponse() {
-  const response = "6";
-  const expectedParsedVersion = { major: 6, minor: 0, patch: 0 };
-  Assert.deepEqual(parseVersion(response), expectedParsedVersion);
+test(function versionIsGreaterOrEqual() {
+  Assert.equal(versionGreaterOrEqual("7.12", "7.30"), false);
+  Assert.equal(versionGreaterOrEqual("7.12", "7.12"), true);
+  Assert.equal(versionGreaterOrEqual("7.12", "7.1"), true);
 });
 
 test(function gpgNotOverOrEqual() {
-  const minimum = { major: 2, minor: 0, patch: 30 };
+  const minimum = "2.0.30";
   Assert.equal(versionFoundMeetsMinimumVersionRequired("gpg", minimum), false);
 });

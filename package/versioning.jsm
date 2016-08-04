@@ -12,33 +12,18 @@
 const EXPORTED_SYMBOLS = ["EnigmailVersioning"];
 
 const Cu = Components.utils;
+const Cc = Components.classes;
+const Ci = Components.interfaces;
 
 Cu.import("resource://enigmail/log.jsm"); /*global EnigmailLog: false */
 Cu.import("resource://enigmail/execution.jsm"); /*global EnigmailExecution: false */
 
-function parseVersion(systemResponse) {
-  const versionParts = systemResponse.split(".");
-  const parsedVersion = [0,0,0];
-  for (let i=0; i < versionParts.length; i++) {
-    parsedVersion[i] = parseInt(versionParts[i], 10);
+let vc = null;
+function getVersionComparator() {
+  if (vc === null) {
+    vc = Cc["@mozilla.org/xpcom/version-comparator;1"].getService(Ci.nsIVersionComparator);
   }
-  return {
-    // Defaults to major, minor, patch for consistency across many executables
-    major: parsedVersion[0],
-    minor: parsedVersion[1],
-    patch: parsedVersion[2]
-  };
-}
-
-function compareVersionParts(left, right) {
-  if (left.major > right.major) {
-    return true;
-  } else if (left.major === right.major) {
-    return left.minor > right.minor ||
-      ((left.minor === right.minor) &&
-        left.patch >= right.patch);
-  }
-  return false;
+  return vc;
 }
 
 function getVersion(stdout, executable) {
@@ -48,7 +33,7 @@ function getVersion(stdout, executable) {
 
     EnigmailLog.DEBUG(executable + " version found: " + versionResponse + "\n");
 
-    return parseVersion(versionResponse);
+    return versionResponse;
   } else {
     return null;
   }
@@ -69,14 +54,14 @@ function versionFoundMeetsMinimumVersionRequired(executable, minimumVersion) {
     return false;
   }
 
-  return compareVersionParts(version, minimumVersion);
+  return versionGreaterOrEqual(version, minimumVersion);
 }
 
-function versionMeetsMinimum(versionString, minimum) {
-  return compareVersionParts(parseVersion(versionString), minimum);
+function versionGreaterOrEqual(left, right) {
+  return getVersionComparator().compare(left, right) >= 0;
 }
 
 const EnigmailVersioning = {
+  versionGreaterOrEqual: versionGreaterOrEqual,
   versionFoundMeetsMinimumVersionRequired: versionFoundMeetsMinimumVersionRequired,
-  versionMeetsMinimum: versionMeetsMinimum
 };

@@ -24,20 +24,16 @@ Cu.import("resource://enigmail/gpgAgent.jsm"); /*global EnigmailGpgAgent: false 
 
 const EXPORTED_SYMBOLS = ["EnigmailTor"];
 
-function v(maj, min, pat) {
-  return {major: maj, minor: min, patch: pat};
-}
-
 // Minimum for using socks5h:// prefix
-const MINIMUM_CURL_SOCKS5H_VERSION = v(7, 21, 7);
+const MINIMUM_CURL_SOCKS5H_VERSION = "7.21.7";
 
 // Minimum for using socks5 proxies with curl
-const MINIMUM_CURL_SOCKS5_PROXY_VERSION = v(7, 18, 0);
+const MINIMUM_CURL_SOCKS5_PROXY_VERSION = "7.18.0";
 
 // Stable and most used version according to gnupg.org
-const MINIMUM_WINDOWS_GPG_VERSION = v(2, 0, 30);
+const MINIMUM_WINDOWS_GPG_VERSION = "2.0.30";
 
-const TORSOCKS_VERSION_2 = v(2, 0, 0);
+const TORSOCKS_VERSION_2 = "2.0.0";
 
 const TOR_SERVICE_PORT_PREF = "torServicePort";
 const TOR_BROWSER_BUNDLE_PORT_PREF = "torBrowserBundlePort";
@@ -117,7 +113,7 @@ function torOn(portPref) {
 
 function meetsOSConstraints() {
   if (EnigmailOS.isDosLike) {
-    return EnigmailVersioning.versionMeetsMinimum(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
+    return EnigmailVersioning.greaterOrEqual(EnigmailGpg.agentVersion, MINIMUM_WINDOWS_GPG_VERSION);
   } else {
     return EnigmailVersioning.versionFoundMeetsMinimumVersionRequired("curl", MINIMUM_CURL_SOCKS5_PROXY_VERSION);
   }

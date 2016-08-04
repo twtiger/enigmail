@@ -30,7 +30,7 @@ function withStandardGpg(f) {
 test(function evaluateGpgVersionWhenOsIsWindows() {
   TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
     TestHelper.resetting(EnigmailGpg, "agentVersion", "1.4.0", function() {
-      TestHelper.resetting(EnigmailVersioning, "versionMeetsMinimum", function(version, minimumVersion) {
+      TestHelper.resetting(EnigmailVersioning, "greaterOrEqual", function(version, minimumVersion) {
         Assert.equal(version, "1.4.0");
         Assert.deepEqual(minimumVersion, MINIMUM_WINDOWS_GPG_VERSION);
         return false;
