@@ -8,8 +8,6 @@
 
 "use strict";
 
-const CC = Components.Constructor;
-const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
