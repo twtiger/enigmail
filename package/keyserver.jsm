@@ -31,15 +31,17 @@ Cu.import("resource://enigmail/prefs.jsm"); /*global EnigmailPrefs: false */
 Cu.import("resource://enigmail/tor.jsm"); /*global EnigmailTor: false */
 Cu.import("resource://enigmail/keyserverUris.jsm"); /*global EnigmailKeyserverURIs: false */
 
+const nsIEnigmail = Ci.nsIEnigmail;
+
 function matchesKeyserverAction(action, flag) {
   return (action & flag) === flag;
 }
 
 function getRequestAction(actionFlags, keys) {
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.DOWNLOAD_KEY)) { return ["--recv-keys"].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.SEARCH_KEY)) { return ["--search-keys"].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.UPLOAD_KEY)) { return ["--send-keys"].concat(keys); }
-  if (matchesKeyserverAction(actionFlags, Ci.nsIEnigmail.REFRESH_KEY))  { return ["--refresh-keys"]; }
+  if (matchesKeyserverAction(actionFlags, nsIEnigmail.DOWNLOAD_KEY)) { return ["--recv-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, nsIEnigmail.SEARCH_KEY)) { return ["--search-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, nsIEnigmail.UPLOAD_KEY)) { return ["--send-keys"].concat(keys); }
+  if (matchesKeyserverAction(actionFlags, nsIEnigmail.REFRESH_KEY))  { return ["--refresh-keys"]; }
   return null;
 }
 
