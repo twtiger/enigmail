@@ -5,7 +5,6 @@
 #
 FROM ubuntu
 
-RUN echo "deb http://deb.torproject.org/torproject.org sid main" >> /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y zip

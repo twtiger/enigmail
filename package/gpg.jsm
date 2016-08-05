@@ -51,8 +51,6 @@ function pushTrimmedStr(arr, str, splitStr) {
   return (str.length > 0);
 }
 
-const curlDepPath = "/lib/gnupg/gpgkeys_curl";
-
 function getDirmngrTorStatus(exitCodeObj) {
   const command = getGpgAgent().resolveToolPath("gpg-connect-agent");
   if (command === null) {
