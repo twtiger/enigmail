@@ -166,7 +166,6 @@ function getUnixCharset() {
 
 }
 
-
 function getKernel32Dll() {
   if (!gKernel32Dll) {
     if (EnigmailOS.isWin32) {
@@ -182,6 +181,7 @@ function getKernel32Dll() {
 
 
 var EnigmailSystem = {
+
   determineSystemCharset: function() {
     EnigmailLog.DEBUG("system.jsm: determineSystemCharset\n");
 
