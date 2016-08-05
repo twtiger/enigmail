@@ -567,7 +567,7 @@ var EnigmailGpgAgent = {
       }
     }
 
-    return EnigmailFiles.simpleResolvePath(fileName);
+    return EnigmailFiles.resolvePathWithEnv(fileName);
   },
 
   detectGpgAgent: function(domWindow, esvc) {

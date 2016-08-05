@@ -65,7 +65,7 @@ const EnigmailFiles = {
     }
   },
 
-  simpleResolvePath: function(executable) {
+  resolvePathWithEnv: function(executable) {
     const foundPath = EnigmailFiles.resolvePath(potentialWindowsExecutable(executable), EnigmailCore.getEnigmailService().environment.get("PATH"), EnigmailOS.isDosLike);
     if (foundPath !== null) {
       foundPath.normalize();

@@ -284,7 +284,7 @@ test(function testUsingTorsocksWithEnvironmentVariables() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+  TestHelper.resetting(EnigmailFiles, "resolvePathWithEnv", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -306,7 +306,7 @@ test(function testUsingTorsocksWithCommandArguments() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) {
+  TestHelper.resetting(EnigmailFiles, "resolvePathWithEnv", function(exe) {
     if(exe === "torsocks") {
       return {path:"/usr/bin/torsocks"};
     } else {
@@ -330,7 +330,7 @@ test(function testUseNothingIfNoTorHelpersAreAvailable() {
     }
   };
 
-  TestHelper.resetting(EnigmailFiles, "simpleResolvePath", function(exe) { return null; }, function() {
+  TestHelper.resetting(EnigmailFiles, "resolvePathWithEnv", function(exe) { return null; }, function() {
     const result = findTorExecutableHelper(versioning);
     Assert.equal(findTorExecutableHelper(versioning), null);
   });

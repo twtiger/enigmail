@@ -150,7 +150,7 @@ const EnigmailExecution = {
    * Returns output from simpleExecCmd
    */
   resolveAndSimpleExec: function(command, args, exitCodeObj, errorMsgObj) {
-    const resolvedCommand = EnigmailFiles.simpleResolvePath(command);
+    const resolvedCommand = EnigmailFiles.resolvePathWithEnv(command);
     if (resolvedCommand === null) {
       return null;
     }
