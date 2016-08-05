@@ -44,14 +44,6 @@ const lazyLog = (function() {
   };
 })();
 
-let lazyEnv = null;
-function environment() {
-  if (lazyEnv === null) {
-    lazyEnv = Cc["@mozilla.org/process/environment;1"].getService(Ci.nsIEnvironment);
-  }
-  return lazyEnv;
-}
-
 function potentialWindowsExecutable(execName) {
   if (EnigmailOS.isDosLike) {
     return execName + ".exe";
