@@ -36,3 +36,13 @@ test(function shouldFormatCmdLine() {
 
   Assert.equal(EnigmailFiles.formatCmdLine(md, ["1", "2", "3"]), do_get_cwd().path + " 1 2 3");
 });
+
+test(function shouldNotAppendExeInDosLikeEnvironment() {
+  TestHelper.resetting(EnigmailOS, "isDosLike", true, function() {
+    const expectedPath = "C:\\Program Files\\GnuPG\\bin\\gpg.exe";
+
+    const actualPath = EnigmailFiles.resolvePath(expectedPath, "C:\\Program Files\\GnuPG\\bin", true);
+
+    Assert.equal(actualPath, expectedPath);
+  });
+});

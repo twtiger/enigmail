@@ -74,8 +74,6 @@ const EnigmailFiles = {
   },
 
   resolvePath: function(filePath, envPath, isDosLike) {
-    filePath = potentialWindowsExecutable(filePath);
-
     lazyLog().DEBUG("files.jsm: resolvePath: filePath=" + filePath + "\n");
 
     if (EnigmailFiles.isAbsolutePath(filePath, isDosLike))
