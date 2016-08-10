@@ -303,7 +303,7 @@ function refresh(keyId) {
 
 function logRefreshAction(successStatus, usingTor, keyId) {
   if (successStatus) {
-    EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + usingTor + ", successfully: " + successStatus + "\n\n");
+    EnigmailLog.CONSOLE("Refreshed key " + keyId + " over Tor: " + usingTor + ". Refreshed successfully: " + successStatus + "\n\n");
   } else {
     EnigmailLog.CONSOLE("Failed to refresh key " + keyId + "\n\n");
   }
