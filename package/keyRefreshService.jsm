@@ -27,6 +27,8 @@ function getTimer() {
   if (timer === null) timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
   return timer;
 }
+
+// A user can configure the amount of time per week they estimate Thunderbird is running on their machine
 const HOURS_PER_WEEK_ENIGMAIL_IS_ON_PREF = "hoursPerWeekEnigmailIsOn";
 
 function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
@@ -73,6 +75,7 @@ function logMissingInformation(keyIdsExist, validKeyserversExist){
   }
 }
 
+// Selects the next key to refresh, selected at random from all of a user's public keys
 function getRandomKeyId(randomNumber) {
   const keyRingLength = EnigmailKeyRing.getAllKeys().keyList.length;
 
@@ -103,9 +106,17 @@ function refreshWith(keyserver, timer, readyToRefresh) {
 }
 
 /**
- * Starts a process to continuously refresh keys on a random time interval
+ * Starts a process to continuously refresh keys on a random time interval and in random order.
+ *
+ * The default time period for all keys to be refreshed is one week, although the user can specifically set this in their preferences
+ * The wait time to refresh the next key is selected at random, from a range of zero milliseconds to the maximum time to refresh a key
+ *
+ * The maximum time to refresh a single key is calculated by averaging the total refresh time by the total number of public keys to refresh
+ * For example, if a user has 12 public keys to refresh, the maximum time to refresh a single key (by default) will be: milliseconds per week divided by 12
  *
  * This service does not keep state, it will restart each time Enigmail is initialized.
+ *
+ * @param keyserver   | dependency injected for testability
  */
 function start(keyserver) {
   if (EnigmailPrefs.getPref("keyRefreshOn") === true){
@@ -114,6 +125,10 @@ function start(keyserver) {
     refreshWith(keyserver, timer, false);
   }
 }
+
+/*
+  This module intializes the continuous key refresh functionality. This includes randomly selecting th key to refresh and the timing to wait between each refresh
+*/
 
 const EnigmailKeyRefreshService = {
   start: start
