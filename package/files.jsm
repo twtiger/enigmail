@@ -44,14 +44,21 @@ const lazyLog = (function() {
   };
 })();
 
-function potentialWindowsExecutable(execName) {
+function potentialWindowsExecutable(file) {
   if (EnigmailOS.isDosLike) {
-    return execName + ".exe";
+    return file + ".exe";
   }
-  return execName;
+  return file;
 }
 
 const EnigmailFiles = {
+  /**
+   * potentialWindowsExecutable appends .exe to a file
+   *
+   * @param     String  file    - file path or executable name to append .exe to
+   *
+   * @return    String  file    - modified file path or executable name
+   */
   potentialWindowsExecutable: potentialWindowsExecutable,
 
   isAbsolutePath: function(filePath, isDosLike) {
@@ -65,6 +72,13 @@ const EnigmailFiles = {
     }
   },
 
+  /**
+   * resolvePathWithEnv tries to resolve an file's path with the EnigmailService's environment PATH variable.
+   *
+   * @param     String  file        - file to be resolved
+   *
+   * @return    String  foundPath   - Returns found path. If no path is found, returns null.
+   */
   resolvePathWithEnv: function(executable) {
     const foundPath = EnigmailFiles.resolvePath(potentialWindowsExecutable(executable), EnigmailCore.getEnigmailService().environment.get("PATH"), EnigmailOS.isDosLike);
     if (foundPath !== null) {
