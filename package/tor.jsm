@@ -92,7 +92,7 @@ function buildEnvVars() {
 }
 
 function createRandomCredential() {
-  return EnigmailRNG.getUint32().toString();
+  return EnigmailRNG.generateRandomUint32().toString();
 }
 
 function torOn(portPref) {

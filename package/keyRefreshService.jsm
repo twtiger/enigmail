@@ -35,7 +35,7 @@ function calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys) {
 }
 
 function calculateWaitTimeInMilliseconds(totalPublicKeys) {
-  const randomNumber = EnigmailRNG.getUint32();
+  const randomNumber = EnigmailRNG.generateRandomUint32();
   const maxTimeForRefresh = calculateMaxTimeForRefreshInMilliseconds(totalPublicKeys);
 
   EnigmailLog.DEBUG("[KEY REFRESH SERVICE]: Wait time = random number: "+ randomNumber + " % max time for refresh: " + maxTimeForRefresh + "\n");
@@ -88,7 +88,7 @@ function refreshKeyIfReady(keyserver, readyToRefresh, keyId){
 }
 
 function refreshWith(keyserver, timer, readyToRefresh) {
-  const keyId = getRandomKeyId(EnigmailRNG.getUint32());
+  const keyId = getRandomKeyId(EnigmailRNG.generateRandomUint32());
   const keyIdsExist = keyId !== null;
   const validKeyserversExist = EnigmailKeyserverURIs.validKeyserversExist();
 
