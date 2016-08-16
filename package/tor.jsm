@@ -54,11 +54,25 @@ function getAction(actionFlags) {
   return null;
 }
 
+/**
+ * Sets user preference about requiring requests only to be made over Tor
+ *
+ * @param actionFlags - long: A Keyserver action flag
+ *
+ * @return true if user has requested gpg requests to be attempted over Tor, false otherwise
+ */
 function isPreferred(actionFlags) {
   const action = getAction(actionFlags);
   return EnigmailPrefs.getPref(action.requires) || EnigmailPrefs.getPref(action.uses);
 }
 
+/**
+ * Sets user preference about requiring requests only to be made over Tor
+ *
+ * @param actionFlags - long: A Keyserver action flag
+ *
+ * @return true if user has requested gpg requests ONLY to be attempted over Tor, false otherwise
+ */
 function isRequired(actionFlags) {
   return EnigmailPrefs.getPref(getAction(actionFlags).requires);
 }
@@ -138,6 +152,11 @@ function findTorExecutableHelper(versioning) {
   }
 }
 
+/**
+ * Checks if Tor is running on specified ports in preferences for Tor browser bundle and Tor service
+ *
+ * @return true if Tor is running on either port, false if Tor is not running on either
+ */
 function findTor() {
   const torOnBrowser = torOn(TOR_BROWSER_BUNDLE_PORT_PREF);
   if (torOnBrowser !== null) {
@@ -151,7 +170,7 @@ const systemCaller = {
   findTorExecutableHelper: findTorExecutableHelper
 };
 
-function buildSocksProperties(tor, system) {
+function buildSocksProperties(tor) {
   return {
     command: "gpg",
     args: gpgProxyArgs(tor, EnigmailVersioning),
@@ -162,6 +181,29 @@ function buildSocksProperties(tor, system) {
 function torNotAvailableProperties() {
   return {isAvailable: false, useTorMode: false, socks: null, helper: null};
 }
+
+/**
+ * Constructs object with properites about how we will use tor for key refreshes
+ *
+ * @param system - object with functions to locate Tor and Tor helpers
+ *
+ * @return object with
+      * isAvailable   - boolean, true if Tor is available, false otherwise
+      * useTorMode    - boolean, true if dirManager is available and configured to use Tor, false otherwise
+      * socks         - object with
+                          * command -  the name of the gpg executable
+                          * args    -  proxy host URI
+                          * envVars -  an empty array
+
+                        null if Tor is not available
+
+      * helper        - object with
+                          * envVars    - environment variables, if we need them for the helper
+                          * command    - the path to the helper executable
+                          * args       - flags used with the helper, if we do not use environment variables
+
+                          If no helper is found, return null
+ */
 
 function torProperties(system) {
   const tor = system.findTor();
@@ -182,7 +224,7 @@ function torProperties(system) {
   if (EnigmailGpg.usesDirmngr()) {
     useTorMode = EnigmailGpg.dirmngrConfiguredWithTor();
   } else {
-    socks = buildSocksProperties(tor, system);
+    socks = buildSocksProperties(tor);
   }
 
   return {isAvailable: true, useTorMode: useTorMode, socks: socks, helper: helper};
